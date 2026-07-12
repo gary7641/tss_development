@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Console - Signal Helper DEV</title>
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        crossorigin="anonymous"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        /* Admin-specific styles */
+        .admin-login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .admin-login-card {
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .admin-dashboard {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .admin-topbar {
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .stat-card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+        .admin-sidebar {
+            background: #2c3e50;
+            color: white;
+            min-height: 100vh;
+            padding: 1.5rem 1rem;
+        }
+        .admin-nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .admin-nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .admin-nav-link.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- ══════════════════════════════════════════════════════════
+         LOGIN VIEW
+    ═══════════════════════════════════════════════════════════ -->
+    <div id="login-view" class="admin-login-container">
+        <div class="admin-login-card p-5">
+            <div class="text-center mb-4">
+                <i class="bi bi-shield-lock-fill fs-1 text-primary"></i>
+                <h3 class="mt-3 mb-1">Admin Console</h3>
+                <p class="text-muted small">Signal Helper - DEV Environment</p>
+            </div>
+            <form id="login-form">
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="admin@example.com" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required />
+                </div>
+                <div id="login-error" class="alert alert-danger d-none" role="alert"></div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </button>
+            </form>
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> Admin access only
+                </small>
+            </div>
+        </div>
+    </div>
+    <!-- ══════════════════════════════════════════════════════════
+         DASHBOARD VIEW
+    ═══════════════════════════════════════════════════════════ -->
+    <div id="dashboard-view" class="d-none">
+        <div class="d-flex">
+            <!-- Sidebar -->
+            <div class="admin-sidebar" style="width: 250px;">
+                <div class="mb-4">
+                    <h5 class="fw-bold"><i class="bi bi-shield-check me-2"></i>Admin</h5>
+                    <p class="small text-white-50 mb-0" id="admin-email-display">-</p>
+                </div>
+                <nav>
+                    <a href="#" class="admin-nav-link active" data-section="overview">
+                        <i class="bi bi-speedometer2 me-2"></i>Overview
+                    </a>
+                    <a href="#" class="admin-nav-link" data-section="users">
+                        <i class="bi bi-people me-2"></i>Users
+                    </a>
+                    <a href="#" class="admin-nav-link" data-section="signals">
+                        <i class="bi bi-graph-up-arrow me-2"></i>Signals Library
+                    </a>
+                    <a href="#" class="admin-nav-link" data-section="system">
+                        <i class="bi bi-gear me-2"></i>System Status
+                    </a>
+                </nav>
+                <div class="mt-auto pt-4">
+                    <button id="logout-btn" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+            <!-- Main Content -->
+            <div class="flex-grow-1">
+                <!-- Top Bar -->
+                <div class="admin-topbar d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0" id="dashboard-title">Overview</h5>
+                    <div class="text-muted small">
+                        <i class="bi bi-clock me-1"></i><span id="current-time">-</span>
+                    </div>
+                </div>
+                <!-- Content Area -->
+                <div class="p-4">
+                    <!-- OVERVIEW SECTION -->
+                    <div id="section-overview" class="dashboard-section">
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-3">
+                                <div class="card stat-card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <p class="text-muted mb-1 small">Total Users</p>
+                                                <h4 id="stat-total-users" class="mb-0">-</h4>
+                                            </div>
+                                            <i class="bi bi-people fs-2 text-primary"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stat-card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <p class="text-muted mb-1 small">Total Signals</p>
+                                                <h4 id="stat-total-signals" class="mb-0">-</h4>
+                                            </div>
+                                            <i class="bi bi-broadcast fs-2 text-success"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stat-card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <p class="text-muted mb-1 small">Admin Users</p>
+                                                <h4 id="stat-admin-users" class="mb-0">-</h4>
+                                            </div>
+                                            <i class="bi bi-shield-check fs-2 text-warning"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stat-card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <p class="text-muted mb-1 small">Active Today</p>
+                                                <h4 id="stat-active-today" class="mb-0">-</h4>
+                                            </div>
+                                            <i class="bi bi-activity fs-2 text-info"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h6 class="mb-0">Recent Activity</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Activity logs will appear here...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- USERS SECTION -->
+                    <div id="section-users" class="dashboard-section d-none">
+                        <div class="card">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">User Management</h6>
+                                <span class="badge bg-secondary" id="users-count">0 users</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Email</th>
+                                                <th>Display Name</th>
+                                                <th>Role</th>
+                                                <th>Created</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="users-table-body">
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted py-4">Loading users...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- SIGNALS SECTION -->
+                    <div id="section-signals" class="dashboard-section d-none">
+                        <div class="card">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Signals Library</h6>
+                                <span class="badge bg-secondary" id="signals-count">0 signals</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Symbol</th>
+                                                <th>Type</th>
+                                                <th>Net Profit</th>
+                                                <th>Comment</th>
+                                                <th>Updated</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="signals-table-body">
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted py-4">Loading signals...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- SYSTEM SECTION -->
+                    <div id="section-system" class="dashboard-section d-none">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h6 class="mb-0">System Status</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <th>Environment</th>
+                                            <td><span class="badge bg-warning text-dark">DEV</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Firebase Project</th>
+                                            <td id="system-project">-</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Version</th>
+                                            <td>v0.1.1</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Last Updated</th>
+                                            <td id="system-updated">-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous">
+    </script>
+    <!-- Admin JS (ES Module) -->
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>
