@@ -12,7 +12,8 @@
 
 import { db, auth, COLLECTIONS, isAdmin } from './firebase-config.js';
 import {
-    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
     signOut,
     onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -73,56 +74,31 @@ function initLogin() {
     if (DOM.loginForm) {
         DOM.loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = DOM.loginEmail.value.trim();
-            const password = DOM.loginPassword.value;
-            
-            hideError();
-            
+function initLogin() {
+    const googleLoginBtn = document.getElementById('google-login-btn');
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', async () => {
             try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
                 
                 // Check if user is admin
                 if (!isAdmin(user)) {
                     await signOut(auth);
-                    showError('Access denied. Admin privileges required.');
+                    alert('Access denied. Admin privileges required.');
                     return;
                 }
                 
-                console.log('[Admin] Login successful:', user.email);
+                console.log('[Admin] Google login successful:', user.email);
                 // Auth state change will handle UI transition
             } catch (err) {
-                console.error('[Admin] Login error:', err);
-                showError(getErrorMessage(err.code));
+                console.error('[Admin] Google login error:', err);
+                alert(`Login failed: ${err.message}`);
             }
         });
     }
 }
-
-function showError(message) {
-    if (DOM.loginError) {
-        DOM.loginError.textContent = message;
-        DOM.loginError.classList.remove('d-none');
-    }
-}
-
-function hideError() {
-    if (DOM.loginError) {
-        DOM.loginError.classList.add('d-none');
-    }
-}
-
-function getErrorMessage(code) {
-    const messages = {
-        'auth/invalid-email': 'Invalid email address.',
-        'auth/user-disabled': 'This account has been disabled.',
-        'auth/user-not-found': 'No account found with this email.',
-        'auth/wrong-password': 'Incorrect password.',
-        'auth/invalid-credential': 'Invalid email or password.'
-    };
-    return messages[code] || 'Login failed. Please try again.';
-}
-
 // ─── Auth State ───────────────────────────────────────────────────────────────
 function initAuth() {
     onAuthStateChanged(auth, async (user) => {
