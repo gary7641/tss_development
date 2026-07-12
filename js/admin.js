@@ -63,10 +63,6 @@ const DOM = {
 
 // ─── Login Flow ───────────────────────────────────────────────────────────────
 function initLogin() {
-    if (DOM.loginForm) {
-        DOM.loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-function initLogin() {
     const googleLoginBtn = document.getElementById('google-login-btn');
     if (googleLoginBtn) {
         googleLoginBtn.addEventListener('click', async () => {
