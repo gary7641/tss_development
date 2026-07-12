@@ -1,14 +1,12 @@
 /**
  * firebase-config.js
  * Signal Helper - TSS Development
- * Version: 0.1.0
+ * Version: 0.1.1
  *
- * Firebase initialization for the DEV environment (tss_development).
- * Replace the firebaseConfig values with actual credentials from
- * Firebase Console > Project Settings > Your apps.
+ * Firebase initialization for the DEV environment.
+ * Project: Shenxu-Signal-helper (shenxu-signal-helper)
  *
- * DO NOT commit real credentials. Use environment variables or
- * GitHub Secrets for production deployment.
+ * Time Zone: HKT (UTC+8), fixed, no DST
  */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -16,15 +14,15 @@ import { getFirestore }  from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth }       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 // ─── DEV Firebase Configuration ──────────────────────────────────────────────
-// Replace with your actual tss_development Firebase project credentials.
 
 const firebaseConfig = {
-  apiKey:            "YOUR_DEV_API_KEY",
-  authDomain:        "tss-development.firebaseapp.com",
-  projectId:         "tss-development",
-  storageBucket:     "tss-development.appspot.com",
-  messagingSenderId: "YOUR_DEV_MESSAGING_SENDER_ID",
-  appId:             "YOUR_DEV_APP_ID"
+  apiKey:            "AIzaSyAEKxqBSfBnTyHUQRPPGlietw6zlxWeoc0",
+  authDomain:        "shenxu-signal-helper.firebaseapp.com",
+  projectId:         "shenxu-signal-helper",
+  storageBucket:     "shenxu-signal-helper.firebasestorage.app",
+  messagingSenderId: "1038211644480",
+  appId:             "1:1038211644480:web:d8fccc727294df4b1233a5",
+  measurementId:     "G-K3FVLTNDEE"
 };
 
 // ─── Initialize Firebase ──────────────────────────────────────────────────────
@@ -33,7 +31,6 @@ const app = initializeApp(firebaseConfig);
 
 /**
  * Firestore database instance (DEV).
- * Collection: signals_library
  */
 const db = getFirestore(app);
 
@@ -50,9 +47,28 @@ const ENV = 'development';
 
 const COLLECTIONS = {
   SIGNALS_LIBRARY: 'signals_library',
-  USERS:           'users'
+  USERS:           'users',
+  ADMINS:          'admins'
 };
+
+// ─── Admin Whitelist (DEV) ────────────────────────────────────────────────────
+// These emails are the only accounts allowed full admin access in DEV.
+
+const ADMIN_EMAILS = [
+  'gary7641@gmail.com',
+  'shenxu.gary@gmail.com'
+];
+
+/**
+ * Check if the currently logged-in user is an admin.
+ * @param {import('firebase/auth').User} user
+ * @returns {boolean}
+ */
+function isAdmin(user) {
+  if (!user) return false;
+  return ADMIN_EMAILS.includes(user.email);
+}
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
-export { app, db, auth, ENV, COLLECTIONS };
+export { app, db, auth, ENV, COLLECTIONS, ADMIN_EMAILS, isAdmin };
