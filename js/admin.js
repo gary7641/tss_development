@@ -37,14 +37,6 @@ const AdminState = {
 const DOM = {
     loginView: document.getElementById('login-view'),
     dashboardView: document.getElementById('dashboard-view'),
-    loginForm: document.getElementById('login-form'),
-    loginEmail: document.getElementById('login-email'),
-    loginPassword: document.getElementById('login-password'),
-    loginError: document.getElementById('login-error'),
-    logoutBtn: document.getElementById('logout-btn'),
-    adminEmailDisplay: document.getElementById('admin-email-display'),
-    dashboardTitle: document.getElementById('dashboard-title'),
-    currentTime: document.getElementById('current-time'),
     // Nav links
     navLinks: document.querySelectorAll('.admin-nav-link'),
     // Sections
