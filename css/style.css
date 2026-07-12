@@ -1,0 +1,284 @@
+/*
+ * style.css
+ * Signal Helper - TSS Development
+ * Version: 0.1.0
+ *
+ * Custom styles for the Signal Helper portal.
+ * Built on top of Bootstrap 5.
+ * Theme: Dark sidebar + light main content
+ */
+
+/* ─── CSS Variables ──────────────────────────────────────────────────────── */
+
+:root {
+  --sh-sidebar-width:     240px;
+  --sh-sidebar-bg:        #1a1d23;
+  --sh-sidebar-text:      #c9d1d9;
+  --sh-sidebar-active:    #0d6efd;
+  --sh-sidebar-hover-bg:  rgba(255, 255, 255, 0.07);
+  --sh-topbar-height:     54px;
+  --sh-topbar-bg:         #ffffff;
+  --sh-body-bg:           #f4f6f9;
+  --sh-card-shadow:       0 2px 8px rgba(0, 0, 0, 0.08);
+  --sh-accent:            #0d6efd;
+  --sh-success:           #198754;
+  --sh-danger:            #dc3545;
+}
+
+/* ─── Global ─────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--sh-body-bg);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+  color: #212529;
+}
+
+/* ─── Sidebar ────────────────────────────────────────────────────────────── */
+
+.sidebar {
+  width: var(--sh-sidebar-width);
+  min-width: var(--sh-sidebar-width);
+  background-color: var(--sh-sidebar-bg);
+  color: var(--sh-sidebar-text);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-brand {
+  color: #ffffff !important;
+  letter-spacing: 0.03em;
+}
+
+.sidebar-brand:hover {
+  color: #e0e0e0 !important;
+}
+
+.sidebar-env-badge .badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+}
+
+/* Nav links */
+.sidebar-link {
+  color: var(--sh-sidebar-text) !important;
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-link:hover:not(.disabled) {
+  background-color: var(--sh-sidebar-hover-bg) !important;
+  color: #ffffff !important;
+}
+
+.sidebar-link.active {
+  background-color: var(--sh-sidebar-active) !important;
+  color: #ffffff !important;
+}
+
+.sidebar-link.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Section label */
+.sidebar-section-label {
+  font-size: 0.65rem;
+  color: #6c757d;
+  padding: 0 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+/* User info at bottom */
+.sidebar-user {
+  color: var(--sh-sidebar-text);
+}
+
+/* Scrollbar for sidebar */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+/* ─── Top Bar ────────────────────────────────────────────────────────────── */
+
+.topbar {
+  background-color: var(--sh-topbar-bg);
+  height: var(--sh-topbar-height);
+  min-height: var(--sh-topbar-height);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Main Content ───────────────────────────────────────────────────────── */
+
+.main-content {
+  background-color: var(--sh-body-bg);
+}
+
+.page-section {
+  min-height: calc(100vh - var(--sh-topbar-height));
+}
+
+/* ─── Cards ──────────────────────────────────────────────────────────────── */
+
+.card {
+  border: 1px solid #e5e9f0;
+  border-radius: 10px;
+  box-shadow: var(--sh-card-shadow);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e5e9f0;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 10px 10px 0 0 !important;
+}
+
+/* ─── Stat Cards ─────────────────────────────────────────────────────────── */
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .card-body {
+  padding: 1.25rem;
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6c757d;
+  margin-bottom: 0.4rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-icon {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  font-size: 2.5rem;
+  opacity: 0.08;
+  color: #000;
+}
+
+/* ─── Signals Table ──────────────────────────────────────────────────────── */
+
+.signals-table {
+  font-size: 0.8rem;
+}
+
+.signals-table thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  padding: 0.65rem 0.75rem;
+}
+
+.signals-table tbody td {
+  vertical-align: middle;
+  padding: 0.55rem 0.75rem;
+  white-space: nowrap;
+}
+
+.signals-table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.04);
+}
+
+/* ─── Upload Zone ────────────────────────────────────────────────────────── */
+
+.upload-zone {
+  background-color: #fafbfc;
+  border-color: #d0d7de !important;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.upload-zone:hover {
+  border-color: var(--sh-accent) !important;
+  background-color: rgba(13, 110, 253, 0.03);
+}
+
+.upload-zone.drag-over {
+  border-color: var(--sh-accent) !important;
+  background-color: rgba(13, 110, 253, 0.06);
+}
+
+/* ─── Badges ─────────────────────────────────────────────────────────────── */
+
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+    min-width: 200px;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .sidebar {
+    display: none !important;
+  }
+
+  .main-content {
+    width: 100%;
+  }
+}
+
+/* ─── Utilities ──────────────────────────────────────────────────────────── */
+
+.border-dashed {
+  border-style: dashed !important;
+}
+
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Scrollbar for main content */
+.main-content::-webkit-scrollbar {
+  width: 6px;
+}
+.main-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
