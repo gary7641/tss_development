@@ -40,3 +40,57 @@ body[data-mode="light"][data-theme="wood"] {
 .live-card .curve {
   height: 180px; /* 大 Curve */
 }
+:root {
+  --wood-light: #f8f9f0;
+  --wood-accent: #4a7043;
+  --wood-text: #2c3e2f;
+}
+
+body[data-theme="wood"][data-mode="light"] {
+  background: var(--wood-light);
+  color: var(--wood-text);
+}
+
+/* Live Signal Card */
+.live-signal-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 25px rgba(74,112,67,0.1);
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+}
+
+.live-signal-card .profit {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #4a7043;
+}
+
+.live-signal-card .dd {
+  font-size: 1.1rem;
+  color: #e63939;
+}
+
+.live-signal-card .curve {
+  flex: 1;
+  background: #f0f4f0;
+  border-radius: 12px;
+  margin: 1rem 0;
+  position: relative;
+}
+
+/* Magic Orb */
+.magic-orb {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #fff9, #4a7043);
+  box-shadow: 0 0 25px rgba(74,112,67,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
