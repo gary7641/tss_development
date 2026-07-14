@@ -1,315 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-HK">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Signal Helper - DEV</title>
-
-  <!-- Bootstrap 5 -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-    crossorigin="anonymous"
-  />
-
-  <!-- Bootstrap Icons -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    rel="stylesheet"
-  />
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <title>Signal Helper - Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="light-wood-theme">
 
-<!-- ═══════════════════════════════════════════════════════════
-     LAYOUT: Sidebar + Main Content
-     ═══════════════════════════════════════════════════════════ -->
-<div class="d-flex vh-100 overflow-hidden">
-
-  <!-- ── Sidebar ─────────────────────────────────────────── -->
-  <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 p-3">
-
-    <!-- Brand -->
-    <a href="#" class="sidebar-brand d-flex align-items-center mb-4 text-decoration-none">
-      <i class="bi bi-broadcast-pin me-2 fs-4"></i>
-      <span class="fs-5 fw-bold">Signal Helper</span>
-    </a>
-    <div class="sidebar-env-badge mb-3">
-      <span class="badge bg-warning text-dark w-100">DEV Environment</span>
+  <!-- HEADER (A2 Style) -->
+  <header class="top-header">
+    <div class="logo">Signal Helper</div>
+    <div class="header-right">
+      <div id="theme-toggle">Light / Dark</div>
+      <div class="user-avatar" id="user-menu-trigger">🪵</div>
     </div>
+  </header>
 
-    <!-- P1 Navigation -->
-    <ul class="nav nav-pills flex-column mb-auto gap-1">
+  <div class="main-layout">
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <!-- P1, P2, P3 按你最終確認版 -->
+      <ul>
+        <li class="active">Dashboard</li>
+        <li>Live Signals</li>
+        <!-- ... 其他 -->
+      </ul>
+    </nav>
 
-      <li class="nav-item">
-        <a href="#" id="nav-dashboard" class="nav-link active sidebar-link">
-          <i class="bi bi-speedometer2 me-2"></i>Dashboard
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="#" id="nav-my-signals" class="nav-link sidebar-link">
-          <i class="bi bi-graph-up-arrow me-2"></i>My Signals
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="#" id="nav-register-signal" class="nav-link sidebar-link">
-          <i class="bi bi-plus-circle me-2"></i>Register Signal
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="#" id="nav-user-profile" class="nav-link sidebar-link">
-          <i class="bi bi-person-circle me-2"></i>User Profile
-        </a>
-      </li>
-
-      <!-- P2 placeholder items (disabled) -->
-      <li class="nav-item mt-3">
-        <span class="sidebar-section-label text-uppercase small">Coming Soon (P2)</span>
-      </li>
-      <li><a href="#" class="nav-link sidebar-link disabled text-muted"><i class="bi bi-lightning-charge me-2"></i>Cross Power</a></li>
-      <li><a href="#" class="nav-link sidebar-link disabled text-muted"><i class="bi bi-file-earmark-bar-graph me-2"></i>Open THA</a></li>
-      <li><a href="#" class="nav-link sidebar-link disabled text-muted"><i class="bi bi-book me-2"></i>Reference</a></li>
-      <li><a href="#" class="nav-link sidebar-link disabled text-muted"><i class="bi bi-compass me-2"></i>Directory</a></li>
-    </ul>
-
-    <!-- User Info -->
-    <div class="sidebar-user mt-auto pt-3 border-top border-secondary">
-      <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-person-circle fs-4"></i>
-        <div class="overflow-hidden">
-          <div id="user-display-name" class="fw-semibold text-truncate small">-</div>
-          <div id="user-email" class="text-muted text-truncate" style="font-size: 0.7rem;">-</div>
-        </div>
-      </div>
-    </div>
-
-  </nav>
-  <!-- ── /Sidebar ──────────────────────────────────────────── -->
-
-  <!-- ── Main Content ─────────────────────────────────────── -->
-  <main class="main-content flex-grow-1 overflow-auto">
-
-    <!-- Top Bar -->
-    <div class="topbar d-flex align-items-center justify-content-between px-4 py-2 border-bottom">
-      <h6 id="topbar-title" class="mb-0 fw-semibold">Dashboard</h6>
-      <div class="d-flex align-items-center gap-3">
-        <!-- CSV Upload -->
-        <input type="file" id="csv-upload-input" accept=".csv" multiple class="d-none" />
-        <button id="csv-upload-btn" class="btn btn-sm btn-primary">
-          <i class="bi bi-upload me-1"></i>Upload CSV
-        </button>
-        <span id="csv-upload-status" class="small text-muted"></span>
-      </div>
-    </div>
-
-    <!-- ─────────────────────────────────────────────────────
-         PAGE: Dashboard
-         ───────────────────────────────────────────────────── -->
-    <div id="page-dashboard" class="page-section p-4">
-
-      <h5 class="mb-4">Overview</h5>
-
-      <!-- Stat Cards -->
-      <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-xl-3">
-          <div class="card stat-card h-100">
-            <div class="card-body">
-              <div class="stat-label">Total Signals</div>
-              <div id="stat-total-signals" class="stat-value">-</div>
-              <i class="bi bi-broadcast stat-icon"></i>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-          <div class="card stat-card h-100">
-            <div class="card-body">
-              <div class="stat-label">Total Profit</div>
-              <div id="stat-total-profit" class="stat-value text-success">-</div>
-              <i class="bi bi-currency-dollar stat-icon"></i>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-          <div class="card stat-card h-100">
-            <div class="card-body">
-              <div class="stat-label">Win Rate</div>
-              <div id="stat-win-rate" class="stat-value text-info">-</div>
-              <i class="bi bi-pie-chart stat-icon"></i>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-          <div class="card stat-card h-100">
-            <div class="card-body">
-              <div class="stat-label">Winners</div>
-              <div id="stat-winners" class="stat-value text-success">-</div>
-              <i class="bi bi-trophy stat-icon"></i>
-            </div>
-          </div>
-        </div>
+    <!-- MAIN DASHBOARD -->
+    <main class="dashboard-content">
+      <h1>Dashboard</h1>
+      
+      <!-- 3 Live Signal Cards (大 Equity Curve) -->
+      <div class="live-signals-grid">
+        <!-- Card 1,2,3 with Profit, DD%, Curve -->
       </div>
 
-      <!-- Quick Links -->
-      <div class="card">
-        <div class="card-header">Quick Actions</div>
-        <div class="card-body">
-          <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('csv-upload-btn').click()">
-              <i class="bi bi-upload me-1"></i>Upload CSV
-            </button>
-            <button class="btn btn-outline-secondary btn-sm" id="goto-my-signals">
-              <i class="bi bi-graph-up-arrow me-1"></i>View My Signals
-            </button>
-            <button class="btn btn-outline-secondary btn-sm" id="goto-register-signal">
-              <i class="bi bi-plus-circle me-1"></i>Register Signal
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- Cross Power + News + Forum -->
+    </main>
+  </div>
 
-    </div>
-    <!-- /PAGE: Dashboard -->
-
-    <!-- ─────────────────────────────────────────────────────
-         PAGE: My Signals
-         ───────────────────────────────────────────────────── -->
-    <div id="page-my-signals" class="page-section p-4 d-none">
-
-      <div class="d-flex align-items-center justify-content-between mb-4">
-        <h5 class="mb-0">My Signals Library</h5>
-        <span class="badge bg-secondary">
-          <span id="signals-count">0</span> records
-        </span>
-      </div>
-
-      <div class="card">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover table-sm mb-0 signals-table">
-              <thead class="table-dark">
-                <tr>
-                  <th>Symbol</th>
-                  <th>Type</th>
-                  <th>Open Time</th>
-                  <th>Close Time</th>
-                  <th>Lots</th>
-                  <th>Open Price</th>
-                  <th>Close Price</th>
-                  <th>Net Pips</th>
-                  <th>Net Profit</th>
-                  <th>Comment</th>
-                </tr>
-              </thead>
-              <tbody id="signals-table-body">
-                <tr>
-                  <td colspan="10" class="text-center text-muted py-4">
-                    Loading signals...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-    </div>
-    <!-- /PAGE: My Signals -->
-
-    <!-- ─────────────────────────────────────────────────────
-         PAGE: Register Signal
-         ───────────────────────────────────────────────────── -->
-    <div id="page-register-signal" class="page-section p-4 d-none">
-
-      <h5 class="mb-4">Register Signal</h5>
-
-      <div class="card">
-        <div class="card-header">Upload Signal CSV</div>
-        <div class="card-body">
-          <p class="text-muted small mb-3">
-            Upload one or more CSV files following the naming convention:<br />
-            <code>Signal-G-Helper_EANAME-VER_YYYYMMDD_HHMMSS_SIGNALID.csv</code>
-          </p>
-          <div class="upload-zone p-5 text-center border border-2 border-dashed rounded mb-3" id="upload-zone">
-            <i class="bi bi-cloud-upload fs-1 text-muted"></i>
-            <p class="mt-2 text-muted">Drag &amp; drop CSV files here, or</p>
-            <button class="btn btn-primary" onclick="document.getElementById('csv-upload-btn').click()">
-              <i class="bi bi-folder2-open me-1"></i>Browse Files
-            </button>
-          </div>
-          <div id="csv-upload-status-register" class="small"></div>
-        </div>
-      </div>
-
-    </div>
-    <!-- /PAGE: Register Signal -->
-
-    <!-- ─────────────────────────────────────────────────────
-         PAGE: User Profile
-         ───────────────────────────────────────────────────── -->
-    <div id="page-user-profile" class="page-section p-4 d-none">
-
-      <h5 class="mb-4">User Profile</h5>
-
-      <div class="card" style="max-width: 500px;">
-        <div class="card-body">
-          <div class="d-flex align-items-center mb-4">
-            <i class="bi bi-person-circle fs-1 me-3 text-muted"></i>
-            <div>
-              <h6 id="profile-display-name" class="mb-0">-</h6>
-              <small id="profile-email" class="text-muted">-</small>
-            </div>
-          </div>
-          <table class="table table-sm">
-            <tbody>
-              <tr><th scope="row">Display Name</th><td id="profile-name-td">-</td></tr>
-              <tr><th scope="row">Email</th><td id="profile-email-td">-</td></tr>
-              <tr><th scope="row">Environment</th><td><span class="badge bg-warning text-dark">DEV</span></td></tr>
-
-                                  <!-- Admin Console Button (Admin Only) -->
-                                  <div id="admin-console-link" class="mt-3 d-none">
-                                                          <a href="admin.html" class="btn btn-sm btn-outline-warning w-100">
-                                                                                    <i class="bi bi-shield-lock"></i> Admin Console
-                                                                                  </a>
-                                                        </div>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-    <!-- /PAGE: User Profile -->
-
-  </main>
-  <!-- ── /Main Content ─────────────────────────────────────── -->
-
-</div>
-<!-- /Layout -->
-
-<!-- Bootstrap 5 JS -->
-<script
-  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-  crossorigin="anonymous"
-></script>
-
-<!-- App Entry Point (ES Module) -->
-<script type="module" src="js/app.js"></script>
-
-<!-- Quick-nav helper (dashboard buttons) -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('goto-my-signals')?.addEventListener('click', () => {
-      document.getElementById('nav-my-signals')?.click();
-    });
-    document.getElementById('goto-register-signal')?.addEventListener('click', () => {
-      document.getElementById('nav-register-signal')?.click();
-    });
-  });
-</script>
-
+  <script src="js/theme-manager.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
