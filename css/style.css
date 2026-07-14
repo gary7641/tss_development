@@ -1,71 +1,73 @@
-/* Light Wood Theme */
-body[data-mode="light"][data-theme="wood"] {
-  --bg: #f8f9f0;
-  --accent: #4a7043;
-  --card: #ffffff;
-  --text: #2c3e2f;
+/* ====================== Signal Helper Style ====================== */
+* {
+  box-sizing: border-box;
 }
 
-/* Magic Orb */
-.magic-orb {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 30%, #fff, var(--accent));
-  box-shadow: 0 0 20px rgba(74,112,67,0.6);
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.magic-orb:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 30px rgba(74,112,67,0.9);
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  background: #f8f9f0;
+  color: #2c3e2f;
 }
 
 /* Header */
 .top-header {
   background: linear-gradient(90deg, #4a7043, #6b9b5e);
   color: white;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-/* Live Signal Card */
-.live-card {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 1rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+/* Sidebar */
+.sidebar {
+  background: white;
+  border-right: 1px solid #ddd;
+  min-height: 100vh;
+  padding: 1.5rem 1rem;
 }
 
-.live-card .curve {
-  height: 180px; /* 大 Curve */
-}
-:root {
-  --wood-light: #f8f9f0;
-  --wood-accent: #4a7043;
-  --wood-text: #2c3e2f;
+.sidebar ul {
+  list-style: none;
+  padding: 0;
 }
 
-body[data-theme="wood"][data-mode="light"] {
-  background: var(--wood-light);
-  color: var(--wood-text);
+.sidebar li {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.sidebar li.active, .sidebar li:hover {
+  background: #e8f0e8;
+  color: #4a7043;
+  font-weight: 600;
 }
 
 /* Live Signal Card */
 .live-signal-card {
   background: white;
   border-radius: 16px;
-  padding: 1.25rem;
-  box-shadow: 0 8px 25px rgba(74,112,67,0.1);
-  height: 380px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 25px rgba(74,112,67,0.12);
+  height: 420px;
   display: flex;
   flex-direction: column;
+  transition: transform 0.2s;
+}
+
+.live-signal-card:hover {
+  transform: translateY(-4px);
 }
 
 .live-signal-card .profit {
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   font-weight: 700;
   color: #4a7043;
+  line-height: 1;
 }
 
 .live-signal-card .dd {
@@ -79,6 +81,7 @@ body[data-theme="wood"][data-mode="light"] {
   border-radius: 12px;
   margin: 1rem 0;
   position: relative;
+  overflow: hidden;
 }
 
 /* Magic Orb */
@@ -89,8 +92,21 @@ body[data-theme="wood"][data-mode="light"] {
   background: radial-gradient(circle at 40% 30%, #fff9, #4a7043);
   box-shadow: 0 0 25px rgba(74,112,67,0.7);
   display: flex;
-  align-items: center;
+  align-items-center: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   cursor: pointer;
+  transition: all 0.3s;
+}
+
+.magic-orb:hover {
+  transform: scale(1.15) rotate(10deg);
+  box-shadow: 0 0 35px rgba(74,112,67,0.9);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .sidebar {
+    width: 220px;
+  }
 }
