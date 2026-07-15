@@ -9,19 +9,19 @@
   <style>
     body { font-family: system-ui, sans-serif; background: #f8f9f0; color: #2c3e2f; margin: 0; }
     .top-header { background: linear-gradient(90deg, #4a7043, #6b9b5e); color: white; padding: 1rem 1.5rem; }
-    .sidebar { width: 260px; background: white; border-right: 1px solid #ddd; min-height: 100vh; padding: 1.5rem 1rem; transition: width 0.3s; }
-    .sidebar.pinned { width: 280px; }
-    .nav-link { font-size: 0.95rem; padding: 0.65rem 1rem; border-radius: 8px; }
+    .sidebar { width: 240px; background: white; border-right: 1px solid #ddd; min-height: 100vh; padding: 1rem; transition: width 0.3s; }
+    .sidebar.pinned { width: 260px; }
+    .nav-link { font-size: 0.9rem; padding: 0.55rem 0.8rem; border-radius: 8px; }
     .nav-link.active, .nav-link:hover { background: #e8f0e8; color: #4a7043; font-weight: 600; }
-    .live-signal-card { background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 8px 25px rgba(74,112,67,0.12); height: 420px; display: flex; flex-direction: column; }
-    .live-signal-card .profit { font-size: 2.2rem; font-weight: 700; color: #4a7043; }
-    .live-signal-card .dd { font-size: 1.1rem; color: #e63939; }
+    .live-signal-card { background: white; border-radius: 16px; padding: 1.25rem; box-shadow: 0 8px 25px rgba(74,112,67,0.12); height: 400px; display: flex; flex-direction: column; }
+    .live-signal-card .profit { font-size: 2.1rem; font-weight: 700; color: #4a7043; }
+    .live-signal-card .dd { font-size: 1rem; color: #e63939; }
     .live-signal-card .curve { flex: 1; background: #f0f4f0; border-radius: 12px; margin: 1rem 0; }
-    .magic-orb { width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #fff9, #4a7043); box-shadow: 0 0 25px rgba(74,112,67,0.7); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; cursor: pointer; }
+    .magic-orb { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #fff9, #4a7043); box-shadow: 0 0 20px rgba(74,112,67,0.7); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; }
   </style>
 </head>
 <body>
-  <!-- HEADER (乾淨) -->
+  <!-- HEADER -->
   <header class="top-header">
     <div class="d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center gap-3">
@@ -37,33 +37,95 @@
   </header>
 
   <div class="d-flex">
-    <!-- SIDEBAR (Pin 放喺 Sidebar 頂) -->
+    <!-- SIDEBAR (縮細 + Emoji) -->
     <nav class="sidebar" id="sidebar">
-      <button id="pin-btn" class="btn btn-outline-secondary mb-3 w-100">📌 Pin Sidebar</button>
+      <button id="pin-btn" class="btn btn-outline-secondary mb-3 w-100">📌 Pin</button>
       <ul class="nav flex-column">
-        <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Live Signals</a></li>
-        <li class="nav-item ms-3"><a class="nav-link" href="#">My Signals</a></li>
-        <li class="nav-item ms-3"><a class="nav-link" href="#">Register Signal</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Signal Group</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">User Portfolio</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Market News</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">World Monitor</a></li>
-        <!-- 其他 P2 P3 ... -->
+        <li class="nav-item"><a class="nav-link active" href="#">📊 Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">📡 Live Signals</a></li>
+        <li class="nav-item ms-3"><a class="nav-link" href="#">📋 My Signals</a></li>
+        <li class="nav-item ms-3"><a class="nav-link" href="#">➕ Register Signal</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">👥 Signal Group</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">💼 User Portfolio</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">📰 Market News</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">🌍 World Monitor</a></li>
+        <li class="nav-item mt-4"><a class="nav-link" href="#">⚡ Cross Power Center</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">📈 Trade History Analyzer</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">📚 Signal History Library</a></li>
+        <li class="nav-item mt-4"><a class="nav-link" href="#">🔧 FX Tools</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">🌲 豐盛森林</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">📜 EA Rules</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">📖 Signal Directory</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">📤 Export History</a></li>
       </ul>
     </nav>
 
     <!-- MAIN -->
     <main class="flex-grow-1 p-4">
       <h1>Dashboard</h1>
-      <!-- Live Cards -->
+
+      <h4 class="mb-3">Top 3 Highest Profit Live Signals</h4>
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="live-signal-card">
+            <div class="d-flex justify-content-between">
+              <strong>FF50 SMA 5CCY DEMO</strong>
+              <div class="text-end">
+                <div class="profit">+4623%</div>
+                <div class="dd">-12% (USD -3400)</div>
+              </div>
+            </div>
+            <div class="curve"><canvas id="curve1"></canvas></div>
+            <small>VantageMarkets Demo • 43 weeks</small>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="live-signal-card">
+            <div class="d-flex justify-content-between">
+              <strong>FF52 MKD/S10 Bingo</strong>
+              <div class="text-end">
+                <div class="profit">+1342%</div>
+                <div class="dd">-8% (USD -2100)</div>
+              </div>
+            </div>
+            <div class="curve"><canvas id="curve2"></canvas></div>
+            <small>Alpari-Pro Demo • 14 weeks</small>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="live-signal-card">
+            <div class="d-flex justify-content-between">
+              <strong>FF54 SMA Crazy XAU</strong>
+              <div class="text-end">
+                <div class="profit">+942%</div>
+                <div class="dd">-15% (USD -4800)</div>
+              </div>
+            </div>
+            <div class="curve"><canvas id="curve3"></canvas></div>
+            <small>Alpari-Pro Demo • 7 weeks</small>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
   <script>
+    // Pin Sidebar
     document.getElementById('pin-btn').addEventListener('click', () => {
       document.getElementById('sidebar').classList.toggle('pinned');
     });
+
+    // Charts
+    function createChart(id) {
+      new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels: ['1','10','20','30','40'], datasets: [{ data: [1000,2500,4200,6800,9200], borderColor: '#4a7043', tension: 0.4, borderWidth: 3 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
+      });
+    }
+    createChart('curve1');
+    createChart('curve2');
+    createChart('curve3');
   </script>
 </body>
 </html>
