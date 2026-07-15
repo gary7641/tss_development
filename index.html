@@ -21,16 +21,15 @@
   </style>
 </head>
 <body>
-  <!-- HEADER -->
+  <!-- HEADER (乾淨) -->
   <header class="top-header">
     <div class="d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center gap-3">
-        <button id="pin-btn" class="btn btn-light">📌 Pin</button>
         <div class="magic-orb">🌳</div>
         <h4 class="mb-0">Signal Helper</h4>
       </div>
       <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-light" id="theme-switch">🌿 Wood</button>
+        <button class="btn btn-light btn-sm" id="theme-switch">🌿</button>
         <div class="magic-orb" id="main-orb">🪵</div>
         <div id="user-menu" class="cursor-pointer">Gary 珅緒 ▼</div>
       </div>
@@ -38,8 +37,9 @@
   </header>
 
   <div class="d-flex">
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR (Pin 放喺 Sidebar 頂) -->
     <nav class="sidebar" id="sidebar">
+      <button id="pin-btn" class="btn btn-outline-secondary mb-3 w-100">📌 Pin Sidebar</button>
       <ul class="nav flex-column">
         <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Live Signals</a></li>
@@ -49,83 +49,21 @@
         <li class="nav-item"><a class="nav-link" href="#">User Portfolio</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Market News</a></li>
         <li class="nav-item"><a class="nav-link" href="#">World Monitor</a></li>
-        <li class="nav-item mt-4"><a class="nav-link" href="#">Cross Power Center</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Trade History Analyzer (THA)</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Signal History Library</a></li>
-        <li class="nav-item mt-4"><a class="nav-link" href="#">FX Tools</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">豐盛森林</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">EA Rules & Strategy</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Signal Directory</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Export Trading History</a></li>
+        <!-- 其他 P2 P3 ... -->
       </ul>
     </nav>
 
     <!-- MAIN -->
     <main class="flex-grow-1 p-4">
       <h1>Dashboard</h1>
-
-      <h4 class="mb-3">Top 3 Highest Profit Live Signals</h4>
-      <div class="row g-4">
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF50 SMA 5CCY DEMO</strong>
-              <div class="text-end">
-                <div class="profit">+4623%</div>
-                <div class="dd">-12% (USD -3400)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve1"></canvas></div>
-            <small>VantageMarkets Demo • 43 weeks</small>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF52 MKD/S10 Bingo</strong>
-              <div class="text-end">
-                <div class="profit">+1342%</div>
-                <div class="dd">-8% (USD -2100)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve2"></canvas></div>
-            <small>Alpari-Pro Demo • 14 weeks</small>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF54 SMA Crazy XAU</strong>
-              <div class="text-end">
-                <div class="profit">+942%</div>
-                <div class="dd">-15% (USD -4800)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve3"></canvas></div>
-            <small>Alpari-Pro Demo • 7 weeks</small>
-          </div>
-        </div>
-      </div>
+      <!-- Live Cards -->
     </main>
   </div>
 
   <script>
-    // Pin Sidebar
     document.getElementById('pin-btn').addEventListener('click', () => {
       document.getElementById('sidebar').classList.toggle('pinned');
     });
-
-    // Charts
-    function createChart(id) {
-      new Chart(document.getElementById(id), {
-        type: 'line',
-        data: { labels: ['1','10','20','30','40'], datasets: [{ data: [1000,2500,4200,6800,9200], borderColor: '#4a7043', tension: 0.4 }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
-      });
-    }
-    createChart('curve1');
-    createChart('curve2');
-    createChart('curve3');
   </script>
 </body>
 </html>
