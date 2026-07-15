@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; background: #f8f9f0; color: #2c3e2f; margin: 0; }
-    .top-header { background: linear-gradient(90deg, #4a7043, #6b9b5e); color: white; padding: 1rem 1.5rem; }
+    .top-header { background: linear-gradient(90deg, #4a7043, #6b9b5e); color: white; padding: 0.75rem 1.5rem; height: 68px; }
     .sidebar { width: 240px; background: white; border-right: 1px solid #ddd; min-height: 100vh; padding: 1rem; transition: width 0.3s; }
     .sidebar.pinned { width: 260px; }
     .nav-link { font-size: 0.9rem; padding: 0.55rem 0.8rem; border-radius: 8px; }
@@ -18,28 +18,29 @@
     .live-signal-card .dd { font-size: 1rem; color: #e63939; }
     .live-signal-card .curve { flex: 1; background: #f0f4f0; border-radius: 12px; margin: 1rem 0; }
     .magic-orb { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #fff9, #4a7043); box-shadow: 0 0 20px rgba(74,112,67,0.7); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; }
+    .user-menu { position: absolute; background: white; border: 1px solid #ddd; border-radius: 12px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 200; min-width: 220px; }
   </style>
 </head>
 <body>
   <!-- HEADER -->
   <header class="top-header">
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-center h-100">
       <div class="d-flex align-items-center gap-3">
         <div class="magic-orb">🌳</div>
-        <h4 class="mb-0">Signal Helper</h4>
+        <h5 class="mb-0">Signal Helper</h5>
       </div>
       <div class="d-flex align-items-center gap-3">
         <button class="btn btn-light btn-sm" id="theme-switch">🌿</button>
         <div class="magic-orb" id="main-orb">🪵</div>
-        <div id="user-menu" class="cursor-pointer">Gary 珅緒 ▼</div>
+        <div id="user-menu-trigger" class="cursor-pointer fw-bold">Gary 珅緒 ▼</div>
       </div>
     </div>
   </header>
 
   <div class="d-flex">
-    <!-- SIDEBAR (縮細 + Emoji) -->
+    <!-- SIDEBAR -->
     <nav class="sidebar" id="sidebar">
-      <button id="pin-btn" class="btn btn-outline-secondary mb-3 w-100">📌 Pin</button>
+      <button id="pin-btn" class="btn btn-outline-secondary mb-3 w-100">📌 Pin Sidebar</button>
       <ul class="nav flex-column">
         <li class="nav-item"><a class="nav-link active" href="#">📊 Dashboard</a></li>
         <li class="nav-item"><a class="nav-link" href="#">📡 Live Signals</a></li>
@@ -63,69 +64,38 @@
     <!-- MAIN -->
     <main class="flex-grow-1 p-4">
       <h1>Dashboard</h1>
-
-      <h4 class="mb-3">Top 3 Highest Profit Live Signals</h4>
-      <div class="row g-4">
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF50 SMA 5CCY DEMO</strong>
-              <div class="text-end">
-                <div class="profit">+4623%</div>
-                <div class="dd">-12% (USD -3400)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve1"></canvas></div>
-            <small>VantageMarkets Demo • 43 weeks</small>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF52 MKD/S10 Bingo</strong>
-              <div class="text-end">
-                <div class="profit">+1342%</div>
-                <div class="dd">-8% (USD -2100)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve2"></canvas></div>
-            <small>Alpari-Pro Demo • 14 weeks</small>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF54 SMA Crazy XAU</strong>
-              <div class="text-end">
-                <div class="profit">+942%</div>
-                <div class="dd">-15% (USD -4800)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve3"></canvas></div>
-            <small>Alpari-Pro Demo • 7 weeks</small>
-          </div>
-        </div>
-      </div>
+      <!-- Live Cards here -->
     </main>
   </div>
 
+  <!-- User Menu -->
+  <div id="user-menu" class="user-menu d-none">
+    <ul class="list-unstyled">
+      <li class="py-2">👤 User Profile</li>
+      <li class="py-2">🛠️ Admin Console</li>
+      <li class="py-2">⚙️ Control Panel</li>
+      <li class="py-2">🌍 Environment Center</li>
+      <li class="py-2 border-top mt-2">🎨 Theme</li>
+      <li class="py-1 px-3">Light / Dark</li>
+      <li class="py-1 px-3">金 | 木 | 水 | 火 | 土</li>
+      <li class="py-2 border-top mt-2">🌐 Language</li>
+      <li class="py-1 px-3">EN | 繁 | 簡 | JP</li>
+      <li class="py-2 border-top mt-2 text-danger">🚪 LOGOUT</li>
+    </ul>
+  </div>
+
   <script>
-    // Pin Sidebar
+    // Pin
     document.getElementById('pin-btn').addEventListener('click', () => {
       document.getElementById('sidebar').classList.toggle('pinned');
     });
 
-    // Charts
-    function createChart(id) {
-      new Chart(document.getElementById(id), {
-        type: 'line',
-        data: { labels: ['1','10','20','30','40'], datasets: [{ data: [1000,2500,4200,6800,9200], borderColor: '#4a7043', tension: 0.4, borderWidth: 3 }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
-      });
-    }
-    createChart('curve1');
-    createChart('curve2');
-    createChart('curve3');
+    // User Menu
+    const trigger = document.getElementById('user-menu-trigger');
+    const menu = document.getElementById('user-menu');
+    trigger.addEventListener('click', () => {
+      menu.classList.toggle('d-none');
+    });
   </script>
 </body>
 </html>
