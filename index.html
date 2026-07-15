@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Signal Helper - Dashboard</title>
+  <title>Signal Helper</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -26,6 +26,8 @@
     .switch input:checked + .slider { background: #4a7043; }
     .switch .slider::before { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; }
     .switch input:checked + .slider::before { transform: translateX(24px); }
+    .page { display: none; }
+    .page.active { display: block; }
   </style>
 </head>
 <body>
@@ -56,68 +58,42 @@
     <nav class="sidebar" id="sidebar">
       <button id="pin-btn" class="btn btn-outline-secondary mb-3 w-100">📌 Pin Sidebar</button>
       <ul class="nav flex-column">
-        <li class="nav-item"><a class="nav-link active" href="#">📊 Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">📡 Live Signals</a></li>
-        <li class="nav-item ms-3"><a class="nav-link" href="#">📋 My Signals</a></li>
-        <li class="nav-item ms-3"><a class="nav-link" href="#">➕ Register Signal</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">👥 Signal Group</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">💼 User Portfolio</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">📰 Market News</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">🌍 World Monitor</a></li>
-        <li class="nav-item mt-4"><a class="nav-link" href="#">⚡ Cross Power Center</a></li>
-        <li class="nav-item"><a class="nav-link" href="#" onclick="alert('THA Page Coming Soon')">📈 Trade History Analyzer</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">📚 Signal History Library</a></li>
-        <li class="nav-item mt-4"><a class="nav-link" href="#">🔧 FX Tools</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">🌲 豐盛森林</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">📜 EA Rules</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">📖 Signal Directory</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">📤 Export History</a></li>
+        <li class="nav-item"><a class="nav-link active" data-page="dashboard" href="#">📊 Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" data-page="live" href="#">📡 Live Signals</a></li>
+        <li class="nav-item"><a class="nav-link" data-page="tha" href="#">📈 Trade History Analyzer</a></li>
       </ul>
     </nav>
 
-    <!-- MAIN -->
+    <!-- MAIN CONTENT -->
     <main class="flex-grow-1 p-4">
-      <h1>Dashboard</h1>
-      <h4 class="mb-3">Top 3 Highest Profit Live Signals</h4>
-      <div class="row g-4">
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF50 SMA 5CCY DEMO</strong>
-              <div class="text-end">
-                <div class="profit">+4623%</div>
-                <div class="dd">-12% (USD -3400)</div>
+      <!-- Dashboard Page -->
+      <div id="page-dashboard" class="page active">
+        <h1>Dashboard</h1>
+        <h4 class="mb-3">Top 3 Highest Profit Live Signals</h4>
+        <div class="row g-4">
+          <div class="col-lg-4">
+            <div class="live-signal-card">
+              <div class="d-flex justify-content-between">
+                <strong>FF50 SMA 5CCY DEMO</strong>
+                <div class="text-end">
+                  <div class="profit">+4623%</div>
+                  <div class="dd">-12% (USD -3400)</div>
+                </div>
               </div>
+              <div class="curve"><canvas id="curve1"></canvas></div>
+              <small>VantageMarkets Demo • 43 weeks</small>
             </div>
-            <div class="curve"><canvas id="curve1"></canvas></div>
-            <small>VantageMarkets Demo • 43 weeks</small>
           </div>
+          <!-- 其他 card -->
         </div>
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF52 MKD/S10 Bingo</strong>
-              <div class="text-end">
-                <div class="profit">+1342%</div>
-                <div class="dd">-8% (USD -2100)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve2"></canvas></div>
-            <small>Alpari-Pro Demo • 14 weeks</small>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF54 SMA Crazy XAU</strong>
-              <div class="text-end">
-                <div class="profit">+942%</div>
-                <div class="dd">-15% (USD -4800)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve3"></canvas></div>
-            <small>Alpari-Pro Demo • 7 weeks</small>
-          </div>
+      </div>
+
+      <!-- THA Page -->
+      <div id="page-tha" class="page">
+        <h1>Trade History Analyzer (THA)</h1>
+        <div class="panel p-4">
+          <input type="file" id="csvFile" accept=".csv" class="form-control mb-3">
+          <button class="btn btn-primary" onclick="analyzeTHA()">🚀 Start Analysis</button>
         </div>
       </div>
     </main>
@@ -140,12 +116,23 @@
   </div>
 
   <script>
+    // Page Routing
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const page = document.getElementById('page-' + link.getAttribute('data-page'));
+        if (page) page.classList.add('active');
+      });
+    });
+
     // Pin Sidebar
     document.getElementById('pin-btn').addEventListener('click', () => {
       document.getElementById('sidebar').classList.toggle('pinned');
     });
 
-    // User Menu Click
+    // User Menu
     const trigger = document.getElementById('user-menu-trigger');
     const menu = document.getElementById('user-menu');
     trigger.addEventListener('click', (e) => {
@@ -153,12 +140,6 @@
       menu.classList.toggle('d-none');
     });
     document.addEventListener('click', () => menu.classList.add('d-none'));
-
-    // Light/Dark Switch
-    document.getElementById('theme-switch').addEventListener('change', () => {
-      const mode = document.documentElement.getAttribute('data-mode') === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-mode', mode);
-    });
 
     // Charts
     function createChart(id) {
@@ -169,8 +150,6 @@
       });
     }
     createChart('curve1');
-    createChart('curve2');
-    createChart('curve3');
   </script>
 </body>
 </html>
