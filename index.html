@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; background: #f8f9f0; color: #2c3e2f; margin: 0; }
-    .top-header { background: linear-gradient(90deg, #4a7043, #6b9b5e); color: white; padding: 0.6rem 1.5rem; height: 62px; }
+    .top-header { background: linear-gradient(90deg, #0ea5e9, #22c55e); color: white; padding: 0.6rem 1.5rem; height: 62px; }
     .sidebar { width: 240px; background: white; border-right: 1px solid #ddd; min-height: 100vh; padding: 1rem; transition: width 0.3s; }
     .sidebar.pinned { width: 260px; }
     .nav-link { font-size: 0.9rem; padding: 0.55rem 0.8rem; border-radius: 8px; }
@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <!-- HEADER -->
+  <!-- HEADER (A2 Style) -->
   <header class="top-header">
     <div class="d-flex justify-content-between align-items-center h-100">
       <div class="d-flex align-items-center gap-3">
@@ -31,8 +31,18 @@
         <h5 class="mb-0 fw-bold">Signal Helper</h5>
       </div>
       <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-light btn-sm" id="theme-switch">🌞 / 🌙</button>
+        <!-- Light/Dark Switch -->
+        <div class="switch">
+          <span>Light</span>
+          <label class="switch">
+            <input type="checkbox" id="theme-switch">
+            <span class="slider"></span>
+          </label>
+          <span>Dark</span>
+        </div>
+        <!-- Magic Orb Theme -->
         <div class="magic-orb" id="main-orb" title="Theme Selector">🪵</div>
+        <!-- User -->
         <div id="user-menu-trigger" class="cursor-pointer fw-bold">Gary 珅緒 ▼</div>
       </div>
     </div>
@@ -65,48 +75,7 @@
     <!-- MAIN -->
     <main class="flex-grow-1 p-4">
       <h1>Dashboard</h1>
-      <h4 class="mb-3">Top 3 Highest Profit Live Signals</h4>
-      <div class="row g-4">
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF50 SMA 5CCY DEMO</strong>
-              <div class="text-end">
-                <div class="profit">+4623%</div>
-                <div class="dd">-12% (USD -3400)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve1"></canvas></div>
-            <small>VantageMarkets Demo • 43 weeks</small>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF52 MKD/S10 Bingo</strong>
-              <div class="text-end">
-                <div class="profit">+1342%</div>
-                <div class="dd">-8% (USD -2100)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve2"></canvas></div>
-            <small>Alpari-Pro Demo • 14 weeks</small>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF54 SMA Crazy XAU</strong>
-              <div class="text-end">
-                <div class="profit">+942%</div>
-                <div class="dd">-15% (USD -4800)</div>
-              </div>
-            </div>
-            <div class="curve"><canvas id="curve3"></canvas></div>
-            <small>Alpari-Pro Demo • 7 weeks</small>
-          </div>
-        </div>
-      </div>
+      <!-- Live Cards -->
     </main>
   </div>
 
@@ -141,17 +110,11 @@
     });
     document.addEventListener('click', () => menu.classList.add('d-none'));
 
-    // Charts
-    function createChart(id) {
-      new Chart(document.getElementById(id), {
-        type: 'line',
-        data: { labels: ['1','10','20','30','40'], datasets: [{ data: [1000,2500,4200,6800,9200], borderColor: '#4a7043', tension: 0.4, borderWidth: 3 }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
-      });
-    }
-    createChart('curve1');
-    createChart('curve2');
-    createChart('curve3');
+    // Light/Dark Switch
+    document.getElementById('theme-switch').addEventListener('change', () => {
+      const mode = document.documentElement.getAttribute('data-mode') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-mode', mode);
+    });
   </script>
 </body>
 </html>
