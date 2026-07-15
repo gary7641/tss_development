@@ -20,7 +20,7 @@
     .magic-orb { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #fff9, #4a7043); box-shadow: 0 0 20px rgba(74,112,67,0.7); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; transition: all 0.3s; }
     .magic-orb:hover { transform: scale(1.15); box-shadow: 0 0 35px rgba(74,112,67,0.9); }
     .user-menu { position: absolute; top: 68px; right: 20px; background: white; border: 1px solid #ddd; border-radius: 12px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 200; min-width: 240px; }
-    .switch { display: flex; align-items: center; gap: 8px; }
+    .switch { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
     .switch .slider { position: relative; width: 50px; height: 26px; background: #ccc; border-radius: 50px; cursor: pointer; }
     .switch input { display: none; }
     .switch input:checked + .slider { background: #4a7043; }
@@ -37,7 +37,7 @@
         <h5 class="mb-0 fw-bold">Signal Helper</h5>
       </div>
       <div class="d-flex align-items-center gap-4">
-        <!-- Light/Dark Switch (A2 Style) -->
+        <!-- Light/Dark Switch (中間) -->
         <div class="switch">
           <span>Light</span>
           <label>
@@ -46,7 +46,7 @@
           </label>
           <span>Dark</span>
         </div>
-        <!-- Magic Orb Theme -->
+        <!-- Magic Orb -->
         <div class="magic-orb" id="main-orb" title="Theme Selector">🪵</div>
         <!-- User -->
         <div id="user-menu-trigger" class="cursor-pointer fw-bold">Gary 珅緒 ▼</div>
@@ -81,7 +81,48 @@
     <!-- MAIN -->
     <main class="flex-grow-1 p-4">
       <h1>Dashboard</h1>
-      <!-- Live Cards -->
+      <h4 class="mb-3">Top 3 Highest Profit Live Signals</h4>
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="live-signal-card">
+            <div class="d-flex justify-content-between">
+              <strong>FF50 SMA 5CCY DEMO</strong>
+              <div class="text-end">
+                <div class="profit">+4623%</div>
+                <div class="dd">-12% (USD -3400)</div>
+              </div>
+            </div>
+            <div class="curve"><canvas id="curve1"></canvas></div>
+            <small>VantageMarkets Demo • 43 weeks</small>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="live-signal-card">
+            <div class="d-flex justify-content-between">
+              <strong>FF52 MKD/S10 Bingo</strong>
+              <div class="text-end">
+                <div class="profit">+1342%</div>
+                <div class="dd">-8% (USD -2100)</div>
+              </div>
+            </div>
+            <div class="curve"><canvas id="curve2"></canvas></div>
+            <small>Alpari-Pro Demo • 14 weeks</small>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="live-signal-card">
+            <div class="d-flex justify-content-between">
+              <strong>FF54 SMA Crazy XAU</strong>
+              <div class="text-end">
+                <div class="profit">+942%</div>
+                <div class="dd">-15% (USD -4800)</div>
+              </div>
+            </div>
+            <div class="curve"><canvas id="curve3"></canvas></div>
+            <small>Alpari-Pro Demo • 7 weeks</small>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -121,6 +162,18 @@
       const mode = document.documentElement.getAttribute('data-mode') === 'light' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-mode', mode);
     });
+
+    // Charts
+    function createChart(id) {
+      new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels: ['1','10','20','30','40'], datasets: [{ data: [1000,2500,4200,6800,9200], borderColor: '#4a7043', tension: 0.4, borderWidth: 3 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
+      });
+    }
+    createChart('curve1');
+    createChart('curve2');
+    createChart('curve3');
   </script>
 </body>
 </html>
