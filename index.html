@@ -158,5 +158,43 @@
     console.log("Signal Helper Home Page Loaded");
     // Theme logic here
   </script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// 3 個 Curve Chart
+function createEquityChart(canvasId, color) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Week 1', '10', '20', '30', '40', '43'],
+      datasets: [{
+        label: 'Equity',
+        data: [1000, 1800, 3200, 5100, 7800, 9200],
+        borderColor: color,
+        borderWidth: 3,
+        tension: 0.4,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { display: false },
+        x: { display: false }
+      }
+    }
+  });
+}
+
+// Init Charts
+document.addEventListener('DOMContentLoaded', () => {
+  createEquityChart('curve1', '#4a7043');
+  createEquityChart('curve2', '#2e8b57');
+  createEquityChart('curve3', '#3cb371');
+});
+</script>
 </body>
 </html>
