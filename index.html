@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; background: #f8f9f0; color: #2c3e2f; margin: 0; }
-    .top-header { background: linear-gradient(90deg, #4a7043, #6b9b5e); color: white; padding: 0.75rem 1.5rem; height: 68px; }
+    .top-header { background: linear-gradient(90deg, #4a7043, #6b9b5e); color: white; padding: 0.6rem 1.5rem; height: 58px; }
     .sidebar { width: 240px; background: white; border-right: 1px solid #ddd; min-height: 100vh; padding: 1rem; transition: width 0.3s; }
     .sidebar.pinned { width: 260px; }
     .nav-link { font-size: 0.9rem; padding: 0.55rem 0.8rem; border-radius: 8px; }
@@ -18,7 +18,7 @@
     .live-signal-card .dd { font-size: 1rem; color: #e63939; }
     .live-signal-card .curve { flex: 1; background: #f0f4f0; border-radius: 12px; margin: 1rem 0; }
     .magic-orb { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #fff9, #4a7043); box-shadow: 0 0 20px rgba(74,112,67,0.7); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; }
-    .user-menu { position: absolute; background: white; border: 1px solid #ddd; border-radius: 12px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 200; min-width: 220px; }
+    .user-menu { position: absolute; top: 65px; right: 20px; background: white; border: 1px solid #ddd; border-radius: 12px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 200; min-width: 220px; }
   </style>
 </head>
 <body>
@@ -27,7 +27,7 @@
     <div class="d-flex justify-content-between align-items-center h-100">
       <div class="d-flex align-items-center gap-3">
         <div class="magic-orb">🌳</div>
-        <h5 class="mb-0">Signal Helper</h5>
+        <h5 class="mb-0 fw-bold">Signal Helper</h5>
       </div>
       <div class="d-flex align-items-center gap-3">
         <button class="btn btn-light btn-sm" id="theme-switch">🌿</button>
@@ -64,13 +64,13 @@
     <!-- MAIN -->
     <main class="flex-grow-1 p-4">
       <h1>Dashboard</h1>
-      <!-- Live Cards here -->
+      <!-- Live Cards -->
     </main>
   </div>
 
   <!-- User Menu -->
   <div id="user-menu" class="user-menu d-none">
-    <ul class="list-unstyled">
+    <ul class="list-unstyled mb-0">
       <li class="py-2">👤 User Profile</li>
       <li class="py-2">🛠️ Admin Console</li>
       <li class="py-2">⚙️ Control Panel</li>
@@ -93,9 +93,11 @@
     // User Menu
     const trigger = document.getElementById('user-menu-trigger');
     const menu = document.getElementById('user-menu');
-    trigger.addEventListener('click', () => {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
       menu.classList.toggle('d-none');
     });
+    document.addEventListener('click', () => menu.classList.add('d-none'));
   </script>
 </body>
 </html>
