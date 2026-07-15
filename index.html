@@ -92,33 +92,68 @@
     <main class="flex-grow-1 p-4">
       <h1 class="mb-4">Dashboard Overview</h1>
 
-      <!-- Live Signals -->
-      <h4 class="mb-3">Top 3 Highest Profit Live Signals</h4>
-      <div class="row g-4">
-        <!-- Card 1 -->
-        <div class="col-lg-4">
-          <div class="live-signal-card">
-            <div class="d-flex justify-content-between">
-              <strong>FF50 SMA 5CCY DEMO</strong>
-              <div class="text-end">
-                <div class="profit">+4623.55%</div>
-                <div class="dd">-12% (USD -3400)</div>
-              </div>
-            </div>
-            <div class="curve mt-3">
-              <!-- Place Chart here -->
-              <div class="h-100 d-flex align-items-center justify-content-center text-muted">Equity Curve</div>
-            </div>
-            <small>VantageMarkets Demo • 43 weeks</small>
-          </div>
+<!-- 加到 index.html 的 #live-signals 內 -->
+<div class="row g-4">
+  <!-- Card 1 -->
+  <div class="col-lg-4">
+    <div class="live-signal-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <strong>FF50 SMA 5CCY DEMO (VM13-05)</strong>
+          <small class="text-muted d-block">VantageMarkets Demo</small>
         </div>
-        <!-- Card 2 & 3 similar -->
+        <div class="text-end">
+          <div class="profit">+4623.55%</div>
+          <div class="dd">-12% (USD -3400)</div>
+        </div>
       </div>
-
-      <!-- More sections can be added -->
-    </main>
+      <div class="curve mt-3">
+        <canvas id="curve1" width="300" height="160"></canvas>
+      </div>
+      <small class="text-success">43 weeks • 100% Algo</small>
+    </div>
   </div>
 
+  <!-- Card 2 -->
+  <div class="col-lg-4">
+    <div class="live-signal-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <strong>FF52 MKD/S10 Bingo Demo</strong>
+          <small class="text-muted d-block">Alpari-Pro Demo</small>
+        </div>
+        <div class="text-end">
+          <div class="profit">+1342.98%</div>
+          <div class="dd">-8% (USD -2100)</div>
+        </div>
+      </div>
+      <div class="curve mt-3">
+        <canvas id="curve2" width="300" height="160"></canvas>
+      </div>
+      <small class="text-success">14 weeks • 100% Algo</small>
+    </div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="col-lg-4">
+    <div class="live-signal-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <strong>FF54 SMA Crazy XAU</strong>
+          <small class="text-muted d-block">Alpari-Pro Demo</small>
+        </div>
+        <div class="text-end">
+          <div class="profit">+942.27%</div>
+          <div class="dd">-15% (USD -4800)</div>
+        </div>
+      </div>
+      <div class="curve mt-3">
+        <canvas id="curve3" width="300" height="160"></canvas>
+      </div>
+      <small class="text-success">7 weeks • 100% Algo</small>
+    </div>
+  </div>
+</div>
   <script>
     console.log("Signal Helper Home Page Loaded");
     // Theme logic here
