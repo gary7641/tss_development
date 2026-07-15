@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; background: #f8f9f0; color: #2c3e2f; margin: 0; }
-    .top-header { background: linear-gradient(90deg, #4a7043, #6b9b5e); color: white; padding: 0.6rem 1.5rem; height: 58px; }
+    .top-header { background: linear-gradient(90deg, #4a7043, #6b9b5e); color: white; padding: 0.6rem 1.5rem; height: 62px; }
     .sidebar { width: 240px; background: white; border-right: 1px solid #ddd; min-height: 100vh; padding: 1rem; transition: width 0.3s; }
     .sidebar.pinned { width: 260px; }
     .nav-link { font-size: 0.9rem; padding: 0.55rem 0.8rem; border-radius: 8px; }
@@ -17,8 +17,9 @@
     .live-signal-card .profit { font-size: 2.1rem; font-weight: 700; color: #4a7043; }
     .live-signal-card .dd { font-size: 1rem; color: #e63939; }
     .live-signal-card .curve { flex: 1; background: #f0f4f0; border-radius: 12px; margin: 1rem 0; }
-    .magic-orb { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #fff9, #4a7043); box-shadow: 0 0 20px rgba(74,112,67,0.7); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; }
-    .user-menu { position: absolute; top: 65px; right: 20px; background: white; border: 1px solid #ddd; border-radius: 12px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 200; min-width: 220px; }
+    .magic-orb { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #fff9, #4a7043); box-shadow: 0 0 20px rgba(74,112,67,0.7); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; transition: all 0.3s; }
+    .magic-orb:hover { transform: scale(1.15); box-shadow: 0 0 35px rgba(74,112,67,0.9); }
+    .user-menu { position: absolute; top: 70px; right: 20px; background: white; border: 1px solid #ddd; border-radius: 12px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 200; min-width: 220px; }
   </style>
 </head>
 <body>
@@ -26,12 +27,12 @@
   <header class="top-header">
     <div class="d-flex justify-content-between align-items-center h-100">
       <div class="d-flex align-items-center gap-3">
-        <div class="magic-orb">🌳</div>
+        <div class="magic-orb logo-orb">🌳</div>
         <h5 class="mb-0 fw-bold">Signal Helper</h5>
       </div>
       <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-light btn-sm" id="theme-switch">🌿</button>
-        <div class="magic-orb" id="main-orb">🪵</div>
+        <button class="btn btn-light btn-sm" id="theme-switch">🌞 / 🌙</button>
+        <div class="magic-orb" id="main-orb" title="Theme Selector">🪵</div>
         <div id="user-menu-trigger" class="cursor-pointer fw-bold">Gary 珅緒 ▼</div>
       </div>
     </div>
@@ -85,7 +86,7 @@
   </div>
 
   <script>
-    // Pin
+    // Pin Sidebar
     document.getElementById('pin-btn').addEventListener('click', () => {
       document.getElementById('sidebar').classList.toggle('pinned');
     });
@@ -98,6 +99,12 @@
       menu.classList.toggle('d-none');
     });
     document.addEventListener('click', () => menu.classList.add('d-none'));
+
+    // Theme Switch
+    document.getElementById('theme-switch').addEventListener('click', () => {
+      const mode = document.documentElement.getAttribute('data-mode') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-mode', mode);
+    });
   </script>
 </body>
 </html>
