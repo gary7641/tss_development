@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-HK" data-mode="light">
+<html lang="zh-HK">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +19,6 @@
       width: 250px; background: white; border-right: 1px solid #e5e7eb;
       min-height: calc(100vh - 58px); padding: 1rem 0.8rem; overflow-y: auto;
     }
-    .sidebar.pinned { width: 270px; }
     .nav-link {
       font-size: 0.9rem; padding: 0.55rem 0.9rem; border-radius: 8px;
       color: #111827; cursor: pointer; display: block; text-decoration: none;
@@ -33,40 +32,6 @@
       box-shadow: 0 8px 20px rgba(15,23,42,0.08);
     }
     .panel-title { margin: 0 0 14px 0; font-size: 1.1rem; font-weight: 600; }
-    .live-signal-card {
-      background: white; border-radius: 16px; padding: 1.25rem;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.08); height: 400px;
-      display: flex; flex-direction: column; border: 1px solid rgba(148,163,184,0.3);
-    }
-    .live-signal-card .profit { font-size: 2rem; font-weight: 700; color: #16a34a; }
-    .live-signal-card .dd { font-size: 1rem; color: #dc2626; }
-    .live-signal-card .curve { flex: 1; background: #f8fafc; border-radius: 12px; margin: 0.8rem 0; }
-    .magic-orb {
-      width: 42px; height: 42px; border-radius: 50%;
-      background: radial-gradient(circle at 40% 30%, #fff, #0ea5e9);
-      box-shadow: 0 0 18px rgba(14,165,233,0.5);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; cursor: pointer;
-    }
-    .user-menu {
-      position: absolute; top: 62px; right: 20px; background: white;
-      border: 1px solid #e5e7eb; border-radius: 12px; padding: 8px 0;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.12); z-index: 200; min-width: 230px; display: none;
-    }
-    .user-menu.show { display: block; }
-    .user-menu li { padding: 0.55rem 1.2rem; cursor: pointer; list-style: none; font-size: 0.9rem; }
-    .user-menu li:hover { background: #f3f4f6; }
-    .switch { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
-    .switch .slider {
-      position: relative; width: 48px; height: 24px; background: #d1d5db; border-radius: 50px; cursor: pointer;
-    }
-    .switch input { display: none; }
-    .switch input:checked + .slider { background: #0ea5e9; }
-    .switch .slider::before {
-      content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
-      background: white; border-radius: 50%; transition: 0.3s;
-    }
-    .switch input:checked + .slider::before { transform: translateX(24px); }
     .page { display: none; }
     .page.active { display: block; }
     .btn-primary-a2 {
@@ -76,33 +41,29 @@
     .btn-secondary-a2 {
       background: #f9fafb; border: 1px solid #d1d5db; color: #111827; border-radius: 999px; padding: 7px 18px;
     }
-    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-    .summary-card {
-      background: #f9fafb; border-radius: 14px; border: 1px solid rgba(148,163,184,0.3); padding: 14px 16px;
-    }
-    .analysis-menu {
-      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
-    }
+    .analysis-menu { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .analysis-menu button {
       border: 1px solid #d1d5db; background: white; border-radius: 999px;
       padding: 6px 16px; font-size: 0.9rem; cursor: pointer;
     }
-    .analysis-menu button.active {
-      background: #0ea5e9; color: white; border-color: #0ea5e9;
-    }
+    .analysis-menu button.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
     .analysis-block { display: none; }
     .analysis-block.active { display: block; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .summary-card {
+      background: #f9fafb; border-radius: 14px; border: 1px solid rgba(148,163,184,0.3); padding: 14px 16px;
+    }
     .symbol-btn {
       border: 1px solid #d1d5db; background: white; border-radius: 999px;
       padding: 4px 12px; font-size: 0.85rem; margin: 3px; cursor: pointer;
     }
     .symbol-btn.active { background: #e0f2fe; border-color: #0ea5e9; color: #0369a1; }
     .mini-equity-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px;
     }
     .mini-card {
       background: #f9fafb; border-radius: 12px; padding: 10px; border: 1px solid #e5e7eb;
-      height: 140px; display: flex; flex-direction: column;
+      height: 135px; display: flex; flex-direction: column;
     }
     .mini-card canvas { flex: 1; }
     table.martingale { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -114,11 +75,11 @@
     table.martingale tr.layer-row:hover { background: #f0f9ff; }
     .layer-detail {
       display: none; background: #f8fafc; padding: 12px; border: 1px solid #e5e7eb;
-      border-radius: 8px; margin: 8px 0; font-size: 0.85rem;
+      border-radius: 8px; margin: 6px 0; font-size: 0.85rem;
     }
     .layer-detail.show { display: block; }
     .swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .swot-box { border-radius: 12px; padding: 16px; min-height: 140px; }
+    .swot-box { border-radius: 12px; padding: 16px; min-height: 130px; }
     .swot-s { background: #ecfdf5; border: 1px solid #a7f3d0; }
     .swot-w { background: #fef2f2; border: 1px solid #fecaca; }
     .swot-o { background: #eff6ff; border: 1px solid #bfdbfe; }
@@ -126,100 +87,52 @@
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header class="top-header">
     <div class="d-flex align-items-center gap-3">
-      <div class="magic-orb">🌳</div>
+      <div style="width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#fff,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🌳</div>
       <h5 class="mb-0 fw-bold">Signal Helper</h5>
     </div>
-    <div class="d-flex align-items-center gap-4">
-      <div class="switch">
-        <span>Light</span>
-        <label><input type="checkbox" id="theme-switch"><span class="slider"></span></label>
-        <span>Dark</span>
-      </div>
-      <div class="magic-orb">🪵</div>
-      <div id="user-menu-trigger" style="cursor:pointer; font-weight:600;">Gary 珅緒 ▼</div>
+    <div class="d-flex align-items-center gap-3">
+      <span class="small">Gary 珅緒</span>
     </div>
   </header>
 
   <div class="d-flex">
     <!-- SIDEBAR -->
     <nav class="sidebar" id="sidebar">
-      <button id="pin-btn" class="btn btn-outline-secondary btn-sm w-100 mb-3">📌 Pin Sidebar</button>
       <div class="nav-section">P1 - Core</div>
-      <a class="nav-link active" data-page="dashboard">📊 Dashboard</a>
-      <a class="nav-link" data-page="live">📡 Live Signals</a>
-      <a class="nav-link ms-3" data-page="mysignals">📋 My Signals</a>
-      <a class="nav-link ms-3" data-page="register">➕ Register Signal</a>
-      <a class="nav-link" data-page="group">👥 Signal Group</a>
-      <a class="nav-link" data-page="portfolio">💼 User Portfolio</a>
-      <a class="nav-link" data-page="news">📰 Market News</a>
-      <a class="nav-link" data-page="world">🌍 World Monitor</a>
+      <a href="#" class="nav-link active" data-page="dashboard">📊 Dashboard</a>
+      <a href="#" class="nav-link" data-page="live">📡 Live Signals</a>
+      <a href="#" class="nav-link" data-page="mysignals">📋 My Signals</a>
+      <a href="#" class="nav-link" data-page="register">➕ Register Signal</a>
+      <a href="#" class="nav-link" data-page="group">👥 Signal Group</a>
+      <a href="#" class="nav-link" data-page="portfolio">💼 User Portfolio</a>
+      <a href="#" class="nav-link" data-page="news">📰 Market News</a>
+      <a href="#" class="nav-link" data-page="world">🌍 World Monitor</a>
+
       <div class="nav-section">P2 - Advanced</div>
-      <a class="nav-link" data-page="crosspower">⚡ Cross Power Center</a>
-      <a class="nav-link" data-page="tha">📈 Trade History Analyzer</a>
-      <a class="nav-link" data-page="library">📚 Signal History Library</a>
+      <a href="#" class="nav-link" data-page="crosspower">⚡ Cross Power Center</a>
+      <a href="#" class="nav-link" data-page="tha">📈 Trade History Analyzer</a>
+      <a href="#" class="nav-link" data-page="library">📚 Signal History Library</a>
+
       <div class="nav-section">P3</div>
-      <a class="nav-link" data-page="fxtools">🔧 FX Tools</a>
-      <a class="nav-link" data-page="forest">🌲 豐盛森林</a>
-      <a class="nav-link" data-page="earules">📜 EA Rules</a>
-      <a class="nav-link" data-page="directory">📖 Signal Directory</a>
-      <a class="nav-link" data-page="export">📤 Export History</a>
+      <a href="#" class="nav-link" data-page="fxtools">🔧 FX Tools</a>
+      <a href="#" class="nav-link" data-page="forest">🌲 豐盛森林</a>
+      <a href="#" class="nav-link" data-page="earules">📜 EA Rules</a>
+      <a href="#" class="nav-link" data-page="directory">📖 Signal Directory</a>
+      <a href="#" class="nav-link" data-page="export">📤 Export History</a>
     </nav>
 
     <!-- MAIN -->
     <main class="flex-grow-1 p-3">
       <!-- Dashboard -->
       <div id="page-dashboard" class="page active">
-        <h2 class="mb-4">Dashboard</h2>
-        <h5 class="mb-3">Top 3 Highest Profit Live Signals</h5>
-        <div class="row g-4">
-          <div class="col-lg-4">
-            <div class="live-signal-card">
-              <div class="d-flex justify-content-between">
-                <strong>FF50 SMA 5CCY DEMO</strong>
-                <div class="text-end">
-                  <div class="profit">+4623%</div>
-                  <div class="dd">-12% (USD -3400)</div>
-                </div>
-              </div>
-              <div class="curve"><canvas id="curve1"></canvas></div>
-              <small class="text-muted">VantageMarkets Demo • 43 weeks</small>
-            </div>
-          </div>
-          <div class="col-lg-4">
-            <div class="live-signal-card">
-              <div class="d-flex justify-content-between">
-                <strong>FF52 MKD/S10 Bingo</strong>
-                <div class="text-end">
-                  <div class="profit">+1342%</div>
-                  <div class="dd">-8% (USD -2100)</div>
-                </div>
-              </div>
-              <div class="curve"><canvas id="curve2"></canvas></div>
-              <small class="text-muted">Alpari-Pro Demo • 14 weeks</small>
-            </div>
-          </div>
-          <div class="col-lg-4">
-            <div class="live-signal-card">
-              <div class="d-flex justify-content-between">
-                <strong>FF54 SMA Crazy XAU</strong>
-                <div class="text-end">
-                  <div class="profit">+942%</div>
-                  <div class="dd">-15% (USD -4800)</div>
-                </div>
-              </div>
-              <div class="curve"><canvas id="curve3"></canvas></div>
-              <small class="text-muted">Alpari-Pro Demo • 7 weeks</small>
-            </div>
-          </div>
-        </div>
+        <h2>Dashboard</h2>
+        <p class="text-muted">歡迎使用 Signal Helper</p>
       </div>
 
-      <!-- ========== THA PAGE ========== -->
+      <!-- THA -->
       <div id="page-tha" class="page">
-        <!-- Upload -->
         <section class="panel">
           <h2 class="panel-title">1. 匯入 MT4/MT5 報表 CSV</h2>
           <div class="d-flex flex-wrap gap-3 align-items-end">
@@ -231,9 +144,7 @@
               <label class="form-label small text-muted">EA 類型</label>
               <select id="eaSelect" class="form-select" style="min-width:180px;">
                 <option value="SMA">SMA (Standard)</option>
-                <option value="SMA_Pro">SMA Pro</option>
                 <option value="MKD">MKD (Standard)</option>
-                <option value="MKD_Pro">MKD Pro</option>
                 <option value="Other">Other EA</option>
               </select>
             </div>
@@ -245,9 +156,7 @@
           <div id="tha-status" class="mt-3 small"></div>
         </section>
 
-        <!-- 分析結果區 -->
         <div id="analysisArea" style="display:none;">
-          <!-- 分析 Menu（已合併） -->
           <div class="analysis-menu" id="analysisMenu">
             <button class="active" data-block="overview">總覽 + 資金曲線</button>
             <button data-block="symbol-martingale">Symbol 一覽 + 馬丁層數</button>
@@ -255,7 +164,7 @@
             <button data-block="swot">SWOT 分析</button>
           </div>
 
-          <!-- 1. 總覽 + 資金曲線+DD（合併） -->
+          <!-- 總覽 + 資金曲線 -->
           <div class="analysis-block active" id="block-overview">
             <section class="panel">
               <h2 class="panel-title">總覽 Summary + 資金曲線</h2>
@@ -275,7 +184,6 @@
                   <div class="small text-muted">Key Stats</div>
                   <div class="small">總交易：312</div>
                   <div class="small">Profit Factor：2.18</div>
-                  <div class="small">平均贏：$86.4</div>
                 </div>
               </div>
               <h6 class="mb-2">資金權益成長曲線 + Drawdown</h6>
@@ -283,94 +191,52 @@
             </section>
           </div>
 
-          <!-- 2. Symbol 一覽 + 馬丁層數（合併 + 聯動） -->
+          <!-- Symbol + 馬丁 -->
           <div class="analysis-block" id="block-symbol-martingale">
             <section class="panel">
               <h2 class="panel-title">Symbol 一覽 + 馬丁層數分析</h2>
-              
-              <!-- Symbol 按鈕 -->
               <div class="mb-3" id="symbolButtons">
                 <button class="symbol-btn active" data-symbol="ALL">All Symbols</button>
                 <button class="symbol-btn" data-symbol="EURUSD">EURUSD</button>
                 <button class="symbol-btn" data-symbol="GBPUSD">GBPUSD</button>
                 <button class="symbol-btn" data-symbol="XAUUSD">XAUUSD</button>
                 <button class="symbol-btn" data-symbol="USDJPY">USDJPY</button>
-                <button class="symbol-btn" data-symbol="AUDUSD">AUDUSD</button>
               </div>
-
-              <!-- Mini Equity -->
-              <h6 class="mb-2">Symbol 累積 Profit 小圖</h6>
+              <h6 class="mb-2">Mini Equity</h6>
               <div class="mini-equity-grid mb-4" id="miniEquityGrid"></div>
-
-              <!-- 馬丁層數分析（會跟住 Symbol 轉） -->
               <h6 class="mb-2">馬丁層數分析 - <span id="currentSymbolLabel">All Symbols</span></h6>
-              <div id="martingaleContent">
-                <!-- JS 會根據選中的 Symbol 更新 -->
-              </div>
+              <div id="martingaleContent"></div>
             </section>
           </div>
 
-          <!-- 3. Symbol 深入分析 -->
+          <!-- Symbol 深入 -->
           <div class="analysis-block" id="block-symbol-deep">
             <section class="panel">
               <h2 class="panel-title">Symbol 深入分析</h2>
-              <div class="mb-3 small">
-                Symbol 單數: 150 &nbsp;|&nbsp; 勝率: 81.4% &nbsp;|&nbsp; 淨盈利: 12480 &nbsp;|&nbsp; PF: 2.18<br>
-                期望值/單: 40.00 &nbsp;|&nbsp; Max DD: 2280 &nbsp;|&nbsp; 最大連虧: 4
-              </div>
-              <div class="row">
-                <div class="col-lg-6 mb-3">
-                  <h6>Cumulative Profit</h6>
-                  <canvas id="cumProfitChart" height="220"></canvas>
-                </div>
-                <div class="col-lg-3 mb-3">
-                  <h6>Weekday Profit</h6>
-                  <canvas id="weekdayProfitChart" height="180"></canvas>
-                </div>
-                <div class="col-lg-3 mb-3">
-                  <h6>Weekday Trades</h6>
-                  <canvas id="weekdayTradesChart" height="180"></canvas>
-                </div>
-              </div>
+              <p class="small text-muted">開發中（可先睇其他區塊）</p>
             </section>
           </div>
 
-          <!-- 4. SWOT -->
+          <!-- SWOT -->
           <div class="analysis-block" id="block-swot">
             <section class="panel">
               <h2 class="panel-title">SWOT 分析</h2>
               <div class="swot-grid">
                 <div class="swot-box swot-s">
-                  <h6 class="text-success">Strengths 優勢</h6>
-                  <ul class="small mb-0">
-                    <li>勝率高於 80%</li>
-                    <li>Profit Factor > 2.0</li>
-                    <li>最大連虧控制在 4 次以內</li>
-                  </ul>
+                  <h6 class="text-success">Strengths</h6>
+                  <ul class="small mb-0"><li>勝率高</li><li>PF > 2</li></ul>
                 </div>
                 <div class="swot-box swot-w">
-                  <h6 class="text-danger">Weaknesses 弱點</h6>
-                  <ul class="small mb-0">
-                    <li>部分貨幣對 Max DD 偏高</li>
-                    <li>馬丁第 1 層勝率偏低</li>
-                    <li>週末交易佔比過高</li>
-                  </ul>
+                  <h6 class="text-danger">Weaknesses</h6>
+                  <ul class="small mb-0"><li>第1層勝率偏低</li></ul>
                 </div>
                 <div class="swot-box swot-o">
-                  <h6 class="text-primary">Opportunities 機會</h6>
-                  <ul class="small mb-0">
-                    <li>可優化高勝率時段</li>
-                    <li>增加低相關貨幣對</li>
-                    <li>考慮降低第 1 層手数</li>
-                  </ul>
+                  <h6 class="text-primary">Opportunities</h6>
+                  <ul class="small mb-0"><li>可優化時段</li></ul>
                 </div>
                 <div class="swot-box swot-t">
-                  <h6 class="text-warning">Threats 威脅</h6>
-                  <ul class="small mb-0">
-                    <li>極端行情可能擴大 DD</li>
-                    <li>Broker 點差變動影響</li>
-                    <li>過擬合風險</li>
-                  </ul>
+                  <h6 class="text-warning">Threats</h6>
+                  <ul class="small mb-0"><li>極端行情風險</li></ul>
                 </div>
               </div>
             </section>
@@ -396,62 +262,47 @@
     </main>
   </div>
 
-  <!-- User Menu -->
-  <div id="user-menu" class="user-menu">
-    <ul class="list-unstyled mb-0">
-      <li>👤 User Profile</li>
-      <li>🛠️ Admin Console</li>
-      <li>⚙️ Control Panel</li>
-      <li>🌍 Environment Center</li>
-      <li class="border-top mt-2 pt-2">🎨 Theme</li>
-      <li class="ps-4">Light / Dark</li>
-      <li class="ps-4">金 | 木 | 水 | 火 | 土</li>
-      <li class="border-top mt-2 pt-2">🌐 Language</li>
-      <li class="ps-4">EN | 繁 | 簡 | JP</li>
-      <li class="border-top mt-2 pt-2 text-danger">🚪 LOGOUT</li>
-    </ul>
-  </div>
-
   <script>
-    // Page Routing
+    // ===== 強化版路由 =====
+    function switchPage(pageId) {
+      // 移除所有 active
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+      // 加 active
+      const link = document.querySelector(`.nav-link[data-page="${pageId}"]`);
+      if (link) link.classList.add('active');
+
+      const page = document.getElementById('page-' + pageId);
+      if (page) {
+        page.classList.add('active');
+        console.log('已切換到頁面:', pageId);
+      } else {
+        console.error('找不到頁面:', pageId);
+      }
+    }
+
+    // 綁定所有 Sidebar 連結
     document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', e => {
+      link.addEventListener('click', function(e) {
         e.preventDefault();
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const page = document.getElementById('page-' + link.dataset.page);
-        if (page) page.classList.add('active');
+        const pageId = this.getAttribute('data-page');
+        switchPage(pageId);
       });
-    });
-
-    // Pin
-    document.getElementById('pin-btn').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('pinned');
-    });
-
-    // User Menu
-    const trigger = document.getElementById('user-menu-trigger');
-    const menu = document.getElementById('user-menu');
-    trigger.addEventListener('click', e => { e.stopPropagation(); menu.classList.toggle('show'); });
-    document.addEventListener('click', () => menu.classList.remove('show'));
-
-    // Theme
-    document.getElementById('theme-switch').addEventListener('change', e => {
-      document.documentElement.setAttribute('data-mode', e.target.checked ? 'dark' : 'light');
     });
 
     // Analysis Menu
     document.querySelectorAll('#analysisMenu button').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', function() {
         document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        this.classList.add('active');
         document.querySelectorAll('.analysis-block').forEach(b => b.classList.remove('active'));
-        document.getElementById('block-' + btn.dataset.block).classList.add('active');
+        const block = document.getElementById('block-' + this.dataset.block);
+        if (block) block.classList.add('active');
       });
     });
 
-    // Demo Martingale Data
+    // Martingale Data
     const martingaleData = {
       ALL: { label: 'All Symbols', rows: [
         {layer:1, lots:0.01, trades:42, sumP:-186.4, cum:-186.4, wr:'41%', color:'#fef2f2'},
@@ -463,38 +314,28 @@
         {layer:1, lots:0.01, trades:18, sumP:-86.4, cum:-86.4, wr:'44%', color:'#fef2f2'},
         {layer:2, lots:0.02, trades:12, sumP:152.3, cum:65.9, wr:'75%', color:'#ecfdf5'},
         {layer:3, lots:0.04, trades:9, sumP:318.6, cum:384.5, wr:'89%', color:'#ecfdf5'},
-        {layer:4, lots:0.08, trades:6, sumP:512.4, cum:896.9, wr:'100%', color:'#dbeafe'},
-        {layer:5, lots:0.16, trades:3, sumP:348.9, cum:1245.8, wr:'100%', color:'#dbeafe'}
+        {layer:4, lots:0.08, trades:6, sumP:512.4, cum:896.9, wr:'100%', color:'#dbeafe'}
       ]},
       GBPUSD: { label: 'GBPUSD - BUY', rows: [
         {layer:1, lots:0.01, trades:14, sumP:-42.1, cum:-42.1, wr:'50%', color:'#fef2f2'},
-        {layer:2, lots:0.02, trades:9, sumP:98.6, cum:56.5, wr:'67%', color:'#ecfdf5'},
-        {layer:3, lots:0.04, trades:5, sumP:187.3, cum:243.8, wr:'80%', color:'#ecfdf5'}
+        {layer:2, lots:0.02, trades:9, sumP:98.6, cum:56.5, wr:'67%', color:'#ecfdf5'}
       ]},
       XAUUSD: { label: 'XAUUSD - BUY', rows: [
         {layer:1, lots:0.10, trades:11, sumP:68.4, cum:68.4, wr:'64%', color:'#ecfdf5'},
-        {layer:2, lots:0.20, trades:6, sumP:245.8, cum:314.2, wr:'83%', color:'#ecfdf5'},
-        {layer:3, lots:0.40, trades:3, sumP:412.5, cum:726.7, wr:'100%', color:'#dbeafe'}
+        {layer:2, lots:0.20, trades:6, sumP:245.8, cum:314.2, wr:'83%', color:'#ecfdf5'}
       ]},
       USDJPY: { label: 'USDJPY - SELL', rows: [
         {layer:1, lots:0.01, trades:16, sumP:-55.2, cum:-55.2, wr:'44%', color:'#fef2f2'},
         {layer:2, lots:0.02, trades:10, sumP:128.7, cum:73.5, wr:'70%', color:'#ecfdf5'}
-      ]},
-      AUDUSD: { label: 'AUDUSD - BUY', rows: [
-        {layer:1, lots:0.01, trades:12, sumP:22.4, cum:22.4, wr:'58%', color:'#ecfdf5'},
-        {layer:2, lots:0.02, trades:7, sumP:95.1, cum:117.5, wr:'71%', color:'#ecfdf5'}
       ]}
     };
 
     function renderMartingale(symbol) {
       const data = martingaleData[symbol] || martingaleData.ALL;
       document.getElementById('currentSymbolLabel').textContent = data.label;
-      let html = `<div class="mb-2"><strong>${data.label}</strong></div>
-        <div class="table-responsive">
-          <table class="martingale">
-            <thead><tr>
-              <th>#</th><th>Lots</th><th>Trades</th><th>SUM Profit</th><th>Cum Profit</th><th>Win Rate %</th>
-            </tr></thead><tbody>`;
+      let html = `<div class="table-responsive"><table class="martingale"><thead><tr>
+        <th>#</th><th>Lots</th><th>Trades</th><th>SUM Profit</th><th>Cum Profit</th><th>Win Rate</th>
+      </tr></thead><tbody>`;
       data.rows.forEach((r, i) => {
         html += `<tr class="layer-row" data-layer="${i}" style="background:${r.color}">
           <td>${r.layer}</td><td>${r.lots}</td><td>${r.trades}</td>
@@ -504,32 +345,24 @@
         </tr>
         <tr><td colspan="6" style="padding:0;border:none;">
           <div class="layer-detail" id="layer-detail-${i}">
-            <strong>第 ${r.layer} 層詳細數據</strong><br>
-            Lots: ${r.lots} &nbsp;|&nbsp; 開單數量: ${r.trades}<br>
-            該層 SUM Profit: ${r.sumP.toFixed(2)} &nbsp;|&nbsp; 累積 Profit: ${r.cum.toFixed(2)}<br>
-            勝率: ${r.wr} &nbsp;|&nbsp; 平均每單: ${(r.sumP / r.trades).toFixed(2)}
+            <strong>第 ${r.layer} 層詳細</strong><br>
+            Lots: ${r.lots} | 開單數: ${r.trades}<br>
+            SUM Profit: ${r.sumP.toFixed(2)} | 累積: ${r.cum.toFixed(2)} | 勝率: ${r.wr}
           </div>
         </td></tr>`;
       });
       html += `</tbody></table></div>
-        <div class="small mt-2 text-muted">
-          <span style="background:#ecfdf5;padding:2px 8px;border-radius:4px;">綠色 = 安全層</span>
-          <span style="background:#fef2f2;padding:2px 8px;border-radius:4px;margin-left:8px;">紅色 = 風險層</span>
-          <span style="background:#dbeafe;padding:2px 8px;border-radius:4px;margin-left:8px;">藍色 = 高勝率層</span>
-          <span class="ms-3">（點擊層數可展開詳細）</span>
-        </div>`;
+        <div class="small mt-2 text-muted">點擊層數可展開詳細數據</div>`;
       document.getElementById('martingaleContent').innerHTML = html;
 
-      // 點擊展開
       document.querySelectorAll('.layer-row').forEach(row => {
         row.addEventListener('click', () => {
-          const detail = document.getElementById('layer-detail-' + row.dataset.layer);
-          detail.classList.toggle('show');
+          document.getElementById('layer-detail-' + row.dataset.layer).classList.toggle('show');
         });
       });
     }
 
-    // Symbol 按鈕聯動
+    // Symbol 按鈕
     document.getElementById('symbolButtons').addEventListener('click', e => {
       if (!e.target.classList.contains('symbol-btn')) return;
       document.querySelectorAll('.symbol-btn').forEach(b => b.classList.remove('active'));
@@ -537,14 +370,14 @@
       renderMartingale(e.target.dataset.symbol);
     });
 
-    // Start Analysis
+    // 開始分析
     document.getElementById('analyzeBtn').addEventListener('click', () => {
       const file = document.getElementById('csvFile').files[0];
       if (!file) {
         document.getElementById('tha-status').innerHTML = '<span class="text-danger">請先選擇檔案</span>';
         return;
       }
-      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}，分析完成（Demo）</span>`;
+      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}</span>`;
       document.getElementById('analysisArea').style.display = 'block';
 
       // Equity Chart
@@ -555,55 +388,36 @@
         data: {
           labels: ['W1','W5','W10','W15','W20','W25','W30'],
           datasets: [
-            { label: 'Equity', data: [10000,12800,15200,17800,20100,22600,24800], borderColor: '#16a34a', borderWidth: 2, tension: 0.35, backgroundColor: 'rgba(22,163,74,0.08)', fill: true, pointRadius: 0, yAxisID: 'y' },
-            { label: 'Drawdown %', data: [0,-2.1,-4.8,-3.2,-7.5,-5.1,-9.2], borderColor: '#dc2626', borderWidth: 1.5, tension: 0.3, backgroundColor: 'rgba(220,38,38,0.06)', fill: true, pointRadius: 0, yAxisID: 'y1' }
+            { label: 'Equity', data: [10000,12800,15200,17800,20100,22600,24800], borderColor: '#16a34a', borderWidth: 2, tension: 0.35, fill: true, backgroundColor: 'rgba(22,163,74,0.08)', pointRadius: 0, yAxisID: 'y' },
+            { label: 'Drawdown %', data: [0,-2.1,-4.8,-3.2,-7.5,-5.1,-9.2], borderColor: '#dc2626', borderWidth: 1.5, tension: 0.3, fill: true, backgroundColor: 'rgba(220,38,38,0.06)', pointRadius: 0, yAxisID: 'y1' }
           ]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: true, position: 'top' } },
+          plugins: { legend: { position: 'top' } },
           scales: {
-            y: { position: 'left', title: { display: true, text: 'Equity ($)' } },
-            y1: { position: 'right', title: { display: true, text: 'Drawdown %' }, grid: { drawOnChartArea: false }, min: -15, max: 2 },
-            x: { grid: { display: false } }
+            y: { position: 'left', title: { display: true, text: 'Equity' } },
+            y1: { position: 'right', title: { display: true, text: 'DD %' }, grid: { drawOnChartArea: false }, min: -15, max: 2 }
           }
         }
       });
 
-      // Mini Equity（線再幼）
+      // Mini Equity
       const grid = document.getElementById('miniEquityGrid');
       grid.innerHTML = '';
-      ['All','EURUSD','GBPUSD','XAUUSD','USDJPY','AUDUSD'].forEach((sym, i) => {
+      ['All','EURUSD','GBPUSD','XAUUSD','USDJPY'].forEach((sym, i) => {
         const card = document.createElement('div');
         card.className = 'mini-card';
         card.innerHTML = `<div class="small fw-bold mb-1">${sym}</div><canvas id="mini${i}"></canvas>`;
         grid.appendChild(card);
         new Chart(document.getElementById('mini'+i), {
           type: 'line',
-          data: { labels: Array(20).fill(''), datasets: [{ data: Array.from({length:20}, () => Math.random()*80+40), borderColor: '#16a34a', borderWidth: 1.2, tension: 0.3, pointRadius: 0 }] },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+          data: { labels: Array(15).fill(''), datasets: [{ data: Array.from({length:15},()=>Math.random()*60+30), borderColor:'#16a34a', borderWidth:1.2, tension:0.3, pointRadius:0 }] },
+          options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}} }
         });
       });
 
-      // 預設顯示 ALL 馬丁
       renderMartingale('ALL');
-
-      // Deep charts
-      new Chart(document.getElementById('cumProfitChart'), {
-        type: 'line',
-        data: { labels: Array(30).fill(''), datasets: [{ data: Array.from({length:30}, (_,i) => i*400 + Math.random()*200), borderColor: '#0ea5e9', borderWidth: 2, tension: 0.3, pointRadius: 0 }] },
-        options: { responsive: true, plugins: { legend: { display: false } } }
-      });
-      new Chart(document.getElementById('weekdayProfitChart'), {
-        type: 'bar',
-        data: { labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], datasets: [{ data: [1200,800,950,600,1100,700,300], backgroundColor: '#0ea5e9' }] },
-        options: { responsive: true, plugins: { legend: { display: false } } }
-      });
-      new Chart(document.getElementById('weekdayTradesChart'), {
-        type: 'bar',
-        data: { labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], datasets: [{ data: [45,32,38,25,41,28,12], backgroundColor: '#8b5cf6' }] },
-        options: { responsive: true, plugins: { legend: { display: false } } }
-      });
     });
 
     document.getElementById('resetBtn').addEventListener('click', () => {
@@ -612,9 +426,8 @@
       document.getElementById('analysisArea').style.display = 'none';
     });
 
-    // Live Signal Charts
-    function createChart(id) {
-      new Chart(document.getElementById(id), {
-        type: 'line',
-        data: { labels: ['1','10','20','30','40'], datasets: [{ data: [1000,2800,4500,7200,9800], borderColor: '#16a34a', tension: 0.4, borderWidth: 2, pointRadius: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y:
+    // 預設顯示 Dashboard
+    switchPage('dashboard');
+  </script>
+</body>
+</html>
