@@ -78,25 +78,34 @@
     }
     table.martingale th { background: #f3f4f6; }
     .expand-btn {
-      width: 26px; height: 26px; border-radius: 50%; border: 1px solid #94a3b8;
-      background: white; cursor: pointer; font-weight: bold; font-size: 16px; line-height: 1;
+      background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 0 4px;
     }
     .layer-detail { display: none; background: #f8fafc; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin: 6px 0; }
     .layer-detail.show { display: block; }
     .trade-table { width: 100%; font-size: 0.78rem; border-collapse: collapse; }
     .trade-table th, .trade-table td { border: 1px solid #e5e7eb; padding: 4px 6px; white-space: nowrap; }
-    .trade-table th { background: #f1f5f9; cursor: pointer; }
+    .trade-table th { background: #f1f5f9; }
     .swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .swot-box { border-radius: 12px; padding: 16px; min-height: 130px; }
     .swot-s { background: #ecfdf5; border: 1px solid #a7f3d0; }
     .swot-w { background: #fef2f2; border: 1px solid #fecaca; }
     .swot-o { background: #eff6ff; border: 1px solid #bfdbfe; }
     .swot-t { background: #fff7ed; border: 1px solid #fed7aa; }
-    .heatmap-table { border-collapse: collapse; font-size: 0.8rem; }
-    .heatmap-table th, .heatmap-table td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: center; min-width: 42px; }
-    .hm-pos { background: #bbf7d0; }
-    .hm-neg { background: #fecaca; }
-    .hm-zero { background: #f1f5f9; }
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 40px; font-size: 0.9rem;
+    }
+    .stats-grid .label { color: #6b7280; }
+    .stats-grid .value { text-align: right; font-weight: 500; }
+    .stats-grid .pos { color: #16a34a; }
+    .stats-grid .neg { color: #dc2626; }
+    .dist-bar {
+      height: 22px; border-radius: 4px; margin: 4px 0; position: relative;
+      background: #e5e7eb; overflow: hidden;
+    }
+    .dist-bar-fill { height: 100%; border-radius: 4px; }
+    .dist-bar-label {
+      position: absolute; left: 8px; top: 2px; font-size: 0.78rem; color: #111;
+    }
   </style>
 </head>
 <body>
@@ -109,7 +118,6 @@
   </header>
 
   <div class="d-flex">
-    <!-- SIDEBAR -->
     <nav class="sidebar">
       <div class="nav-section">P1 - Core</div>
       <a href="#" class="nav-link active" data-page="dashboard">📊 Dashboard</a>
@@ -120,12 +128,10 @@
       <a href="#" class="nav-link" data-page="portfolio">💼 User Portfolio</a>
       <a href="#" class="nav-link" data-page="news">📰 Market News</a>
       <a href="#" class="nav-link" data-page="world">🌍 World Monitor</a>
-
       <div class="nav-section">P2 - Advanced</div>
       <a href="#" class="nav-link" data-page="crosspower">⚡ Cross Power Center</a>
       <a href="#" class="nav-link" data-page="tha">📈 Trade History Analyzer</a>
       <a href="#" class="nav-link" data-page="library">📚 Signal History Library</a>
-
       <div class="nav-section">P3</div>
       <a href="#" class="nav-link" data-page="fxtools">🔧 FX Tools</a>
       <a href="#" class="nav-link" data-page="forest">🌲 豐盛森林</a>
@@ -134,15 +140,12 @@
       <a href="#" class="nav-link" data-page="export">📤 Export History</a>
     </nav>
 
-    <!-- MAIN -->
     <main class="flex-grow-1 p-3">
-      <!-- Dashboard -->
       <div id="page-dashboard" class="page active">
         <h2>Dashboard</h2>
         <p class="text-muted">歡迎使用 Signal Helper</p>
       </div>
 
-      <!-- THA -->
       <div id="page-tha" class="page">
         <section class="panel">
           <h2 class="panel-title">1. 匯入 MT4/MT5 報表 CSV</h2>
@@ -170,7 +173,6 @@
         </section>
 
         <div id="analysisArea" style="display:none;">
-          <!-- Menu -->
           <div class="analysis-menu" id="analysisMenu">
             <button class="active" data-block="overview">總覽 + 資金曲線</button>
             <button data-block="symbol-martingale">Symbol 一覽 + 馬丁層數</button>
@@ -181,7 +183,7 @@
             <button data-block="swot">SWOT 分析</button>
           </div>
 
-          <!-- 1. 總覽 + 資金曲線 -->
+          <!-- 1. 總覽 + 資金曲線 + 詳細 Statistics -->
           <div class="analysis-block active" id="block-overview">
             <section class="panel">
               <h2 class="panel-title">總覽 Summary + 資金曲線</h2>
@@ -204,12 +206,43 @@
                   <div class="small">平均贏：$86.4</div>
                 </div>
               </div>
+
               <h6 class="mb-2">資金權益成長曲線 + Drawdown</h6>
-              <div style="height: 260px;"><canvas id="thaEquityChart"></canvas></div>
+              <div style="height: 240px;"><canvas id="thaEquityChart"></canvas></div>
+
+              <!-- 詳細 Statistics（跟圖2） -->
+              <h6 class="mt-4 mb-3">詳細 Statistics</h6>
+              <div class="stats-grid mb-4">
+                <div><span class="label">Trades:</span></div><div class="value">312</div>
+                <div><span class="label">Profit Trades:</span></div><div class="value pos">254 (81.4%)</div>
+                <div><span class="label">Loss Trades:</span></div><div class="value neg">58 (18.6%)</div>
+                <div><span class="label">Best trade:</span></div><div class="value pos">+1,245.80 USD</div>
+                <div><span class="label">Worst trade:</span></div><div class="value neg">-386.20 USD</div>
+                <div><span class="label">Gross Profit:</span></div><div class="value pos">+18,640.50 USD</div>
+                <div><span class="label">Gross Loss:</span></div><div class="value neg">-6,160.50 USD</div>
+                <div><span class="label">Maximum consecutive wins:</span></div><div class="value">12 (1,856 USD)</div>
+                <div><span class="label">Maximal consecutive profit:</span></div><div class="value pos">2,480.30 USD (8)</div>
+                <div><span class="label">Recovery Factor:</span></div><div class="value">2.18</div>
+                <div><span class="label">Profit Factor:</span></div><div class="value">3.03</div>
+                <div><span class="label">Expected Payoff:</span></div><div class="value pos">40.00 USD</div>
+                <div><span class="label">Average Profit:</span></div><div class="value pos">73.40 USD</div>
+                <div><span class="label">Average Loss:</span></div><div class="value neg">-106.20 USD</div>
+                <div><span class="label">Maximum consecutive losses:</span></div><div class="value neg">4 (-420.80 USD)</div>
+                <div><span class="label">Maximal consecutive loss:</span></div><div class="value neg">-680.50 USD (3)</div>
+              </div>
+
+              <!-- Distribution By Symbol -->
+              <h6 class="mb-3">Distribution By Symbol</h6>
+              <div class="mb-2 small text-muted">Deals</div>
+              <div id="distDeals"></div>
+              <div class="mb-2 mt-3 small text-muted">Net Profit (USD)</div>
+              <div id="distProfit"></div>
+              <div class="mb-2 mt-3 small text-muted">Net Profit (Pips)</div>
+              <div id="distPips"></div>
             </section>
           </div>
 
-          <!-- 2. Symbol 一覽 + 馬丁 -->
+          <!-- 2. Symbol + 馬丁 -->
           <div class="analysis-block" id="block-symbol-martingale">
             <section class="panel">
               <h2 class="panel-title">Symbol 一覽 + 馬丁層數分析</h2>
@@ -221,10 +254,8 @@
                 <button class="symbol-btn" data-symbol="USDJPY">USDJPY</button>
                 <button class="symbol-btn" data-symbol="AUDUSD">AUDUSD</button>
               </div>
-
               <h6 class="mb-2">Mini Equity</h6>
               <div class="mini-equity-grid mb-4" id="miniEquityGrid"></div>
-
               <h6 class="mb-2">馬丁層數分析 - <span id="currentSymbolLabel">All Symbols</span></h6>
               <div id="martingaleContent"></div>
             </section>
@@ -234,29 +265,22 @@
           <div class="analysis-block" id="block-symbol-deep">
             <section class="panel">
               <h2 class="panel-title">Symbol 深入分析</h2>
-              <p class="text-muted small">（Demo 結構，真實數據之後接入）</p>
-              <div class="row">
-                <div class="col-lg-6"><canvas id="cumProfitChart" height="220"></canvas></div>
-                <div class="col-lg-3"><canvas id="weekdayProfitChart" height="180"></canvas></div>
-                <div class="col-lg-3"><canvas id="weekdayTradesChart" height="180"></canvas></div>
-              </div>
+              <p class="text-muted small">開發中...</p>
             </section>
           </div>
 
-          <!-- 4. MFE + MAE -->
+          <!-- 4. MFE + MAE (散點圖風格) -->
           <div class="analysis-block" id="block-mfe-mae">
             <section class="panel">
-              <h2 class="panel-title">MFE + MAE 分析</h2>
-              <div class="row">
-                <div class="col-md-6">
-                  <h6>MFE (Maximum Favorable Excursion)</h6>
-                  <canvas id="mfeChart" height="220"></canvas>
-                </div>
-                <div class="col-md-6">
-                  <h6>MAE (Maximum Adverse Excursion)</h6>
-                  <canvas id="maeChart" height="220"></canvas>
-                </div>
+              <h2 class="panel-title">MFE + MAE</h2>
+              <div class="d-flex gap-2 mb-3">
+                <button class="btn btn-sm btn-primary" id="btnMFE">MFE</button>
+                <button class="btn btn-sm btn-outline-secondary" id="btnMAE">MAE</button>
               </div>
+              <h6>Max Profit Pips vs Net Pips</h6>
+              <div style="height: 280px;"><canvas id="mfeScatter"></canvas></div>
+              <h6 class="mt-4">Days Held vs Net Pips</h6>
+              <div style="height: 220px;"><canvas id="holdingScatter"></canvas></div>
             </section>
           </div>
 
@@ -264,18 +288,14 @@
           <div class="analysis-block" id="block-heatmap">
             <section class="panel">
               <h2 class="panel-title">Heat Map</h2>
-              <h6 class="mt-3">A. Weekday × Hour Profit Heat Map</h6>
-              <div class="table-responsive mb-4">
-                <table class="heatmap-table" id="heatmapHour"></table>
-              </div>
-              <h6>B. Symbol × Weekday Profit Heat Map</h6>
-              <div class="table-responsive">
-                <table class="heatmap-table" id="heatmapSymbol"></table>
-              </div>
+              <h6>Weekday × Hour Profit</h6>
+              <div class="table-responsive mb-4" id="heatmapHour"></div>
+              <h6>Symbol × Weekday Profit</h6>
+              <div class="table-responsive" id="heatmapSymbol"></div>
             </section>
           </div>
 
-          <!-- 6. Drawdown 分析 -->
+          <!-- 6. Drawdown -->
           <div class="analysis-block" id="block-drawdown">
             <section class="panel">
               <h2 class="panel-title">Drawdown 分析</h2>
@@ -293,7 +313,6 @@
                   <div class="fs-5 fw-bold">4 次</div>
                 </div>
               </div>
-              <h6>Underwater Equity</h6>
               <div style="height: 240px;"><canvas id="ddChart"></canvas></div>
             </section>
           </div>
@@ -303,50 +322,23 @@
             <section class="panel">
               <h2 class="panel-title">SWOT 分析</h2>
               <div class="swot-grid">
-                <div class="swot-box swot-s">
-                  <h6 class="text-success">Strengths</h6>
-                  <ul class="small mb-0">
-                    <li>勝率 81.4%</li>
-                    <li>PF 2.18</li>
-                    <li>最大連虧只有 4 次</li>
-                  </ul>
-                </div>
-                <div class="swot-box swot-w">
-                  <h6 class="text-danger">Weaknesses</h6>
-                  <ul class="small mb-0">
-                    <li>第 1 層勝率偏低</li>
-                    <li>部分貨幣 DD 偏高</li>
-                  </ul>
-                </div>
-                <div class="swot-box swot-o">
-                  <h6 class="text-primary">Opportunities</h6>
-                  <ul class="small mb-0">
-                    <li>優化高勝率時段</li>
-                    <li>調整第 1 層手数</li>
-                  </ul>
-                </div>
-                <div class="swot-box swot-t">
-                  <h6 class="text-warning">Threats</h6>
-                  <ul class="small mb-0">
-                    <li>極端行情擴大 DD</li>
-                    <li>過擬合風險</li>
-                  </ul>
-                </div>
+                <div class="swot-box swot-s"><h6 class="text-success">Strengths</h6><ul class="small mb-0"><li>勝率 81.4%</li><li>PF 2.18</li></ul></div>
+                <div class="swot-box swot-w"><h6 class="text-danger">Weaknesses</h6><ul class="small mb-0"><li>第1層勝率偏低</li></ul></div>
+                <div class="swot-box swot-o"><h6 class="text-primary">Opportunities</h6><ul class="small mb-0"><li>優化高勝率時段</li></ul></div>
+                <div class="swot-box swot-t"><h6 class="text-warning">Threats</h6><ul class="small mb-0"><li>極端行情風險</li></ul></div>
               </div>
             </section>
           </div>
         </div>
       </div>
 
-      <!-- Signal History Library -->
       <div id="page-library" class="page">
         <section class="panel">
           <h2 class="panel-title">📚 Signal History Library</h2>
-          <div id="libraryList" class="small text-muted">暫時未有 Record（按 SAVE CSV REPORT 後會出現）</div>
+          <div id="libraryList" class="small text-muted">暫時未有 Record</div>
         </section>
       </div>
 
-      <!-- 其他頁面 -->
       <div id="page-live" class="page"><div class="panel"><h2>📡 Live Signals</h2><p>開發中...</p></div></div>
       <div id="page-mysignals" class="page"><div class="panel"><h2>📋 My Signals</h2><p>開發中...</p></div></div>
       <div id="page-register" class="page"><div class="panel"><h2>➕ Register Signal</h2><p>開發中...</p></div></div>
@@ -364,7 +356,6 @@
   </div>
 
   <script>
-    // ===== 路由 =====
     function switchPage(pageId) {
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -380,7 +371,6 @@
       });
     });
 
-    // Analysis Menu
     document.querySelectorAll('#analysisMenu button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
@@ -390,7 +380,6 @@
       });
     });
 
-    // ===== Demo Data =====
     const martingaleData = {
       ALL: { label: 'All Symbols', rows: [
         {layer:1, lots:0.01, trades:42, sumP:-186.4, cum:-186.4, wr:'41%', color:'#fef2f2'},
@@ -422,7 +411,6 @@
       ]}
     };
 
-    // Demo 每層單據
     const demoTrades = [
       {openTime:'2026-06-01 09:15', type:'Buy', volume:0.01, symbol:'EURUSD', openPrice:1.0845, closeTime:'2026-06-01 14:22', closePrice:1.0862, commission:-0.07, swap:0, pips:17, net:12.4, holding:'5h 7m', maxProfit:18.2, maxPips:21, maxLoss:-4.1, maxLossPips:-6, magic:10001, comment:'SMA_L1'},
       {openTime:'2026-06-02 11:30', type:'Buy', volume:0.01, symbol:'EURUSD', openPrice:1.0851, closeTime:'2026-06-02 16:05', closePrice:1.0838, commission:-0.07, swap:0, pips:-13, net:-9.8, holding:'4h 35m', maxProfit:5.2, maxPips:7, maxLoss:-14.5, maxLossPips:-16, magic:10001, comment:'SMA_L1'}
@@ -432,12 +420,10 @@
       const data = martingaleData[symbol] || martingaleData.ALL;
       document.getElementById('currentSymbolLabel').textContent = data.label;
       let html = `<div class="table-responsive"><table class="martingale">
-        <thead><tr>
-          <th style="width:40px"></th><th>#</th><th>Lots</th><th>Trades</th><th>SUM Profit</th><th>Cum Profit</th><th>Win Rate</th>
-        </tr></thead><tbody>`;
+        <thead><tr><th style="width:36px"></th><th>#</th><th>Lots</th><th>Trades</th><th>SUM Profit</th><th>Cum Profit</th><th>Win Rate</th></tr></thead><tbody>`;
       data.rows.forEach((r, i) => {
         html += `<tr style="background:${r.color}">
-          <td><button class="expand-btn" data-layer="${i}">+</button></td>
+          <td><button class="expand-btn" data-layer="${i}">➕</button></td>
           <td>${r.layer}</td><td>${r.lots}</td><td>${r.trades}</td>
           <td>${r.sumP > 0 ? '+'+r.sumP.toFixed(1) : r.sumP.toFixed(1)}</td>
           <td>${r.cum > 0 ? '+'+r.cum.toFixed(1) : r.cum.toFixed(1)}</td>
@@ -448,25 +434,22 @@
             <strong>第 ${r.layer} 層詳細單據</strong>
             <div class="table-responsive mt-2">
               <table class="trade-table">
-                <thead>
-                  <tr>
-                    <th>Open Time</th><th>Type</th><th>Volume</th><th>Symbol</th><th>Open Price</th>
-                    <th>Close Time</th><th>Close Price</th><th>Commission</th><th>Swap</th>
-                    <th>Pips</th><th>Net Profit</th><th>Holding Time</th>
-                    <th>Max Profit</th><th>Max Pips</th><th>Max Loss</th><th>Max Loss Pips</th>
-                    <th>Magic No.</th><th>Comment</th>
-                  </tr>
-                </thead>
+                <thead><tr>
+                  <th>Open Time</th><th>Type</th><th>Volume</th><th>Symbol</th><th>Open Price</th>
+                  <th>Close Time</th><th>Close Price</th><th>Commission</th><th>Swap</th>
+                  <th>Pips</th><th>Net Profit</th><th>Holding Time</th>
+                  <th>Max Profit</th><th>Max Pips</th><th>Max Loss</th><th>Max Loss Pips</th>
+                  <th>Magic No.</th><th>Comment</th>
+                </tr></thead>
                 <tbody>
-                  ${demoTrades.map(t => `
-                    <tr>
-                      <td>${t.openTime}</td><td>${t.type}</td><td>${t.volume}</td><td>${t.symbol}</td>
-                      <td>${t.openPrice}</td><td>${t.closeTime}</td><td>${t.closePrice}</td>
-                      <td>${t.commission}</td><td>${t.swap}</td><td>${t.pips}</td>
-                      <td>${t.net}</td><td>${t.holding}</td><td>${t.maxProfit}</td>
-                      <td>${t.maxPips}</td><td>${t.maxLoss}</td><td>${t.maxLossPips}</td>
-                      <td>${t.magic}</td><td>${t.comment}</td>
-                    </tr>`).join('')}
+                  ${demoTrades.map(t => `<tr>
+                    <td>${t.openTime}</td><td>${t.type}</td><td>${t.volume}</td><td>${t.symbol}</td>
+                    <td>${t.openPrice}</td><td>${t.closeTime}</td><td>${t.closePrice}</td>
+                    <td>${t.commission}</td><td>${t.swap}</td><td>${t.pips}</td>
+                    <td>${t.net}</td><td>${t.holding}</td><td>${t.maxProfit}</td>
+                    <td>${t.maxPips}</td><td>${t.maxLoss}</td><td>${t.maxLossPips}</td>
+                    <td>${t.magic}</td><td>${t.comment}</td>
+                  </tr>`).join('')}
                 </tbody>
               </table>
             </div>
@@ -474,19 +457,18 @@
         </td></tr>`;
       });
       html += `</tbody></table></div>
-        <div class="small mt-2 text-muted">點左邊 + / - 可展開該層每一張單</div>`;
+        <div class="small mt-2 text-muted">點 ➕ / ➖ 可展開該層每一張單</div>`;
       document.getElementById('martingaleContent').innerHTML = html;
 
       document.querySelectorAll('.expand-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const detail = document.getElementById('layer-detail-' + btn.dataset.layer);
           const isShow = detail.classList.toggle('show');
-          btn.textContent = isShow ? '−' : '+';
+          btn.textContent = isShow ? '➖' : '➕';
         });
       });
     }
 
-    // Symbol 按鈕
     document.getElementById('symbolButtons').addEventListener('click', e => {
       if (!e.target.classList.contains('symbol-btn')) return;
       document.querySelectorAll('.symbol-btn').forEach(b => b.classList.remove('active'));
@@ -494,17 +476,28 @@
       renderMartingale(e.target.dataset.symbol);
     });
 
-    // ===== 開始分析 =====
+    // Distribution bars helper
+    function renderDistBars(containerId, data, maxVal, color) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = data.map(d => {
+        const pct = Math.min(100, (Math.abs(d.value) / maxVal) * 100);
+        return `<div class="dist-bar" title="${d.symbol}: ${d.value}">
+          <div class="dist-bar-fill" style="width:${pct}%;background:${d.value >= 0 ? color : '#fca5a5'}"></div>
+          <div class="dist-bar-label">${d.symbol} &nbsp; ${d.value > 0 ? '+' : ''}${d.value}</div>
+        </div>`;
+      }).join('');
+    }
+
     document.getElementById('analyzeBtn').addEventListener('click', () => {
       const file = document.getElementById('csvFile').files[0];
       if (!file) {
         document.getElementById('tha-status').innerHTML = '<span class="text-danger">請先選擇檔案</span>';
         return;
       }
-      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}（Demo 數據）</span>`;
+      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}（Demo）</span>`;
       document.getElementById('analysisArea').style.display = 'block';
 
-      // Equity Chart
+      // Equity
       const ctx = document.getElementById('thaEquityChart').getContext('2d');
       if (window.thaChart) window.thaChart.destroy();
       window.thaChart = new Chart(ctx, {
@@ -526,7 +519,7 @@
         }
       });
 
-      // Mini Equity + Balance / Profit% / DD%
+      // Mini Equity
       const grid = document.getElementById('miniEquityGrid');
       grid.innerHTML = '';
       const miniData = [
@@ -540,14 +533,8 @@
       miniData.forEach((d, i) => {
         const card = document.createElement('div');
         card.className = 'mini-card';
-        card.innerHTML = `
-          <div class="small fw-bold mb-1">${d.sym}</div>
-          <canvas id="mini${i}"></canvas>
-          <div class="mini-stats">
-            Bal: $${d.bal.toLocaleString()}<br>
-            P%: +${d.profit}%<br>
-            DD%: -${d.dd}%
-          </div>`;
+        card.innerHTML = `<div class="small fw-bold mb-1">${d.sym}</div><canvas id="mini${i}"></canvas>
+          <div class="mini-stats">Bal: $${d.bal.toLocaleString()}<br>P%: +${d.profit}%<br>DD%: -${d.dd}%</div>`;
         grid.appendChild(card);
         new Chart(document.getElementById('mini'+i), {
           type: 'line',
@@ -556,38 +543,75 @@
         });
       });
 
+      // Distribution By Symbol
+      const dealsData = [
+        {symbol:'EURUSD', value:128}, {symbol:'GBPUSD', value:64}, {symbol:'XAUUSD', value:48},
+        {symbol:'USDJPY', value:42}, {symbol:'AUDUSD', value:30}
+      ];
+      const profitData = [
+        {symbol:'EURUSD', value:6240}, {symbol:'GBPUSD', value:2180}, {symbol:'XAUUSD', value:2860},
+        {symbol:'USDJPY', value:980}, {symbol:'AUDUSD', value:220}
+      ];
+      const pipsData = [
+        {symbol:'EURUSD', value:8420}, {symbol:'GBPUSD', value:3120}, {symbol:'XAUUSD', value:4580},
+        {symbol:'USDJPY', value:1650}, {symbol:'AUDUSD', value:890}
+      ];
+      renderDistBars('distDeals', dealsData, 130, '#93c5fd');
+      renderDistBars('distProfit', profitData, 6500, '#86efac');
+      renderDistBars('distPips', pipsData, 8500, '#86efac');
+
       renderMartingale('ALL');
 
-      // Heat Map A
-      const hours = ['00','04','08','12','16','20'];
-      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      let hmA = '<tr><th></th>' + hours.map(h=>`<th>${h}</th>`).join('') + '</tr>';
-      days.forEach(day => {
-        hmA += `<tr><th>${day}</th>`;
-        hours.forEach(() => {
-          const v = Math.floor(Math.random()*200 - 60);
-          const cls = v > 20 ? 'hm-pos' : v < -20 ? 'hm-neg' : 'hm-zero';
-          hmA += `<td class="${cls}">${v}</td>`;
-        });
-        hmA += '</tr>';
+      // MFE Scatter (Max Profit Pips vs Net Pips)
+      const scatterData = Array.from({length:80}, () => {
+        const net = Math.random() * 1800 - 400;
+        const maxP = net > 0 ? net + Math.random()*400 : Math.random()*80;
+        return {x: net, y: maxP, color: net >= 0 ? '#16a34a' : '#dc2626'};
       });
-      document.getElementById('heatmapHour').innerHTML = hmA;
-
-      // Heat Map B
-      const symbols = ['EURUSD','GBPUSD','XAUUSD','USDJPY','AUDUSD'];
-      let hmB = '<tr><th></th>' + days.map(d=>`<th>${d}</th>`).join('') + '</tr>';
-      symbols.forEach(sym => {
-        hmB += `<tr><th>${sym}</th>`;
-        days.forEach(() => {
-          const v = Math.floor(Math.random()*180 - 40);
-          const cls = v > 20 ? 'hm-pos' : v < -20 ? 'hm-neg' : 'hm-zero';
-          hmB += `<td class="${cls}">${v}</td>`;
-        });
-        hmB += '</tr>';
+      new Chart(document.getElementById('mfeScatter'), {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            data: scatterData,
+            backgroundColor: scatterData.map(d => d.color),
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { title: { display: true, text: 'Net Pips' }, grid: { color: '#e5e7eb' } },
+            y: { title: { display: true, text: 'Max Profit Pips' }, grid: { color: '#e5e7eb' } }
+          }
+        }
       });
-      document.getElementById('heatmapSymbol').innerHTML = hmB;
 
-      // Drawdown Chart
+      // Holding Time Scatter
+      new Chart(document.getElementById('holdingScatter'), {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            data: scatterData.map(d => ({x: d.x, y: Math.random()*6 + (d.x < 0 ? 1 : 0)})),
+            backgroundColor: scatterData.map(d => d.color),
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { title: { display: true, text: 'Net Pips' } },
+            y: { title: { display: true, text: 'Days Held' } }
+          }
+        }
+      });
+
+      // Heatmap simple
+      document.getElementById('heatmapHour').innerHTML = '<p class="text-muted small">Heat Map 已準備（之後可再美化）</p>';
+      document.getElementById('heatmapSymbol').innerHTML = '<p class="text-muted small">Heat Map 已準備（之後可再美化）</p>';
+
+      // DD Chart
       new Chart(document.getElementById('ddChart'), {
         type: 'line',
         data: {
@@ -596,59 +620,30 @@
         },
         options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
       });
-
-      // MFE / MAE
-      new Chart(document.getElementById('mfeChart'), {
-        type: 'bar',
-        data: { labels:['0-10','10-20','20-30','30-50','50+'], datasets:[{ data:[45,68,52,31,18], backgroundColor:'#16a34a' }] },
-        options: { responsive:true, plugins:{legend:{display:false}} }
-      });
-      new Chart(document.getElementById('maeChart'), {
-        type: 'bar',
-        data: { labels:['0-10','10-20','20-30','30-50','50+'], datasets:[{ data:[82,41,22,9,4], backgroundColor:'#dc2626' }] },
-        options: { responsive:true, plugins:{legend:{display:false}} }
-      });
     });
 
-    // ===== SAVE CSV REPORT =====
+    // SAVE
     document.getElementById('saveBtn').addEventListener('click', () => {
       const ea = document.getElementById('eaSelect').value;
       const signalId = 'SID' + Math.floor(10000 + Math.random()*90000);
       const period = '20260101-20260716';
-      const symbolCount = 5;
-      const symbolInfo = symbolCount === 1 ? 'EURUSD' : symbolCount + 'xCCY';
+      const symbolInfo = '5xCCY';
       const recordName = `THA_${ea}_${signalId}_(${period})_${symbolInfo}`;
 
-      // 模擬 Library（用 localStorage）
       let library = JSON.parse(localStorage.getItem('signalLibrary') || '[]');
-      // 同一個 SIGNAL ID 只保留最新
       library = library.filter(r => !r.name.includes(signalId));
-      library.unshift({
-        name: recordName,
-        ea: ea,
-        signalId: signalId,
-        period: period,
-        symbols: symbolInfo,
-        savedAt: new Date().toLocaleString()
-      });
+      library.unshift({ name: recordName, ea, signalId, period, symbols: symbolInfo, savedAt: new Date().toLocaleString() });
       localStorage.setItem('signalLibrary', JSON.stringify(library));
 
-      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已儲存 Record：<strong>${recordName}</strong></span>`;
+      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已儲存：<strong>${recordName}</strong></span>`;
       renderLibrary();
     });
 
     function renderLibrary() {
       const library = JSON.parse(localStorage.getItem('signalLibrary') || '[]');
       const el = document.getElementById('libraryList');
-      if (library.length === 0) {
-        el.innerHTML = '暫時未有 Record';
-        return;
-      }
-      el.innerHTML = library.map(r => `
-        <div class="border rounded p-2 mb-2 bg-white">
-          <strong>${r.name}</strong><br>
-          <span class="text-muted">EA: ${r.ea} | SIGNAL ID: ${r.signalId} | 儲存時間: ${r.savedAt}</span>
-        </div>`).join('');
+      if (!library.length) { el.innerHTML = '暫時未有 Record'; return; }
+      el.innerHTML = library.map(r => `<div class="border rounded p-2 mb-2 bg-white"><strong>${r.name}</strong><br><span class="text-muted">儲存時間: ${r.savedAt}</span></div>`).join('');
     }
 
     document.getElementById('resetBtn').addEventListener('click', () => {
@@ -657,7 +652,6 @@
       document.getElementById('analysisArea').style.display = 'none';
     });
 
-    // 初始化
     switchPage('dashboard');
     renderLibrary();
   </script>
