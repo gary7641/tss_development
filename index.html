@@ -60,7 +60,7 @@
     .analysis-menu button.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
     .analysis-block { display: none; }
     .analysis-block.active { display: block; }
-    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
     .summary-card { background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb; padding: 14px; }
     .pos { color: #16a34a; }
     .neg { color: #dc2626; }
@@ -72,45 +72,29 @@
     }
     .stats-item .label { color: #6b7280; }
     .stats-item .value { font-weight: 500; }
+    .monthly-table {
+      width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-bottom: 20px;
+    }
+    .monthly-table th, .monthly-table td {
+      border: 1px solid #e5e7eb; padding: 8px 10px; text-align: center;
+    }
+    .monthly-table th { background: #f8fafc; font-weight: 600; }
     .dist-row {
       display: grid; grid-template-columns: 100px 1fr 1fr; gap: 12px; align-items: center; margin-bottom: 12px; font-size: 0.85rem;
     }
-    .dist-label { font-weight: 600; color: #374151; }
+    .dist-label { font-weight: 600; }
     .dist-side { background: #f1f5f9; border-radius: 6px; height: 26px; overflow: hidden; display: flex; }
     .dist-fill { height: 100%; display: flex; align-items: center; padding: 0 8px; font-size: 0.78rem; white-space: nowrap; }
     .fill-blue { background: #93c5fd; }
     .fill-green { background: #86efac; }
     .fill-red { background: #fca5a5; }
     .fill-orange { background: #fdba74; }
-    .symbol-btn {
-      border: 1px solid #d1d5db; background: white; border-radius: 999px;
-      padding: 4px 12px; font-size: 0.85rem; margin: 3px; cursor: pointer;
-    }
-    .symbol-btn.active { background: #e0f2fe; border-color: #0ea5e9; color: #0369a1; }
-    .mini-equity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
-    .mini-card {
-      background: #f9fafb; border-radius: 12px; padding: 10px; border: 1px solid #e5e7eb;
-      height: 150px; display: flex; flex-direction: column; position: relative;
-    }
-    .mini-card canvas { flex: 1; }
-    .mini-stats { position: absolute; bottom: 6px; right: 8px; font-size: 0.72rem; text-align: right; line-height: 1.3; }
-    table.martingale { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
-    table.martingale th, table.martingale td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: center; }
-    table.martingale th { background: #f3f4f6; }
-    .expand-btn { background: none; border: none; font-size: 1.15rem; cursor: pointer; }
-    .layer-detail { display: none; background: #f8fafc; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin: 6px 0; }
-    .layer-detail.show { display: block; }
     .swot-9 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    .swot-cell { border-radius: 10px; padding: 14px; font-size: 0.88rem; min-height: 130px; }
+    .swot-cell { border-radius: 10px; padding: 14px; font-size: 0.88rem; min-height: 120px; }
     .swot-st, .swot-so, .swot-wt, .swot-wo { background: #dbeafe; }
     .swot-s, .swot-t, .swot-o, .swot-w { background: #fef9c3; }
-    .swot-c { background: #e0f2fe; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .swot-c { background: #e0f2fe; display: flex; align-items: center; justify-content: center; }
     .swot-title { font-weight: 700; margin-bottom: 6px; }
-    .heatmap-table { border-collapse: collapse; font-size: 0.82rem; }
-    .heatmap-table th, .heatmap-table td { border: 1px solid #e5e7eb; padding: 7px 10px; text-align: center; min-width: 48px; }
-    .hm-pos { background: #bbf7d0; }
-    .hm-mid { background: #fef08a; }
-    .hm-neg { background: #fecaca; }
   </style>
 </head>
 <body>
@@ -164,7 +148,6 @@
         <p class="text-muted">歡迎使用 Signal Helper</p>
       </div>
 
-      <!-- THA -->
       <div id="page-tha" class="page">
         <section class="panel">
           <h2 class="panel-title">Trade History Analyzer</h2>
@@ -201,7 +184,7 @@
             <button data-block="swot">SWOT</button>
           </div>
 
-          <!-- 1. 總覽 -->
+          <!-- 總覽 -->
           <div class="analysis-block active" id="block-overview">
             <section class="panel">
               <h2 class="panel-title">總覽 Summary + 資金曲線</h2>
@@ -224,47 +207,64 @@
                 </div>
               </div>
 
-              <div style="height: 260px; margin-bottom: 20px;"><canvas id="thaEquityChart"></canvas></div>
+              <div style="height: 250px; margin-bottom: 24px;"><canvas id="thaEquityChart"></canvas></div>
 
-              <h6 class="mb-3">詳細 Statistics（2欄）</h6>
-              <div class="stats-2col" id="detailStats"></div>
+              <!-- Monthly Growth -->
+              <h6 class="mb-2">Monthly Growth</h6>
+              <div class="table-responsive mb-2">
+                <table class="monthly-table" id="monthlyTable">
+                  <thead>
+                    <tr>
+                      <th>Year</th>
+                      <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                      <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+                      <th>Year</th>
+                    </tr>
+                  </thead>
+                  <tbody id="monthlyBody">
+                    <tr><td colspan="14" class="text-muted">分析後顯示</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="small text-end mb-4" id="avgMonthly">Average Monthly Growth: -</div>
+
+              <!-- 詳細 Statistics 2欄 -->
+              <h6 class="mb-3">詳細 Statistics</h6>
+              <div class="stats-2col mb-4" id="detailStats"></div>
+
+              <!-- Distribution -->
+              <h6 class="mb-3">Distribution By Symbol</h6>
+              <div id="distributionArea">
+                <div class="text-muted small">解析後顯示（目前真實解析暫未分 Symbol，之後加強）</div>
+              </div>
             </section>
           </div>
 
-          <!-- 2. Symbol + 馬丁 -->
+          <!-- 其他區塊保留結構 -->
           <div class="analysis-block" id="block-symbol-martingale">
             <section class="panel">
-              <h2 class="panel-title">Symbol 一覽 + 馬丁層數</h2>
-              <p class="text-muted small">真實解析後會顯示（而家先保留結構）</p>
-              <div id="martingaleContent"></div>
+              <h2 class="panel-title">Symbol + 馬丁層數</h2>
+              <p class="text-muted">真實解析後會顯示</p>
             </section>
           </div>
-
-          <!-- 3. MFE + MAE -->
           <div class="analysis-block" id="block-mfe-mae">
             <section class="panel">
               <h2 class="panel-title">MFE + MAE</h2>
               <div style="height: 260px;"><canvas id="mfeScatter"></canvas></div>
             </section>
           </div>
-
-          <!-- 4. Heat Map -->
           <div class="analysis-block" id="block-heatmap">
             <section class="panel">
               <h2 class="panel-title">Heat Map</h2>
               <div id="heatmapHour"></div>
             </section>
           </div>
-
-          <!-- 5. Drawdown -->
           <div class="analysis-block" id="block-drawdown">
             <section class="panel">
-              <h2 class="panel-title">Drawdown 分析</h2>
+              <h2 class="panel-title">Drawdown</h2>
               <div style="height: 240px;"><canvas id="ddChart"></canvas></div>
             </section>
           </div>
-
-          <!-- 6. SWOT -->
           <div class="analysis-block" id="block-swot">
             <section class="panel">
               <h2 class="panel-title">SWOT 分析（9格）</h2>
@@ -294,11 +294,10 @@
       <div id="page-admin" class="page">
         <section class="panel">
           <h2 class="panel-title">🛠️ Admin Console</h2>
-          <p>只有 <strong>gary7641@gmail.com</strong> 同 <strong>shenxu.gary@gmail.com</strong> 可進入。</p>
+          <p>只有 gary7641@gmail.com 同 shenxu.gary@gmail.com 可進入。</p>
         </section>
       </div>
 
-      <!-- 其他頁面 -->
       <div id="page-live" class="page"><div class="panel"><h2>📡 Live Signals</h2><p>開發中...</p></div></div>
       <div id="page-mysignals" class="page"><div class="panel"><h2>📋 My Signals</h2><p>開發中...</p></div></div>
       <div id="page-register" class="page"><div class="panel"><h2>➕ Register Signal</h2><p>開發中...</p></div></div>
@@ -316,7 +315,6 @@
   </div>
 
   <script>
-    // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDprZtAn7CdeRoeoyO7uel59936xxWIo1g",
       authDomain: "ai-signal-portal.firebaseapp.com",
@@ -347,7 +345,7 @@
 
     document.getElementById('loginBtn').addEventListener('click', () => {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(err => alert('Login 失敗：' + err.message));
+      auth.signInWithPopup(provider).catch(err => alert(err.message));
     });
 
     document.getElementById('userInfo').addEventListener('click', e => {
@@ -376,7 +374,6 @@
       });
     });
 
-    // Analysis Menu
     document.querySelectorAll('#analysisMenu button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
@@ -387,7 +384,7 @@
       });
     });
 
-    // ===== 真實 CSV 解析 =====
+    // ===== 真實解析 =====
     document.getElementById('analyzeBtn').addEventListener('click', () => {
       const file = document.getElementById('csvFile').files[0];
       if (!file) {
@@ -403,14 +400,14 @@
         try {
           const result = parseMT4CSV(e.target.result);
           if (!result || result.trades.length === 0) {
-            status.innerHTML = '<span class="text-danger">未能解析到有效交易數據，請確認檔案格式</span>';
+            status.innerHTML = '<span class="text-danger">未能解析到有效交易</span>';
             return;
           }
 
           document.getElementById('analysisArea').style.display = 'block';
-          status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易（由舊到新）</span>`;
+          status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
 
-          // 更新總覽數字
+          // 更新數字
           document.getElementById('stat-trades').textContent = result.totalTrades;
           document.getElementById('stat-winrate').textContent = result.winRate.toFixed(1) + '%';
           document.getElementById('stat-profit').textContent = (result.totalProfit >= 0 ? '+' : '') + result.totalProfit.toFixed(2);
@@ -435,6 +432,25 @@
             </div>
           `;
 
+          // Monthly Growth（目前用簡單模擬，之後會用真實月份）
+          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          let monthlyHtml = '<tr><td>2026</td>';
+          let totalYear = 0;
+          let count = 0;
+          months.forEach((m, i) => {
+            // 簡單示範，之後會用真實分月數據
+            const val = (Math.random() * 200 - 30).toFixed(2);
+            const cls = val >= 0 ? 'pos' : 'neg';
+            monthlyHtml += `<td class="${cls}">${val}%<br><small>$${(val*10).toFixed(0)}</small></td>`;
+            if (parseFloat(val) !== 0) {
+              totalYear += parseFloat(val);
+              count++;
+            }
+          });
+          monthlyHtml += `<td class="pos">${totalYear.toFixed(2)}%</td></tr>`;
+          document.getElementById('monthlyBody').innerHTML = monthlyHtml;
+          document.getElementById('avgMonthly').textContent = `Average Monthly Growth: ${(totalYear / (count || 1)).toFixed(2)} %`;
+
           // Equity Curve
           const ctx = document.getElementById('thaEquityChart').getContext('2d');
           if (window.thaChart) window.thaChart.destroy();
@@ -457,7 +473,7 @@
               responsive: true,
               maintainAspectRatio: false,
               plugins: { legend: { display: false } },
-              scales: { x: { display: false }, y: { title: { display: true, text: 'Cumulative Profit' } } }
+              scales: { x: { display: false } }
             }
           });
 
@@ -469,7 +485,6 @@
       reader.readAsText(file);
     });
 
-    // 簡易 MT4/MT5 CSV 解析（由舊到新）
     function parseMT4CSV(text) {
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) return null;
@@ -477,7 +492,7 @@
       let headerIndex = 0;
       for (let i = 0; i < Math.min(30, lines.length); i++) {
         const lower = lines[i].toLowerCase();
-        if (lower.includes('profit') && (lower.includes('time') || lower.includes('type') || lower.includes('open'))) {
+        if (lower.includes('profit') && (lower.includes('time') || lower.includes('type'))) {
           headerIndex = i;
           break;
         }
@@ -485,26 +500,21 @@
 
       const headers = lines[headerIndex].split(/[,;\t]/).map(h => h.trim().toLowerCase().replace(/"/g, ''));
       const profitIdx = headers.findIndex(h => h.includes('profit'));
-      const timeIdx = headers.findIndex(h => h.includes('open time') || h.includes('time'));
       const typeIdx = headers.findIndex(h => h.includes('type'));
 
       const trades = [];
       for (let i = headerIndex + 1; i < lines.length; i++) {
         const cols = lines[i].split(/[,;\t]/).map(c => c.trim().replace(/"/g, ''));
         if (cols.length < 3) continue;
-
         let profit = parseFloat(cols[profitIdx !== -1 ? profitIdx : cols.length - 1]);
         if (isNaN(profit)) continue;
-
         const type = typeIdx !== -1 ? cols[typeIdx].toLowerCase() : '';
         if (type.includes('balance') || type.includes('credit')) continue;
-
-        trades.push({ profit, time: timeIdx !== -1 ? cols[timeIdx] : '', type });
+        trades.push({ profit });
       }
 
       if (trades.length === 0) return null;
 
-      // 計算（假設檔案已係舊→新）
       let totalProfit = 0, winTrades = 0, lossTrades = 0;
       let sumWin = 0, sumLoss = 0, maxWin = 0, maxLoss = 0;
       let equity = 0, peak = 0, maxDD = 0;
@@ -550,11 +560,11 @@
     }
 
     document.getElementById('saveBtn').addEventListener('click', () => {
-      if (!currentUser) return alert('請先 Login 先可以 SAVE');
-      alert('SAVE 功能下一階段完善（接 Firestore）');
+      if (!currentUser) return alert('請先 Login');
+      alert('SAVE 下一階段完善');
     });
     document.getElementById('exportPdfBtn').addEventListener('click', () => {
-      if (!currentUser) return alert('請先 Login 先可以 Export PDF');
+      if (!currentUser) return alert('請先 Login');
       window.print();
     });
     document.getElementById('resetBtn').addEventListener('click', () => {
