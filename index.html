@@ -73,14 +73,14 @@
     .stats-item .label { color: #6b7280; }
     .stats-item .value { font-weight: 500; }
     .monthly-table {
-      width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-bottom: 20px;
+      width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 12px;
     }
     .monthly-table th, .monthly-table td {
-      border: 1px solid #e5e7eb; padding: 8px 10px; text-align: center;
+      border: 1px solid #e5e7eb; padding: 7px 8px; text-align: center;
     }
     .monthly-table th { background: #f8fafc; font-weight: 600; }
     .dist-row {
-      display: grid; grid-template-columns: 100px 1fr 1fr; gap: 12px; align-items: center; margin-bottom: 12px; font-size: 0.85rem;
+      display: grid; grid-template-columns: 90px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 10px; font-size: 0.85rem;
     }
     .dist-label { font-weight: 600; }
     .dist-side { background: #f1f5f9; border-radius: 6px; height: 26px; overflow: hidden; display: flex; }
@@ -154,7 +154,7 @@
           <div class="d-flex flex-wrap gap-3 align-items-end">
             <div>
               <label class="form-label small text-muted">上傳 CSV</label>
-              <input type="file" id="csvFile" accept=".csv,.txt,.html" class="form-control" style="min-width:240px;">
+              <input type="file" id="csvFile" accept=".csv,.txt" class="form-control" style="min-width:240px;">
             </div>
             <div>
               <label class="form-label small text-muted">EA</label>
@@ -184,7 +184,6 @@
             <button data-block="swot">SWOT</button>
           </div>
 
-          <!-- 總覽 -->
           <div class="analysis-block active" id="block-overview">
             <section class="panel">
               <h2 class="panel-title">總覽 Summary + 資金曲線</h2>
@@ -211,8 +210,8 @@
 
               <!-- Monthly Growth -->
               <h6 class="mb-2">Monthly Growth</h6>
-              <div class="table-responsive mb-2">
-                <table class="monthly-table" id="monthlyTable">
+              <div class="table-responsive">
+                <table class="monthly-table">
                   <thead>
                     <tr>
                       <th>Year</th>
@@ -228,23 +227,20 @@
               </div>
               <div class="small text-end mb-4" id="avgMonthly">Average Monthly Growth: -</div>
 
-              <!-- 詳細 Statistics 2欄 -->
+              <!-- 詳細 Statistics -->
               <h6 class="mb-3">詳細 Statistics</h6>
               <div class="stats-2col mb-4" id="detailStats"></div>
 
               <!-- Distribution -->
               <h6 class="mb-3">Distribution By Symbol</h6>
-              <div id="distributionArea">
-                <div class="text-muted small">解析後顯示（目前真實解析暫未分 Symbol，之後加強）</div>
-              </div>
+              <div id="distributionArea"></div>
             </section>
           </div>
 
-          <!-- 其他區塊保留結構 -->
           <div class="analysis-block" id="block-symbol-martingale">
             <section class="panel">
               <h2 class="panel-title">Symbol + 馬丁層數</h2>
-              <p class="text-muted">真實解析後會顯示</p>
+              <p class="text-muted">下一階段加強</p>
             </section>
           </div>
           <div class="analysis-block" id="block-mfe-mae">
@@ -384,7 +380,7 @@
       });
     });
 
-    // ===== 真實解析 =====
+    // ===== 真實解析（針對你嘅 CSV 格式）=====
     document.getElementById('analyzeBtn').addEventListener('click', () => {
       const file = document.getElementById('csvFile').files[0];
       if (!file) {
@@ -398,14 +394,14 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
-          const result = parseMT4CSV(e.target.result);
+          const result = parseYourCSV(e.target.result);
           if (!result || result.trades.length === 0) {
             status.innerHTML = '<span class="text-danger">未能解析到有效交易</span>';
             return;
           }
 
           document.getElementById('analysisArea').style.display = 'block';
-          status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
+          status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易（由舊到新）</span>`;
 
           // 更新數字
           document.getElementById('stat-trades').textContent = result.totalTrades;
@@ -432,24 +428,11 @@
             </div>
           `;
 
-          // Monthly Growth（目前用簡單模擬，之後會用真實月份）
-          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-          let monthlyHtml = '<tr><td>2026</td>';
-          let totalYear = 0;
-          let count = 0;
-          months.forEach((m, i) => {
-            // 簡單示範，之後會用真實分月數據
-            const val = (Math.random() * 200 - 30).toFixed(2);
-            const cls = val >= 0 ? 'pos' : 'neg';
-            monthlyHtml += `<td class="${cls}">${val}%<br><small>$${(val*10).toFixed(0)}</small></td>`;
-            if (parseFloat(val) !== 0) {
-              totalYear += parseFloat(val);
-              count++;
-            }
-          });
-          monthlyHtml += `<td class="pos">${totalYear.toFixed(2)}%</td></tr>`;
-          document.getElementById('monthlyBody').innerHTML = monthlyHtml;
-          document.getElementById('avgMonthly').textContent = `Average Monthly Growth: ${(totalYear / (count || 1)).toFixed(2)} %`;
+          // Monthly Growth（真實）
+          renderMonthlyGrowth(result.monthly);
+
+          // Distribution By Symbol（真實）
+          renderDistribution(result.bySymbol);
 
           // Equity Curve
           const ctx = document.getElementById('thaEquityChart').getContext('2d');
@@ -485,40 +468,78 @@
       reader.readAsText(file);
     });
 
-    function parseMT4CSV(text) {
+    // ===== 針對你 CSV 格式嘅解析器 =====
+    function parseYourCSV(text) {
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) return null;
 
+      // 搵 header
       let headerIndex = 0;
-      for (let i = 0; i < Math.min(30, lines.length); i++) {
-        const lower = lines[i].toLowerCase();
-        if (lower.includes('profit') && (lower.includes('time') || lower.includes('type'))) {
+      for (let i = 0; i < Math.min(10, lines.length); i++) {
+        if (lines[i].toLowerCase().includes('open time') && lines[i].toLowerCase().includes('net profit')) {
           headerIndex = i;
           break;
         }
       }
 
-      const headers = lines[headerIndex].split(/[,;\t]/).map(h => h.trim().toLowerCase().replace(/"/g, ''));
-      const profitIdx = headers.findIndex(h => h.includes('profit'));
-      const typeIdx = headers.findIndex(h => h.includes('type'));
+      const headers = lines[headerIndex].split(',').map(h => h.trim().toLowerCase());
+      const openTimeIdx = headers.indexOf('open time');
+      const typeIdx = headers.indexOf('type');
+      const symbolIdx = headers.indexOf('symbol');
+      const netProfitIdx = headers.indexOf('net profit');
+
+      if (netProfitIdx === -1) return null;
 
       const trades = [];
       for (let i = headerIndex + 1; i < lines.length; i++) {
-        const cols = lines[i].split(/[,;\t]/).map(c => c.trim().replace(/"/g, ''));
-        if (cols.length < 3) continue;
-        let profit = parseFloat(cols[profitIdx !== -1 ? profitIdx : cols.length - 1]);
+        const cols = lines[i].split(',').map(c => c.trim());
+        if (cols.length < 10) continue;
+
+        const type = (cols[typeIdx] || '').toLowerCase();
+        if (type === 'balance') continue;
+
+        const profit = parseFloat(cols[netProfitIdx]);
         if (isNaN(profit)) continue;
-        const type = typeIdx !== -1 ? cols[typeIdx].toLowerCase() : '';
-        if (type.includes('balance') || type.includes('credit')) continue;
-        trades.push({ profit });
+
+        const openTimeStr = cols[openTimeIdx] || '';
+        const symbol = cols[symbolIdx] || 'UNKNOWN';
+
+        // 解析日期 DD/MM/YYYY HH:MM:SS
+        let dateObj = null;
+        if (openTimeStr) {
+          const parts = openTimeStr.split(' ');
+          if (parts[0]) {
+            const dmy = parts[0].split('/');
+            if (dmy.length === 3) {
+              dateObj = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}T${parts[1] || '00:00:00'}`);
+            }
+          }
+        }
+
+        trades.push({
+          profit,
+          symbol,
+          openTime: dateObj,
+          openTimeStr
+        });
       }
 
       if (trades.length === 0) return null;
 
+      // 由舊到新排序
+      trades.sort((a, b) => {
+        if (!a.openTime) return 1;
+        if (!b.openTime) return -1;
+        return a.openTime - b.openTime;
+      });
+
+      // 計算
       let totalProfit = 0, winTrades = 0, lossTrades = 0;
       let sumWin = 0, sumLoss = 0, maxWin = 0, maxLoss = 0;
       let equity = 0, peak = 0, maxDD = 0;
       const equityCurve = [], equityLabels = [];
+      const monthlyMap = {}; // key: YYYY-MM
+      const bySymbol = {};
 
       trades.forEach((t, idx) => {
         totalProfit += t.profit;
@@ -539,6 +560,18 @@
         if (equity > peak) peak = equity;
         const dd = peak !== 0 ? ((peak - equity) / Math.abs(peak)) * 100 : 0;
         if (dd > maxDD) maxDD = dd;
+
+        // Monthly
+        if (t.openTime) {
+          const key = `${t.openTime.getFullYear()}-${String(t.openTime.getMonth() + 1).padStart(2, '0')}`;
+          if (!monthlyMap[key]) monthlyMap[key] = 0;
+          monthlyMap[key] += t.profit;
+        }
+
+        // By Symbol
+        if (!bySymbol[t.symbol]) bySymbol[t.symbol] = { profit: 0, count: 0 };
+        bySymbol[t.symbol].profit += t.profit;
+        bySymbol[t.symbol].count += 1;
       });
 
       const totalTrades = winTrades + lossTrades;
@@ -555,8 +588,72 @@
         maxLoss,
         maxDD,
         equityCurve,
-        equityLabels
+        equityLabels,
+        monthly: monthlyMap,
+        bySymbol
       };
+    }
+
+    function renderMonthlyGrowth(monthlyMap) {
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const years = {};
+      Object.keys(monthlyMap).forEach(key => {
+        const [y, m] = key.split('-');
+        if (!years[y]) years[y] = Array(12).fill(null);
+        years[y][parseInt(m) - 1] = monthlyMap[key];
+      });
+
+      let html = '';
+      let totalAll = 0;
+      let monthCount = 0;
+
+      Object.keys(years).sort().forEach(year => {
+        html += `<tr><td>${year}</td>`;
+        let yearTotal = 0;
+        years[year].forEach(val => {
+          if (val === null) {
+            html += `<td>-</td>`;
+          } else {
+            const cls = val >= 0 ? 'pos' : 'neg';
+            // 簡單用絕對值做 % 顯示（之後可改成相對上月）
+            html += `<td class="${cls}">${val.toFixed(0)}%<br><small>$${val.toFixed(0)}</small></td>`;
+            yearTotal += val;
+            totalAll += val;
+            monthCount++;
+          }
+        });
+        html += `<td class="${yearTotal >= 0 ? 'pos' : 'neg'}">${yearTotal.toFixed(0)}%</td></tr>`;
+      });
+
+      document.getElementById('monthlyBody').innerHTML = html || '<tr><td colspan="14">無月份數據</td></tr>';
+      document.getElementById('avgMonthly').textContent = `Average Monthly Growth: ${monthCount > 0 ? (totalAll / monthCount).toFixed(1) : 0} %`;
+    }
+
+    function renderDistribution(bySymbol) {
+      const sorted = Object.entries(bySymbol).sort((a, b) => b[1].profit - a[1].profit);
+      if (sorted.length === 0) {
+        document.getElementById('distributionArea').innerHTML = '<div class="text-muted small">無 Symbol 數據</div>';
+        return;
+      }
+
+      let html = '';
+      sorted.slice(0, 8).forEach(([sym, data]) => {
+        const pct = Math.min(100, Math.abs(data.profit) / 50);
+        html += `
+          <div class="dist-row">
+            <div class="dist-label">${sym}</div>
+            <div class="dist-side">
+              <div class="dist-fill ${data.profit >= 0 ? 'fill-green' : 'fill-red'}" style="width:${pct}%">
+                ${data.profit >= 0 ? '+' : ''}${data.profit.toFixed(0)} (${data.count})
+              </div>
+            </div>
+            <div class="dist-side">
+              <div class="dist-fill fill-blue" style="width:60%">${data.count} deals</div>
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('distributionArea').innerHTML = html;
     }
 
     document.getElementById('saveBtn').addEventListener('click', () => {
