@@ -11,11 +11,11 @@
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       margin: 0;
-      background: #f8f9f0;
-      color: #2c3e2f;
+      background: #f5f5f5;
+      color: #111827;
     }
     .top-header {
-      background: linear-gradient(90deg, #4a7043, #6b9b5e);
+      background: linear-gradient(90deg, #0ea5e9, #22c55e);
       color: white;
       height: 58px;
       padding: 0 1.5rem;
@@ -25,11 +25,12 @@
       position: sticky;
       top: 0;
       z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .sidebar {
       width: 250px;
       background: white;
-      border-right: 1px solid #ddd;
+      border-right: 1px solid #e5e7eb;
       min-height: calc(100vh - 58px);
       padding: 1rem 0.8rem;
       transition: width 0.3s;
@@ -40,53 +41,63 @@
       font-size: 0.9rem;
       padding: 0.55rem 0.9rem;
       border-radius: 8px;
-      color: #2c3e2f;
+      color: #111827;
       cursor: pointer;
       display: block;
       text-decoration: none;
     }
     .nav-link:hover, .nav-link.active {
-      background: #e8f0e8;
-      color: #4a7043;
+      background: #e0f2fe;
+      color: #0369a1;
       font-weight: 600;
     }
     .nav-section {
-      font-size: 0.75rem;
-      color: #888;
-      margin: 1.2rem 0 0.4rem 0.9rem;
+      font-size: 0.72rem;
+      color: #6b7280;
+      margin: 1.1rem 0 0.35rem 0.9rem;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
+    /* ===== A2 Style Panel ===== */
+    .panel {
+      max-width: 1200px;
+      margin: 18px auto;
+      padding: 18px 20px;
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    }
+    .panel-title {
+      margin: 0 0 14px 0;
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    /* Live Signal Card */
     .live-signal-card {
       background: white;
       border-radius: 16px;
       padding: 1.25rem;
-      box-shadow: 0 8px 25px rgba(74,112,67,0.12);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
       height: 400px;
       display: flex;
       flex-direction: column;
+      border: 1px solid rgba(148,163,184,0.3);
     }
-    .live-signal-card .profit {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #4a7043;
-    }
-    .live-signal-card .dd {
-      font-size: 1rem;
-      color: #e63939;
-    }
+    .live-signal-card .profit { font-size: 2rem; font-weight: 700; color: #16a34a; }
+    .live-signal-card .dd { font-size: 1rem; color: #dc2626; }
     .live-signal-card .curve {
       flex: 1;
-      background: #f0f4f0;
+      background: #f8fafc;
       border-radius: 12px;
       margin: 0.8rem 0;
-      position: relative;
     }
     .magic-orb {
       width: 42px;
       height: 42px;
       border-radius: 50%;
-      background: radial-gradient(circle at 40% 30%, #fff9, #4a7043);
-      box-shadow: 0 0 18px rgba(74,112,67,0.7);
+      background: radial-gradient(circle at 40% 30%, #fff, #0ea5e9);
+      box-shadow: 0 0 18px rgba(14,165,233,0.5);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -94,19 +105,16 @@
       cursor: pointer;
       transition: all 0.3s;
     }
-    .magic-orb:hover {
-      transform: scale(1.15);
-      box-shadow: 0 0 30px rgba(74,112,67,0.9);
-    }
+    .magic-orb:hover { transform: scale(1.12); }
     .user-menu {
       position: absolute;
       top: 62px;
       right: 20px;
       background: white;
-      border: 1px solid #ddd;
+      border: 1px solid #e5e7eb;
       border-radius: 12px;
-      padding: 10px 0;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      padding: 8px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
       z-index: 200;
       min-width: 230px;
       display: none;
@@ -116,8 +124,9 @@
       padding: 0.55rem 1.2rem;
       cursor: pointer;
       list-style: none;
+      font-size: 0.9rem;
     }
-    .user-menu li:hover { background: #f5f5f5; }
+    .user-menu li:hover { background: #f3f4f6; }
     .switch {
       display: flex;
       align-items: center;
@@ -128,12 +137,12 @@
       position: relative;
       width: 48px;
       height: 24px;
-      background: #ccc;
+      background: #d1d5db;
       border-radius: 50px;
       cursor: pointer;
     }
     .switch input { display: none; }
-    .switch input:checked + .slider { background: #4a7043; }
+    .switch input:checked + .slider { background: #0ea5e9; }
     .switch .slider::before {
       content: "";
       position: absolute;
@@ -145,16 +154,35 @@
       border-radius: 50%;
       transition: 0.3s;
     }
-    .switch input:checked + .slider::before {
-      transform: translateX(24px);
-    }
+    .switch input:checked + .slider::before { transform: translateX(24px); }
     .page { display: none; }
     .page.active { display: block; }
-    .panel {
-      background: white;
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 8px 25px rgba(74,112,67,0.1);
+    /* A2 style buttons */
+    .btn-primary-a2 {
+      background: radial-gradient(circle at 20% 0, #22d3ee, #0284c7);
+      border: none;
+      color: #0b1120;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 8px 22px;
+    }
+    .btn-secondary-a2 {
+      background: #f9fafb;
+      border: 1px solid #d1d5db;
+      color: #111827;
+      border-radius: 999px;
+      padding: 7px 18px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .summary-card {
+      background: #f9fafb;
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,0.3);
+      padding: 14px 16px;
     }
   </style>
 </head>
@@ -166,7 +194,6 @@
       <h5 class="mb-0 fw-bold">Signal Helper</h5>
     </div>
     <div class="d-flex align-items-center gap-4">
-      <!-- Light / Dark Toggle (中間位置) -->
       <div class="switch">
         <span>Light</span>
         <label>
@@ -175,17 +202,15 @@
         </label>
         <span>Dark</span>
       </div>
-      <!-- Theme Magic Orb -->
       <div class="magic-orb" id="main-orb" title="Theme Selector">🪵</div>
-      <!-- User -->
-      <div id="user-menu-trigger" class="cursor-pointer fw-bold" style="cursor:pointer;">
+      <div id="user-menu-trigger" style="cursor:pointer; font-weight:600;">
         Gary 珅緒 ▼
       </div>
     </div>
   </header>
 
   <div class="d-flex">
-    <!-- SIDEBAR (完整) -->
+    <!-- SIDEBAR -->
     <nav class="sidebar" id="sidebar">
       <button id="pin-btn" class="btn btn-outline-secondary btn-sm w-100 mb-3">📌 Pin Sidebar</button>
       
@@ -212,8 +237,8 @@
       <a class="nav-link" data-page="export">📤 Export History</a>
     </nav>
 
-    <!-- MAIN CONTENT (右手邊) -->
-    <main class="flex-grow-1 p-4">
+    <!-- MAIN -->
+    <main class="flex-grow-1 p-3">
       <!-- Dashboard -->
       <div id="page-dashboard" class="page active">
         <h2 class="mb-4">Dashboard</h2>
@@ -261,48 +286,82 @@
         </div>
       </div>
 
-      <!-- THA Page (右手邊) -->
+      <!-- ========== THA PAGE (跟 A2 結構 + Size) ========== -->
       <div id="page-tha" class="page">
-        <h2 class="mb-4">📈 Trade History Analyzer (THA)</h2>
-        <div class="panel mb-4">
-          <h5>1. 上傳 MT4/MT5 報表 CSV</h5>
-          <input type="file" id="csvFile" accept=".csv,.html,.txt" class="form-control mb-3">
-          <button class="btn btn-success" id="analyzeBtn">🚀 開始分析</button>
-          <div id="tha-status" class="mt-3 text-muted"></div>
-        </div>
-        <div class="row">
-          <div class="col-lg-8">
-            <div class="panel">
-              <h5>Equity Curve</h5>
-              <canvas id="thaEquityChart" height="280"></canvas>
+        <!-- 1. Upload Panel (完全跟 A2) -->
+        <section class="panel">
+          <h2 class="panel-title">1. 匯入 MT4/MT5 報表 CSV</h2>
+          <div class="d-flex flex-wrap gap-3 align-items-end">
+            <div>
+              <label class="form-label small text-muted">交易報表 CSV</label>
+              <input type="file" id="csvFile" accept=".csv,.html,.txt" class="form-control" style="min-width:260px;">
+            </div>
+            <div>
+              <label class="form-label small text-muted">EA 類型</label>
+              <select id="eaSelect" class="form-select" style="min-width:180px;">
+                <option value="SMA">SMA (Standard)</option>
+                <option value="SMA_Pro">SMA Pro</option>
+                <option value="MKD">MKD (Standard)</option>
+                <option value="MKD_Pro">MKD Pro</option>
+                <option value="Flash">Flash</option>
+                <option value="S10">S10</option>
+                <option value="Other">Other EA</option>
+              </select>
+            </div>
+            <div class="d-flex gap-2">
+              <button id="analyzeBtn" class="btn btn-primary-a2">🚀 開始分析</button>
+              <button id="resetBtn" class="btn btn-secondary-a2">Reset</button>
             </div>
           </div>
-          <div class="col-lg-4">
-            <div class="panel">
-              <h5>Summary</h5>
-              <p>Total Profit: <strong id="tha-profit">-</strong></p>
-              <p>Win Rate: <strong id="tha-winrate">-</strong></p>
-              <p>Max DD: <strong id="tha-dd">-</strong></p>
+          <div id="tha-status" class="mt-3 small"></div>
+        </section>
+
+        <!-- 2. Summary Cards (跟 A2 size) -->
+        <section class="panel" id="summarySection" style="display:none;">
+          <h2 class="panel-title">2. 帳戶總覽 Summary</h2>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <div class="small text-muted">成長 & 期間</div>
+              <div class="fs-3 fw-bold text-success" id="tha-growth">-</div>
+              <div class="small mt-2">勝率：<span id="tha-winrate">-</span></div>
+              <div class="small">Max DD：<span id="tha-dd">-</span></div>
+            </div>
+            <div class="summary-card">
+              <div class="small text-muted">Equity / Profit</div>
+              <div class="fs-4 fw-bold" id="tha-equity">-</div>
+              <div class="small mt-1">Profit：<span id="tha-profit">-</span></div>
+            </div>
+            <div class="summary-card">
+              <div class="small text-muted">Key Stats</div>
+              <div class="small">總交易：<span id="tha-trades">-</span></div>
+              <div class="small">Profit Factor：<span id="tha-pf">-</span></div>
+              <div class="small">平均贏：<span id="tha-avgwin">-</span></div>
             </div>
           </div>
-        </div>
+        </section>
+
+        <!-- 3. Equity Curve -->
+        <section class="panel" id="equitySection" style="display:none;">
+          <h2 class="panel-title">3. 資金權益成長曲線</h2>
+          <canvas id="thaEquityChart" height="280"></canvas>
+        </section>
       </div>
 
-      <!-- 其他頁面 placeholder -->
-      <div id="page-live" class="page"><h2>📡 Live Signals</h2><p>開發中...</p></div>
-      <div id="page-mysignals" class="page"><h2>📋 My Signals</h2><p>開發中...</p></div>
-      <div id="page-register" class="page"><h2>➕ Register Signal</h2><p>開發中...</p></div>
-      <div id="page-group" class="page"><h2>👥 Signal Group</h2><p>開發中...</p></div>
-      <div id="page-portfolio" class="page"><h2>💼 User Portfolio</h2><p>開發中...</p></div>
-      <div id="page-news" class="page"><h2>📰 Market News</h2><p>開發中...</p></div>
-      <div id="page-world" class="page"><h2>🌍 World Monitor</h2><p>開發中...</p></div>
-      <div id="page-crosspower" class="page"><h2>⚡ Cross Power Center</h2><p>開發中...</p></div>
-      <div id="page-library" class="page"><h2>📚 Signal History Library</h2><p>開發中...</p></div>
-      <div id="page-fxtools" class="page"><h2>🔧 FX Tools</h2><p>開發中...</p></div>
-      <div id="page-forest" class="page"><h2>🌲 豐盛森林</h2><p>開發中...</p></div>
-      <div id="page-earules" class="page"><h2>📜 EA Rules</h2><p>開發中...</p></div>
-      <div id="page-directory" class="page"><h2>📖 Signal Directory</h2><p>開發中...</p></div>
-      <div id="page-export" class="page"><h2>📤 Export History</h2><p>開發中...</p></div>
+      <!-- 其他頁面 -->
+      <div id="page-live" class="page"><div class="panel"><h2>📡 Live Signals</h2><p>開發中...</p></div></div>
+      <div id="page-mysignals" class="page"><div class="panel"><h2>📋 My Signals</h2><p>開發中...</p></div></div>
+      <div id="page-register" class="page"><div class="panel"><h2>➕ Register Signal</h2><p>開發中...</p></div></div>
+      <div id="page-group" class="page"><div class="panel"><h2>👥 Signal Group</h2><p>開發中...</p></div></div>
+      <div id="page-portfolio" class="page"><div class="panel"><h2>💼 User Portfolio</h2><p>開發中...</p></div></div>
+      <div id="page-news" class="page"><div class="panel"><h2>📰 Market News</h2><p>開發中...</p></div></div>
+      <div id="page-world" class="page"><div class="panel"><h2>🌍 World Monitor</h2><p>開發中...</p></div></div>
+      <div id="page-crosspower" class="page"><div class="panel"><h2>⚡ Cross Power Center</h2><p>開發中...</p></div></div>
+      <div id="page-library" class="page"><div class="panel"><h2>📚 Signal History Library</h2><p>開發中...</p></div></div>
+      <div id="page-fxtools" class="page"><div class="panel"><h2>🔧 FX Tools</h2><p>開發中...</p></div></div>
+      <div id="page-forest" class="page"><div class="panel"><h2>🌲 豐盛森林</h2><p>開發中...</p></div></div>
+      <div id="page-earules" class="page"><div class="panel"><h2>📜 EA Rules</h2><p>開發中...</p></div></div>
+      <div id="page-directory" class="page"><div class="panel"><h2>📖 Signal Directory</h2><p>開發中...</p></div></div>
+      <div id="page-export" class="page"><div class="panel"><h2>📤 Export History</h2><p>開發中...</p></div></div>
     </main>
   </div>
 
@@ -323,25 +382,24 @@
   </div>
 
   <script>
-    // ===== Page Routing (右手邊切換) =====
+    // Page Routing
     document.querySelectorAll('.nav-link').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const pageId = 'page-' + link.getAttribute('data-page');
-        const page = document.getElementById(pageId);
+        const page = document.getElementById('page-' + link.getAttribute('data-page'));
         if (page) page.classList.add('active');
       });
     });
 
-    // ===== Pin Sidebar =====
+    // Pin
     document.getElementById('pin-btn').addEventListener('click', () => {
       document.getElementById('sidebar').classList.toggle('pinned');
     });
 
-    // ===== User Menu =====
+    // User Menu
     const trigger = document.getElementById('user-menu-trigger');
     const menu = document.getElementById('user-menu');
     trigger.addEventListener('click', (e) => {
@@ -350,51 +408,72 @@
     });
     document.addEventListener('click', () => menu.classList.remove('show'));
 
-    // ===== Light / Dark Switch =====
+    // Theme Switch
     document.getElementById('theme-switch').addEventListener('change', (e) => {
-      const mode = e.target.checked ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-mode', mode);
+      document.documentElement.setAttribute('data-mode', e.target.checked ? 'dark' : 'light');
     });
 
-    // ===== THA Analysis =====
+    // THA Analysis (跟 A2 流程)
     document.getElementById('analyzeBtn').addEventListener('click', () => {
-      const fileInput = document.getElementById('csvFile');
+      const file = document.getElementById('csvFile').files[0];
       const status = document.getElementById('tha-status');
-      if (!fileInput.files.length) {
-        status.innerHTML = '<span class="text-danger">請先選擇 CSV / HTML 檔案</span>';
+      if (!file) {
+        status.innerHTML = '<span class="text-danger">請先選擇檔案</span>';
         return;
       }
-      const file = fileInput.files[0];
-      status.innerHTML = `<span class="text-success">✅ 已選擇：${file.name}<br>分析中... (Demo)</span>`;
-      
-      // Demo 更新 Summary
-      document.getElementById('tha-profit').textContent = '+ $12,480';
+      status.innerHTML = `<span class="text-success">✅ 已載入：${file.name}，分析中...</span>`;
+
+      // 顯示 Summary + Chart 區塊
+      document.getElementById('summarySection').style.display = 'block';
+      document.getElementById('equitySection').style.display = 'block';
+
+      // Demo 數據
+      document.getElementById('tha-growth').textContent = '+148.6%';
       document.getElementById('tha-winrate').textContent = '81.4%';
-      document.getElementById('tha-dd').textContent = '-9.2% (USD -2,350)';
-      
-      // Demo Chart
+      document.getElementById('tha-dd').textContent = '-9.2%';
+      document.getElementById('tha-equity').textContent = '$24,800';
+      document.getElementById('tha-profit').textContent = '+$12,480';
+      document.getElementById('tha-trades').textContent = '312';
+      document.getElementById('tha-pf').textContent = '2.18';
+      document.getElementById('tha-avgwin').textContent = '$86.4';
+
+      // Equity Chart
       const ctx = document.getElementById('thaEquityChart').getContext('2d');
       if (window.thaChart) window.thaChart.destroy();
       window.thaChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: ['Week 1','5','10','15','20','25','30'],
+          labels: ['W1','W5','W10','W15','W20','W25','W30'],
           datasets: [{
-            data: [10000, 12500, 14800, 16200, 18900, 21500, 24800],
-            borderColor: '#4a7043',
+            data: [10000, 12800, 15200, 17800, 20100, 22600, 24800],
+            borderColor: '#0ea5e9',
+            backgroundColor: 'rgba(14,165,233,0.08)',
             tension: 0.4,
             borderWidth: 3,
-            fill: false
+            fill: true,
+            pointRadius: 0
           }]
         },
         options: {
           responsive: true,
-          plugins: { legend: { display: false } }
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+          }
         }
       });
     });
 
-    // ===== Live Signal Charts =====
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('csvFile').value = '';
+      document.getElementById('tha-status').innerHTML = '';
+      document.getElementById('summarySection').style.display = 'none';
+      document.getElementById('equitySection').style.display = 'none';
+      if (window.thaChart) window.thaChart.destroy();
+    });
+
+    // Live Signal Charts
     function createChart(id) {
       new Chart(document.getElementById(id), {
         type: 'line',
@@ -402,7 +481,7 @@
           labels: ['1','10','20','30','40'],
           datasets: [{
             data: [1000, 2800, 4500, 7200, 9800],
-            borderColor: '#4a7043',
+            borderColor: '#16a34a',
             tension: 0.4,
             borderWidth: 3,
             pointRadius: 0
