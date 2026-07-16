@@ -58,19 +58,19 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    /* ===== A2 Style Panel ===== */
+    /* ===== Panel 用盡寬度 ===== */
     .panel {
-      max-width: 1200px;
-      margin: 18px auto;
+      width: 100%;
+      margin: 14px 0;
       padding: 18px 20px;
       background: #ffffff;
-      border-radius: 18px;
+      border-radius: 16px;
       border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
     }
     .panel-title {
       margin: 0 0 14px 0;
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-weight: 600;
     }
     /* Live Signal Card */
@@ -157,7 +157,6 @@
     .switch input:checked + .slider::before { transform: translateX(24px); }
     .page { display: none; }
     .page.active { display: block; }
-    /* A2 style buttons */
     .btn-primary-a2 {
       background: radial-gradient(circle at 20% 0, #22d3ee, #0284c7);
       border: none;
@@ -175,7 +174,7 @@
     }
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 14px;
     }
     .summary-card {
@@ -286,9 +285,9 @@
         </div>
       </div>
 
-      <!-- ========== THA PAGE (跟 A2 結構 + Size) ========== -->
+      <!-- ========== THA PAGE ========== -->
       <div id="page-tha" class="page">
-        <!-- 1. Upload Panel (完全跟 A2) -->
+        <!-- Upload -->
         <section class="panel">
           <h2 class="panel-title">1. 匯入 MT4/MT5 報表 CSV</h2>
           <div class="d-flex flex-wrap gap-3 align-items-end">
@@ -316,7 +315,7 @@
           <div id="tha-status" class="mt-3 small"></div>
         </section>
 
-        <!-- 2. Summary Cards (跟 A2 size) -->
+        <!-- Summary -->
         <section class="panel" id="summarySection" style="display:none;">
           <h2 class="panel-title">2. 帳戶總覽 Summary</h2>
           <div class="summary-grid">
@@ -340,10 +339,12 @@
           </div>
         </section>
 
-        <!-- 3. Equity Curve -->
+        <!-- Equity + DD Chart (縮小高度 + 綠色幼線) -->
         <section class="panel" id="equitySection" style="display:none;">
-          <h2 class="panel-title">3. 資金權益成長曲線</h2>
-          <canvas id="thaEquityChart" height="280"></canvas>
+          <h2 class="panel-title">3. 資金權益成長曲線 + Drawdown</h2>
+          <div style="height: 260px;">
+            <canvas id="thaEquityChart"></canvas>
+          </div>
         </section>
       </div>
 
@@ -413,7 +414,7 @@
       document.documentElement.setAttribute('data-mode', e.target.checked ? 'dark' : 'light');
     });
 
-    // THA Analysis (跟 A2 流程)
+    // THA Analysis
     document.getElementById('analyzeBtn').addEventListener('click', () => {
       const file = document.getElementById('csvFile').files[0];
       const status = document.getElementById('tha-status');
@@ -423,7 +424,6 @@
       }
       status.innerHTML = `<span class="text-success">✅ 已載入：${file.name}，分析中...</span>`;
 
-      // 顯示 Summary + Chart 區塊
       document.getElementById('summarySection').style.display = 'block';
       document.getElementById('equitySection').style.display = 'block';
 
@@ -437,28 +437,62 @@
       document.getElementById('tha-pf').textContent = '2.18';
       document.getElementById('tha-avgwin').textContent = '$86.4';
 
-      // Equity Chart
+      // Equity + DD Chart (綠色幼線 + 同時顯示 DD)
       const ctx = document.getElementById('thaEquityChart').getContext('2d');
       if (window.thaChart) window.thaChart.destroy();
       window.thaChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: ['W1','W5','W10','W15','W20','W25','W30'],
-          datasets: [{
-            data: [10000, 12800, 15200, 17800, 20100, 22600, 24800],
-            borderColor: '#0ea5e9',
-            backgroundColor: 'rgba(14,165,233,0.08)',
-            tension: 0.4,
-            borderWidth: 3,
-            fill: true,
-            pointRadius: 0
-          }]
+          datasets: [
+            {
+              label: 'Equity',
+              data: [10000, 12800, 15200, 17800, 20100, 22600, 24800],
+              borderColor: '#16a34a',          // 綠色
+              backgroundColor: 'rgba(22,163,74,0.08)',
+              tension: 0.35,
+              borderWidth: 2,                 // 幼線
+              fill: true,
+              pointRadius: 0,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Drawdown %',
+              data: [0, -2.1, -4.8, -3.2, -7.5, -5.1, -9.2],
+              borderColor: '#dc2626',
+              backgroundColor: 'rgba(220,38,38,0.06)',
+              tension: 0.3,
+              borderWidth: 1.5,
+              fill: true,
+              pointRadius: 0,
+              yAxisID: 'y1'
+            }
+          ]
         },
         options: {
           responsive: true,
-          plugins: { legend: { display: false } },
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: true, position: 'top' }
+          },
           scales: {
-            y: { grid: { color: 'rgba(0,0,0,0.05)' } },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              title: { display: true, text: 'Equity ($)' },
+              grid: { color: 'rgba(0,0,0,0.05)' }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: { display: true, text: 'Drawdown %' },
+              grid: { drawOnChartArea: false },
+              min: -15,
+              max: 2
+            },
             x: { grid: { display: false } }
           }
         }
@@ -483,7 +517,7 @@
             data: [1000, 2800, 4500, 7200, 9800],
             borderColor: '#16a34a',
             tension: 0.4,
-            borderWidth: 3,
+            borderWidth: 2,
             pointRadius: 0
           }]
         },
