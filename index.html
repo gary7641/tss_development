@@ -61,28 +61,63 @@
     .analysis-menu button.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
     .analysis-block { display: none; }
     .analysis-block.active { display: block; }
-    /* SWOT 9格 */
-    .swot-9 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .summary-card {
+      background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb; padding: 14px;
     }
-    .swot-cell {
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 0.88rem;
-      min-height: 140px;
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px 30px; font-size: 0.9rem;
     }
-    .swot-st { background: #dbeafe; }
-    .swot-s  { background: #fef9c3; }
-    .swot-so { background: #dbeafe; }
-    .swot-t  { background: #fef9c3; }
-    .swot-c  { background: #e0f2fe; display: flex; align-items: center; justify-content: center; text-align: center; }
-    .swot-o  { background: #fef9c3; }
-    .swot-wt { background: #dbeafe; }
-    .swot-w  { background: #fef9c3; }
-    .swot-wo { background: #dbeafe; }
-    .swot-title { font-weight: 700; margin-bottom: 8px; font-size: 0.95rem; }
+    .stats-grid .label { color: #6b7280; }
+    .stats-grid .value { text-align: right; font-weight: 500; }
+    .pos { color: #16a34a; }
+    .neg { color: #dc2626; }
+    .dist-bar {
+      height: 24px; border-radius: 5px; margin: 5px 0; position: relative;
+      background: #e5e7eb; overflow: hidden;
+    }
+    .dist-bar-fill { height: 100%; border-radius: 5px; }
+    .dist-bar-label {
+      position: absolute; left: 8px; top: 3px; font-size: 0.8rem; color: #111; white-space: nowrap;
+    }
+    .symbol-btn {
+      border: 1px solid #d1d5db; background: white; border-radius: 999px;
+      padding: 4px 12px; font-size: 0.85rem; margin: 3px; cursor: pointer;
+    }
+    .symbol-btn.active { background: #e0f2fe; border-color: #0ea5e9; color: #0369a1; }
+    .mini-equity-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px;
+    }
+    .mini-card {
+      background: #f9fafb; border-radius: 12px; padding: 10px; border: 1px solid #e5e7eb;
+      height: 150px; display: flex; flex-direction: column; position: relative;
+    }
+    .mini-card canvas { flex: 1; }
+    .mini-stats {
+      position: absolute; bottom: 6px; right: 8px; font-size: 0.72rem; text-align: right; line-height: 1.3;
+    }
+    table.martingale { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    table.martingale th, table.martingale td {
+      border: 1px solid #e5e7eb; padding: 6px 8px; text-align: center;
+    }
+    table.martingale th { background: #f3f4f6; }
+    .expand-btn { background: none; border: none; font-size: 1.15rem; cursor: pointer; }
+    .layer-detail { display: none; background: #f8fafc; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin: 6px 0; }
+    .layer-detail.show { display: block; }
+    .trade-table { width: 100%; font-size: 0.78rem; border-collapse: collapse; }
+    .trade-table th, .trade-table td { border: 1px solid #e5e7eb; padding: 4px 6px; white-space: nowrap; }
+    .trade-table th { background: #f1f5f9; }
+    .swot-9 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .swot-cell { border-radius: 10px; padding: 14px; font-size: 0.88rem; min-height: 140px; }
+    .swot-st, .swot-so, .swot-wt, .swot-wo { background: #dbeafe; }
+    .swot-s, .swot-t, .swot-o, .swot-w { background: #fef9c3; }
+    .swot-c { background: #e0f2fe; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .swot-title { font-weight: 700; margin-bottom: 8px; }
+    .heatmap-table { border-collapse: collapse; font-size: 0.82rem; }
+    .heatmap-table th, .heatmap-table td { border: 1px solid #e5e7eb; padding: 7px 10px; text-align: center; min-width: 48px; }
+    .hm-pos { background: #bbf7d0; }
+    .hm-mid { background: #fef08a; }
+    .hm-neg { background: #fecaca; }
   </style>
 </head>
 <body>
@@ -91,17 +126,14 @@
       <div style="width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#fff,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🌳</div>
       <h5 class="mb-0 fw-bold">Signal Helper</h5>
     </div>
-    <div class="d-flex align-items-center gap-3">
-      <div id="userArea">
-        <button id="loginBtn" class="btn btn-light btn-sm">Login with Gmail</button>
-        <div id="userInfo" style="display:none; cursor:pointer;" class="fw-bold">
-          <span id="userName">User</span> ▼
-        </div>
+    <div id="userArea">
+      <button id="loginBtn" class="btn btn-light btn-sm">Login with Gmail</button>
+      <div id="userInfo" style="display:none;cursor:pointer;" class="fw-bold">
+        <span id="userName">User</span> ▼
       </div>
     </div>
   </header>
 
-  <!-- User Menu -->
   <div id="userMenu" class="user-menu">
     <ul class="list-unstyled mb-0">
       <li id="menuProfile">👤 User Profile</li>
@@ -134,7 +166,6 @@
     </nav>
 
     <main class="flex-grow-1 p-3">
-      <!-- Dashboard -->
       <div id="page-dashboard" class="page active">
         <h2>Dashboard</h2>
         <p class="text-muted">歡迎使用 Signal Helper</p>
@@ -143,15 +174,15 @@
       <!-- THA -->
       <div id="page-tha" class="page">
         <section class="panel">
-          <h2 class="panel-title">Trade History Analyzer (THA)</h2>
+          <h2 class="panel-title">Trade History Analyzer</h2>
           <div class="d-flex flex-wrap gap-3 align-items-end">
             <div>
               <label class="form-label small text-muted">上傳 CSV</label>
-              <input type="file" id="csvFile" accept=".csv,.html,.txt" class="form-control" style="min-width:240px;">
+              <input type="file" id="csvFile" accept=".csv,.html,.txt" class="form-control" style="min-width:230px;">
             </div>
             <div>
-              <label class="form-label small text-muted">EA 類型</label>
-              <select id="eaSelect" class="form-select" style="min-width:160px;">
+              <label class="form-label small text-muted">EA</label>
+              <select id="eaSelect" class="form-select" style="min-width:140px;">
                 <option value="SMA">SMA</option>
                 <option value="MKD">MKD</option>
                 <option value="Flash">Flash</option>
@@ -160,7 +191,7 @@
             </div>
             <div class="d-flex gap-2">
               <button id="analyzeBtn" class="btn btn-primary-a2">🚀 開始分析</button>
-              <button id="saveBtn" class="btn btn-save">💾 SAVE CSV REPORT</button>
+              <button id="saveBtn" class="btn btn-save">💾 SAVE</button>
               <button id="exportPdfBtn" class="btn btn-secondary-a2">📄 EXPORT PDF</button>
               <button id="resetBtn" class="btn btn-secondary-a2">Reset</button>
             </div>
@@ -175,128 +206,152 @@
             <button data-block="mfe-mae">MFE + MAE</button>
             <button data-block="heatmap">Heat Map</button>
             <button data-block="drawdown">Drawdown</button>
-            <button data-block="swot">SWOT 分析</button>
+            <button data-block="swot">SWOT</button>
           </div>
 
+          <!-- 1. 總覽 -->
           <div class="analysis-block active" id="block-overview">
             <section class="panel">
-              <h2 class="panel-title">總覽 Summary</h2>
-              <p class="text-muted">（分析結果會顯示喺呢度）</p>
-              <div style="height: 240px;"><canvas id="thaEquityChart"></canvas></div>
+              <h2 class="panel-title">總覽 Summary + 資金曲線</h2>
+              <div class="summary-grid mb-4">
+                <div class="summary-card">
+                  <div class="small text-muted">成長</div>
+                  <div class="fs-3 fw-bold pos">+148.6%</div>
+                  <div class="small">勝率 81.4% | Max DD -9.2%</div>
+                </div>
+                <div class="summary-card">
+                  <div class="small text-muted">Equity</div>
+                  <div class="fs-4 fw-bold">$24,800</div>
+                  <div class="small">Profit +$12,480</div>
+                </div>
+                <div class="summary-card">
+                  <div class="small text-muted">關鍵指標</div>
+                  <div class="small">總交易 312 | PF 2.18</div>
+                  <div class="small">平均贏 $86.4</div>
+                </div>
+              </div>
+
+              <div style="height: 240px; margin-bottom: 24px;"><canvas id="thaEquityChart"></canvas></div>
+
+              <h6 class="mb-3">詳細 Statistics</h6>
+              <div class="stats-grid mb-4">
+                <div class="label">Trades</div><div class="value">312</div>
+                <div class="label">Profit Trades</div><div class="value pos">254 (81.4%)</div>
+                <div class="label">Loss Trades</div><div class="value neg">58 (18.6%)</div>
+                <div class="label">Best trade</div><div class="value pos">+$1,245.80</div>
+                <div class="label">Worst trade</div><div class="value neg">-$386.20</div>
+                <div class="label">Gross Profit</div><div class="value pos">+$18,640.50</div>
+                <div class="label">Gross Loss</div><div class="value neg">-$6,160.50</div>
+                <div class="label">Recovery Factor</div><div class="value">2.18</div>
+                <div class="label">Profit Factor</div><div class="value">3.03</div>
+                <div class="label">Expected Payoff</div><div class="value pos">$40.00</div>
+                <div class="label">Max Consecutive Wins</div><div class="value">12</div>
+                <div class="label">Max Consecutive Losses</div><div class="value neg">4</div>
+              </div>
+
+              <h6 class="mb-2">Distribution By Symbol</h6>
+              <div class="small text-muted mb-1">Deals</div>
+              <div id="distDeals"></div>
+              <div class="small text-muted mb-1 mt-3">Net Profit (USD)</div>
+              <div id="distProfit"></div>
             </section>
           </div>
 
+          <!-- 2. Symbol + 馬丁 -->
           <div class="analysis-block" id="block-symbol-martingale">
-            <section class="panel"><h2 class="panel-title">Symbol + 馬丁層數</h2><p class="text-muted">開發中...</p></section>
+            <section class="panel">
+              <h2 class="panel-title">Symbol 一覽 + 馬丁層數</h2>
+              <div class="mb-3" id="symbolButtons">
+                <button class="symbol-btn active" data-symbol="ALL">All</button>
+                <button class="symbol-btn" data-symbol="EURUSD">EURUSD</button>
+                <button class="symbol-btn" data-symbol="GBPUSD">GBPUSD</button>
+                <button class="symbol-btn" data-symbol="XAUUSD">XAUUSD</button>
+                <button class="symbol-btn" data-symbol="USDJPY">USDJPY</button>
+              </div>
+              <div class="mini-equity-grid mb-4" id="miniEquityGrid"></div>
+              <h6>馬丁層數分析 - <span id="currentSymbolLabel">All</span></h6>
+              <div id="martingaleContent"></div>
+            </section>
           </div>
 
+          <!-- 3. MFE + MAE -->
           <div class="analysis-block" id="block-mfe-mae">
-            <section class="panel"><h2 class="panel-title">MFE + MAE</h2><p class="text-muted">開發中...</p></section>
+            <section class="panel">
+              <h2 class="panel-title">MFE + MAE</h2>
+              <h6>Max Profit Pips vs Net Pips</h6>
+              <div style="height: 280px;"><canvas id="mfeScatter"></canvas></div>
+              <h6 class="mt-4">Days Held vs Net Pips</h6>
+              <div style="height: 220px;"><canvas id="holdingScatter"></canvas></div>
+            </section>
           </div>
 
+          <!-- 4. Heat Map -->
           <div class="analysis-block" id="block-heatmap">
-            <section class="panel"><h2 class="panel-title">Heat Map</h2><p class="text-muted">開發中...</p></section>
+            <section class="panel">
+              <h2 class="panel-title">Heat Map</h2>
+              <h6>Weekday × Hour Profit</h6>
+              <div class="table-responsive mb-4" id="heatmapHour"></div>
+              <h6>Symbol × Weekday</h6>
+              <div class="table-responsive" id="heatmapSymbol"></div>
+            </section>
           </div>
 
+          <!-- 5. Drawdown -->
           <div class="analysis-block" id="block-drawdown">
-            <section class="panel"><h2 class="panel-title">Drawdown 分析</h2><p class="text-muted">開發中...</p></section>
+            <section class="panel">
+              <h2 class="panel-title">Drawdown 分析</h2>
+              <div class="summary-grid mb-4">
+                <div class="summary-card">
+                  <div class="small text-muted">Max DD</div>
+                  <div class="fs-4 fw-bold neg">-9.2% ($2,280)</div>
+                </div>
+                <div class="summary-card">
+                  <div class="small text-muted">最長 DD 持續</div>
+                  <div class="fs-5 fw-bold">18 日</div>
+                </div>
+                <div class="summary-card">
+                  <div class="small text-muted">最大連續虧損</div>
+                  <div class="fs-5 fw-bold">4 次</div>
+                </div>
+              </div>
+              <div style="height: 240px;"><canvas id="ddChart"></canvas></div>
+            </section>
           </div>
 
-          <!-- SWOT 9格 -->
+          <!-- SWOT -->
           <div class="analysis-block" id="block-swot">
             <section class="panel">
               <h2 class="panel-title">SWOT 分析（9格）</h2>
               <div class="swot-9">
-                <div class="swot-cell swot-st">
-                  <div class="swot-title">S-T 策略</div>
-                  <ul class="small mb-0">
-                    <li>可試加入不同 TF，最大化 SMA 內 MLTF 優勢</li>
-                    <li>加入 RSI 或 BB 作 FILTER，減少噪音交易</li>
-                  </ul>
-                </div>
-                <div class="swot-cell swot-s">
-                  <div class="swot-title">STRENGTH 優勢</div>
-                  <ul class="small mb-0">
-                    <li>捕捉短、中、長期移動平均線</li>
-                    <li>有 MLTV，開單位置更精準</li>
-                    <li>有 PLAN B 多層智慧型馬丁</li>
-                  </ul>
-                </div>
-                <div class="swot-cell swot-so">
-                  <div class="swot-title">S-O 策略</div>
-                  <ul class="small mb-0">
-                    <li>從多貨幣對中挑選最優 1-2 對</li>
-                    <li>優化後可作 COPY TRADE</li>
-                  </ul>
-                </div>
-
-                <div class="swot-cell swot-t">
-                  <div class="swot-title">THREATS 威脅</div>
-                  <ul class="small mb-0">
-                    <li>中東局勢緊張，價格大幅波動</li>
-                    <li>沒有 SET COOLDOWN，STOP LOSS 後即再開單</li>
-                  </ul>
-                </div>
-                <div class="swot-cell swot-c">
-                  <div>
-                    <strong>SWOT</strong><br>
-                    <small>分析中心</small>
-                  </div>
-                </div>
-                <div class="swot-cell swot-o">
-                  <div class="swot-title">OPPORTUNITIES 機會</div>
-                  <ul class="small mb-0">
-                    <li>原 SETTING 是 TIGER SET 改版</li>
-                    <li>已運作 67 週 LIVE，有 risk free 紀錄</li>
-                  </ul>
-                </div>
-
-                <div class="swot-cell swot-wt">
-                  <div class="swot-title">W-T 策略</div>
-                  <ul class="small mb-0">
-                    <li>考慮開 NEWS FILTER</li>
-                    <li>由 PER TICK 改成 PER BAR</li>
-                    <li>增加 COOLDOWN AFTER CLOSE</li>
-                  </ul>
-                </div>
-                <div class="swot-cell swot-w">
-                  <div class="swot-title">WEAKNESS 弱點</div>
-                  <ul class="small mb-0">
-                    <li>原 SETTING 開了 10 層馬丁</li>
-                    <li>入市條件相對寬鬆，沒有其他 FILTER</li>
-                  </ul>
-                </div>
-                <div class="swot-cell swot-wo">
-                  <div class="swot-title">W-O 策略</div>
-                  <ul class="small mb-0">
-                    <li>增加不同 FILTER，令頭單更容易 TP</li>
-                    <li>增加馬丁 PIPS STEP，包住極端市況</li>
-                  </ul>
-                </div>
+                <div class="swot-cell swot-st"><div class="swot-title">S-T 策略</div><ul class="small mb-0"><li>加入不同 TF</li><li>加 RSI / BB Filter</li></ul></div>
+                <div class="swot-cell swot-s"><div class="swot-title">STRENGTH</div><ul class="small mb-0"><li>捕捉多週期趨勢</li><li>有 PLAN B 馬丁</li></ul></div>
+                <div class="swot-cell swot-so"><div class="swot-title">S-O 策略</div><ul class="small mb-0"><li>精選貨幣對</li><li>可作 Copy Trade</li></ul></div>
+                <div class="swot-cell swot-t"><div class="swot-title">THREATS</div><ul class="small mb-0"><li>地緣政治波動</li><li>無 Cooldown</li></ul></div>
+                <div class="swot-cell swot-c"><strong>SWOT</strong></div>
+                <div class="swot-cell swot-o"><div class="swot-title">OPPORTUNITIES</div><ul class="small mb-0"><li>已運作多週</li><li>有 Risk Free 紀錄</li></ul></div>
+                <div class="swot-cell swot-wt"><div class="swot-title">W-T 策略</div><ul class="small mb-0"><li>加 News Filter</li><li>加 Cooldown</li></ul></div>
+                <div class="swot-cell swot-w"><div class="swot-title">WEAKNESS</div><ul class="small mb-0"><li>馬丁層數偏多</li><li>入市條件寬鬆</li></ul></div>
+                <div class="swot-cell swot-wo"><div class="swot-title">W-O 策略</div><ul class="small mb-0"><li>增加 Filter</li><li>加大 Pips Step</li></ul></div>
               </div>
             </section>
           </div>
         </div>
       </div>
 
-      <!-- Library -->
       <div id="page-library" class="page">
         <section class="panel">
           <h2 class="panel-title">📚 Signal History Library</h2>
-          <div id="libraryList" class="small text-muted">請先 Login 後使用 SAVE 功能</div>
+          <div id="libraryList" class="text-muted small">Login 後使用 SAVE 功能</div>
         </section>
       </div>
 
-      <!-- Admin Console -->
       <div id="page-admin" class="page">
         <section class="panel">
           <h2 class="panel-title">🛠️ Admin Console</h2>
-          <p>只有 Admin 可以進入呢度。</p>
-          <p>之後可以喺呢度 Assign User Level。</p>
+          <p>只有 Admin 可進入。之後可在此 Assign User Level。</p>
         </section>
       </div>
 
-      <!-- 其他頁面 -->
       <div id="page-live" class="page"><div class="panel"><h2>📡 Live Signals</h2><p>開發中...</p></div></div>
       <div id="page-mysignals" class="page"><div class="panel"><h2>📋 My Signals</h2><p>開發中...</p></div></div>
       <div id="page-register" class="page"><div class="panel"><h2>➕ Register Signal</h2><p>開發中...</p></div></div>
@@ -314,7 +369,6 @@
   </div>
 
   <script>
-    // ===== Firebase Config =====
     const firebaseConfig = {
       apiKey: "AIzaSyDprZtAn7CdeRoeoyO7uel59936xxWIo1g",
       authDomain: "ai-signal-portal.firebaseapp.com",
@@ -326,17 +380,12 @@
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
-
     const ADMIN_EMAILS = ['gary7641@gmail.com', 'shenxu.gary@gmail.com'];
     let currentUser = null;
-    let isAdmin = false;
 
-    // ===== Auth State =====
     auth.onAuthStateChanged(user => {
       currentUser = user;
-      isAdmin = user && ADMIN_EMAILS.includes(user.email);
-
+      const isAdmin = user && ADMIN_EMAILS.includes(user.email);
       if (user) {
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('userInfo').style.display = 'block';
@@ -345,28 +394,22 @@
       } else {
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('userInfo').style.display = 'none';
-        document.getElementById('userMenu').classList.remove('show');
       }
     });
 
-    // Login with Google
     document.getElementById('loginBtn').addEventListener('click', () => {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider).catch(err => alert('Login 失敗：' + err.message));
     });
 
-    // User Menu
     document.getElementById('userInfo').addEventListener('click', e => {
       e.stopPropagation();
       document.getElementById('userMenu').classList.toggle('show');
     });
     document.addEventListener('click', () => document.getElementById('userMenu').classList.remove('show'));
-
     document.getElementById('menuLogout').addEventListener('click', () => auth.signOut());
     document.getElementById('menuAdmin').addEventListener('click', () => switchPage('admin'));
-    document.getElementById('menuProfile').addEventListener('click', () => alert('User Profile 開發中'));
 
-    // ===== Page Routing =====
     function switchPage(pageId) {
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -382,7 +425,6 @@
       });
     });
 
-    // Analysis Menu
     document.querySelectorAll('#analysisMenu button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
@@ -392,17 +434,107 @@
       });
     });
 
-    // Analyze
+    // Martingale Data
+    const martingaleData = {
+      ALL: { label: 'All Symbols', rows: [
+        {layer:1, lots:0.01, trades:42, sumP:-186.4, cum:-186.4, wr:'41%', color:'#fef2f2'},
+        {layer:2, lots:0.02, trades:28, sumP:312.5, cum:126.1, wr:'71%', color:'#ecfdf5'},
+        {layer:3, lots:0.04, trades:18, sumP:485.2, cum:611.3, wr:'83%', color:'#ecfdf5'},
+        {layer:4, lots:0.08, trades:9, sumP:420.8, cum:1032.1, wr:'100%', color:'#dbeafe'}
+      ]},
+      EURUSD: { label: 'EURUSD', rows: [
+        {layer:1, lots:0.01, trades:18, sumP:-86.4, cum:-86.4, wr:'44%', color:'#fef2f2'},
+        {layer:2, lots:0.02, trades:12, sumP:152.3, cum:65.9, wr:'75%', color:'#ecfdf5'},
+        {layer:3, lots:0.04, trades:9, sumP:318.6, cum:384.5, wr:'89%', color:'#ecfdf5'},
+        {layer:4, lots:0.08, trades:6, sumP:512.4, cum:896.9, wr:'100%', color:'#dbeafe'}
+      ]},
+      GBPUSD: { label: 'GBPUSD', rows: [
+        {layer:1, lots:0.01, trades:14, sumP:-42.1, cum:-42.1, wr:'50%', color:'#fef2f2'},
+        {layer:2, lots:0.02, trades:9, sumP:98.6, cum:56.5, wr:'67%', color:'#ecfdf5'}
+      ]},
+      XAUUSD: { label: 'XAUUSD', rows: [
+        {layer:1, lots:0.10, trades:11, sumP:68.4, cum:68.4, wr:'64%', color:'#ecfdf5'},
+        {layer:2, lots:0.20, trades:6, sumP:245.8, cum:314.2, wr:'83%', color:'#ecfdf5'}
+      ]},
+      USDJPY: { label: 'USDJPY', rows: [
+        {layer:1, lots:0.01, trades:16, sumP:-55.2, cum:-55.2, wr:'44%', color:'#fef2f2'},
+        {layer:2, lots:0.02, trades:10, sumP:128.7, cum:73.5, wr:'70%', color:'#ecfdf5'}
+      ]}
+    };
+
+    function renderMartingale(symbol) {
+      const data = martingaleData[symbol] || martingaleData.ALL;
+      document.getElementById('currentSymbolLabel').textContent = data.label;
+      let html = `<div class="table-responsive"><table class="martingale"><thead><tr>
+        <th></th><th>#</th><th>Lots</th><th>Trades</th><th>SUM Profit</th><th>Cum Profit</th><th>Win Rate</th>
+      </tr></thead><tbody>`;
+      data.rows.forEach((r, i) => {
+        html += `<tr style="background:${r.color}">
+          <td><button class="expand-btn" data-layer="${i}">➕</button></td>
+          <td>${r.layer}</td><td>${r.lots}</td><td>${r.trades}</td>
+          <td>${r.sumP>0?'+':''}${r.sumP.toFixed(1)}</td>
+          <td>${r.cum>0?'+':''}${r.cum.toFixed(1)}</td>
+          <td>${r.wr}</td>
+        </tr>
+        <tr><td colspan="7" style="padding:0;border:none;">
+          <div class="layer-detail" id="layer-detail-${i}">
+            <strong>第 ${r.layer} 層單據</strong>
+            <div class="table-responsive mt-2">
+              <table class="trade-table">
+                <thead><tr>
+                  <th>Open Time</th><th>Type</th><th>Volume</th><th>Symbol</th><th>Open</th><th>Close</th>
+                  <th>Pips</th><th>Net</th><th>Holding</th><th>Max Profit</th><th>Max Loss</th><th>Magic</th>
+                </tr></thead>
+                <tbody>
+                  <tr><td>2026-06-01 09:15</td><td>Buy</td><td>0.01</td><td>EURUSD</td><td>1.0845</td><td>1.0862</td><td>17</td><td>+12.4</td><td>5h 7m</td><td>18.2</td><td>-4.1</td><td>10001</td></tr>
+                  <tr><td>2026-06-02 11:30</td><td>Buy</td><td>0.01</td><td>EURUSD</td><td>1.0851</td><td>1.0838</td><td>-13</td><td>-9.8</td><td>4h 35m</td><td>5.2</td><td>-14.5</td><td>10001</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </td></tr>`;
+      });
+      html += `</tbody></table></div>`;
+      document.getElementById('martingaleContent').innerHTML = html;
+
+      document.querySelectorAll('.expand-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const detail = document.getElementById('layer-detail-' + btn.dataset.layer);
+          const show = detail.classList.toggle('show');
+          btn.textContent = show ? '➖' : '➕';
+        });
+      });
+    }
+
+    document.getElementById('symbolButtons')?.addEventListener('click', e => {
+      if (!e.target.classList.contains('symbol-btn')) return;
+      document.querySelectorAll('.symbol-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      renderMartingale(e.target.dataset.symbol);
+    });
+
+    function renderDist(containerId, data, max, color) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      el.innerHTML = data.map(d => {
+        const pct = Math.min(100, Math.abs(d.v) / max * 100);
+        return `<div class="dist-bar" title="${d.s}: ${d.v}">
+          <div class="dist-bar-fill" style="width:${pct}%;background:${d.v>=0?color:'#fca5a5'}"></div>
+          <div class="dist-bar-label">${d.s} &nbsp; ${d.v>0?'+':''}${d.v}</div>
+        </div>`;
+      }).join('');
+    }
+
     document.getElementById('analyzeBtn').addEventListener('click', () => {
       const file = document.getElementById('csvFile').files[0];
       if (!file) {
         document.getElementById('tha-status').innerHTML = '<span class="text-danger">請先選擇檔案</span>';
         return;
       }
-      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}（分析中...）</span>`;
+      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}</span>`;
       document.getElementById('analysisArea').style.display = 'block';
 
-      // Demo Equity Chart
+      // Equity
       const ctx = document.getElementById('thaEquityChart').getContext('2d');
       if (window.thaChart) window.thaChart.destroy();
       window.thaChart = new Chart(ctx, {
@@ -410,8 +542,8 @@
         data: {
           labels: ['W1','W5','W10','W15','W20','W25','W30'],
           datasets: [
-            { label: 'Equity', data: [10000,12800,15200,17800,20100,22600,24800], borderColor: '#16a34a', borderWidth: 2, tension: 0.35, fill: true, backgroundColor: 'rgba(22,163,74,0.08)', pointRadius: 0 },
-            { label: 'Drawdown %', data: [0,-2.1,-4.8,-3.2,-7.5,-5.1,-9.2], borderColor: '#dc2626', borderWidth: 1.5, tension: 0.3, fill: true, backgroundColor: 'rgba(220,38,38,0.06)', pointRadius: 0, yAxisID: 'y1' }
+            { label: 'Equity', data: [10000,12800,15200,17800,20100,22600,24800], borderColor: '#16a34a', borderWidth: 2, tension: 0.35, fill: true, backgroundColor: 'rgba(22,163,74,0.08)', pointRadius: 0, yAxisID: 'y' },
+            { label: 'DD %', data: [0,-2.1,-4.8,-3.2,-7.5,-5.1,-9.2], borderColor: '#dc2626', borderWidth: 1.5, tension: 0.3, fill: true, backgroundColor: 'rgba(220,38,38,0.06)', pointRadius: 0, yAxisID: 'y1' }
           ]
         },
         options: {
@@ -422,26 +554,98 @@
           }
         }
       });
+
+      // Dist
+      renderDist('distDeals', [
+        {s:'EURUSD',v:128},{s:'GBPUSD',v:64},{s:'XAUUSD',v:48},{s:'USDJPY',v:42},{s:'AUDUSD',v:30}
+      ], 130, '#93c5fd');
+      renderDist('distProfit', [
+        {s:'EURUSD',v:6240},{s:'GBPUSD',v:2180},{s:'XAUUSD',v:2860},{s:'USDJPY',v:980},{s:'AUDUSD',v:220}
+      ], 6500, '#86efac');
+
+      // Mini
+      const grid = document.getElementById('miniEquityGrid');
+      grid.innerHTML = '';
+      ['All','EURUSD','GBPUSD','XAUUSD','USDJPY'].forEach((sym,i) => {
+        const card = document.createElement('div');
+        card.className = 'mini-card';
+        card.innerHTML = `<div class="small fw-bold">${sym}</div><canvas id="mini${i}"></canvas>
+          <div class="mini-stats">Bal: $12,400<br>P%: +86%<br>DD%: -6.8%</div>`;
+        grid.appendChild(card);
+        new Chart(document.getElementById('mini'+i), {
+          type: 'line',
+          data: { labels: Array(12).fill(''), datasets: [{ data: Array.from({length:12},()=>Math.random()*40+30), borderColor:'#16a34a', borderWidth:1.2, tension:0.3, pointRadius:0 }] },
+          options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}} }
+        });
+      });
+
+      renderMartingale('ALL');
+
+      // MFE Scatter
+      const pts = Array.from({length:60}, () => {
+        const net = Math.random()*1600 - 300;
+        return {x: net, y: net > 0 ? net + Math.random()*300 : Math.random()*60};
+      });
+      new Chart(document.getElementById('mfeScatter'), {
+        type: 'scatter',
+        data: { datasets: [{ data: pts, backgroundColor: pts.map(p => p.x >= 0 ? '#16a34a' : '#dc2626'), pointRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { title: { display: true, text: 'Net Pips' } }, y: { title: { display: true, text: 'Max Profit Pips' } } }
+        }
+      });
+      new Chart(document.getElementById('holdingScatter'), {
+        type: 'scatter',
+        data: { datasets: [{ data: pts.map(p => ({x: p.x, y: Math.random()*5 + (p.x<0?1:0)})), backgroundColor: pts.map(p => p.x >= 0 ? '#16a34a' : '#dc2626'), pointRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { title: { display: true, text: 'Net Pips' } }, y: { title: { display: true, text: 'Days Held' } } }
+        }
+      });
+
+      // Heatmap
+      const hours = ['00','04','08','12','16','20'];
+      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      let hm = '<table class="heatmap-table"><tr><th></th>' + hours.map(h=>`<th>${h}</th>`).join('') + '</tr>';
+      days.forEach(d => {
+        hm += `<tr><th>${d}</th>`;
+        hours.forEach(() => {
+          const v = Math.floor(Math.random()*180-50);
+          const cls = v > 30 ? 'hm-pos' : v < -20 ? 'hm-neg' : 'hm-mid';
+          hm += `<td class="${cls}">${v}</td>`;
+        });
+        hm += '</tr>';
+      });
+      hm += '</table>';
+      document.getElementById('heatmapHour').innerHTML = hm;
+
+      let hm2 = '<table class="heatmap-table"><tr><th></th>' + days.map(d=>`<th>${d}</th>`).join('') + '</tr>';
+      ['EURUSD','GBPUSD','XAUUSD','USDJPY'].forEach(s => {
+        hm2 += `<tr><th>${s}</th>`;
+        days.forEach(() => {
+          const v = Math.floor(Math.random()*160-40);
+          const cls = v > 30 ? 'hm-pos' : v < -20 ? 'hm-neg' : 'hm-mid';
+          hm2 += `<td class="${cls}">${v}</td>`;
+        });
+        hm2 += '</tr>';
+      });
+      hm2 += '</table>';
+      document.getElementById('heatmapSymbol').innerHTML = hm2;
+
+      // DD
+      new Chart(document.getElementById('ddChart'), {
+        type: 'line',
+        data: { labels: Array(25).fill(''), datasets: [{ data: [0,-1.5,-3.8,-2.2,-6.1,-4.5,-7.8,-5.9,-9.2,-4.1,-2.3,0], borderColor:'#dc2626', borderWidth:2, fill:true, backgroundColor:'rgba(220,38,38,0.1)', tension:0.3, pointRadius:0 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
+      });
     });
 
-    // SAVE（要 Login）
     document.getElementById('saveBtn').addEventListener('click', () => {
-      if (!currentUser) {
-        alert('請先用 Gmail Login 先可以 SAVE');
-        return;
-      }
-      alert('SAVE 功能已準備好接 Firestore（下一階段實作）');
+      if (!currentUser) return alert('請先 Login 先可以 SAVE');
+      alert('SAVE 功能下一階段接 Firestore');
     });
-
-    // EXPORT PDF（要 Login）
     document.getElementById('exportPdfBtn').addEventListener('click', () => {
-      if (!currentUser) {
-        alert('請先用 Gmail Login 先可以 Export PDF');
-        return;
-      }
-      window.print(); // 暫時用瀏覽器列印
+      if (!currentUser) return alert('請先 Login 先可以 Export PDF');
+      window.print();
     });
-
     document.getElementById('resetBtn').addEventListener('click', () => {
       document.getElementById('csvFile').value = '';
       document.getElementById('tha-status').innerHTML = '';
