@@ -80,7 +80,6 @@
     .summary-card {
       background: #f9fafb; border-radius: 14px; border: 1px solid rgba(148,163,184,0.3); padding: 14px 16px;
     }
-    /* 分析 Menu */
     .analysis-menu {
       display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
     }
@@ -111,6 +110,13 @@
       border: 1px solid #e5e7eb; padding: 6px 8px; text-align: center;
     }
     table.martingale th { background: #f3f4f6; }
+    table.martingale tr.layer-row { cursor: pointer; }
+    table.martingale tr.layer-row:hover { background: #f0f9ff; }
+    .layer-detail {
+      display: none; background: #f8fafc; padding: 12px; border: 1px solid #e5e7eb;
+      border-radius: 8px; margin: 8px 0; font-size: 0.85rem;
+    }
+    .layer-detail.show { display: block; }
     .swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .swot-box { border-radius: 12px; padding: 16px; min-height: 140px; }
     .swot-s { background: #ecfdf5; border: 1px solid #a7f3d0; }
@@ -239,80 +245,75 @@
           <div id="tha-status" class="mt-3 small"></div>
         </section>
 
-        <!-- 分析結果區（分析後先顯示） -->
+        <!-- 分析結果區 -->
         <div id="analysisArea" style="display:none;">
-          <!-- 分析 Menu -->
+          <!-- 分析 Menu（已合併） -->
           <div class="analysis-menu" id="analysisMenu">
-            <button class="active" data-block="summary">總覽 Summary</button>
-            <button data-block="equity">資金曲線 + DD</button>
-            <button data-block="symbol-mini">Symbol 一覽 + Mini Equity</button>
+            <button class="active" data-block="overview">總覽 + 資金曲線</button>
+            <button data-block="symbol-martingale">Symbol 一覽 + 馬丁層數</button>
             <button data-block="symbol-deep">Symbol 深入分析</button>
-            <button data-block="martingale">馬丁層數分析</button>
             <button data-block="swot">SWOT 分析</button>
           </div>
 
-          <!-- 1. Summary -->
-          <div class="analysis-block active" id="block-summary">
+          <!-- 1. 總覽 + 資金曲線+DD（合併） -->
+          <div class="analysis-block active" id="block-overview">
             <section class="panel">
-              <h2 class="panel-title">2. 帳戶總覽 Summary</h2>
-              <div class="summary-grid">
+              <h2 class="panel-title">總覽 Summary + 資金曲線</h2>
+              <div class="summary-grid mb-4">
                 <div class="summary-card">
                   <div class="small text-muted">成長 & 期間</div>
-                  <div class="fs-3 fw-bold text-success" id="tha-growth">+148.6%</div>
-                  <div class="small mt-2">勝率：<span id="tha-winrate">81.4%</span></div>
-                  <div class="small">Max DD：<span id="tha-dd">-9.2%</span></div>
+                  <div class="fs-3 fw-bold text-success">+148.6%</div>
+                  <div class="small mt-2">勝率：81.4%</div>
+                  <div class="small">Max DD：-9.2%</div>
                 </div>
                 <div class="summary-card">
                   <div class="small text-muted">Equity / Profit</div>
-                  <div class="fs-4 fw-bold" id="tha-equity">$24,800</div>
-                  <div class="small mt-1">Profit：<span id="tha-profit">+$12,480</span></div>
+                  <div class="fs-4 fw-bold">$24,800</div>
+                  <div class="small mt-1">Profit：+$12,480</div>
                 </div>
                 <div class="summary-card">
                   <div class="small text-muted">Key Stats</div>
-                  <div class="small">總交易：<span id="tha-trades">312</span></div>
-                  <div class="small">Profit Factor：<span id="tha-pf">2.18</span></div>
-                  <div class="small">平均贏：<span id="tha-avgwin">$86.4</span></div>
+                  <div class="small">總交易：312</div>
+                  <div class="small">Profit Factor：2.18</div>
+                  <div class="small">平均贏：$86.4</div>
                 </div>
               </div>
+              <h6 class="mb-2">資金權益成長曲線 + Drawdown</h6>
+              <div style="height: 260px;"><canvas id="thaEquityChart"></canvas></div>
             </section>
           </div>
 
-          <!-- 2. Equity + DD -->
-          <div class="analysis-block" id="block-equity">
+          <!-- 2. Symbol 一覽 + 馬丁層數（合併 + 聯動） -->
+          <div class="analysis-block" id="block-symbol-martingale">
             <section class="panel">
-              <h2 class="panel-title">3. 資金權益成長曲線 + Drawdown</h2>
-              <div style="height: 280px;"><canvas id="thaEquityChart"></canvas></div>
+              <h2 class="panel-title">Symbol 一覽 + 馬丁層數分析</h2>
+              
+              <!-- Symbol 按鈕 -->
+              <div class="mb-3" id="symbolButtons">
+                <button class="symbol-btn active" data-symbol="ALL">All Symbols</button>
+                <button class="symbol-btn" data-symbol="EURUSD">EURUSD</button>
+                <button class="symbol-btn" data-symbol="GBPUSD">GBPUSD</button>
+                <button class="symbol-btn" data-symbol="XAUUSD">XAUUSD</button>
+                <button class="symbol-btn" data-symbol="USDJPY">USDJPY</button>
+                <button class="symbol-btn" data-symbol="AUDUSD">AUDUSD</button>
+              </div>
+
+              <!-- Mini Equity -->
+              <h6 class="mb-2">Symbol 累積 Profit 小圖</h6>
+              <div class="mini-equity-grid mb-4" id="miniEquityGrid"></div>
+
+              <!-- 馬丁層數分析（會跟住 Symbol 轉） -->
+              <h6 class="mb-2">馬丁層數分析 - <span id="currentSymbolLabel">All Symbols</span></h6>
+              <div id="martingaleContent">
+                <!-- JS 會根據選中的 Symbol 更新 -->
+              </div>
             </section>
           </div>
 
-          <!-- 3. Symbol Mini Equity -->
-          <div class="analysis-block" id="block-symbol-mini">
-            <section class="panel">
-              <h2 class="panel-title">4. Symbol 一覽與 Mini Equity</h2>
-              <div class="mb-3">
-                <button class="symbol-btn active">All Symbols</button>
-                <button class="symbol-btn">EURUSD</button>
-                <button class="symbol-btn">GBPUSD</button>
-                <button class="symbol-btn">XAUUSD</button>
-                <button class="symbol-btn">USDJPY</button>
-              </div>
-              <div class="mini-equity-grid" id="miniEquityGrid">
-                <!-- JS 會動態生成 -->
-              </div>
-            </section>
-          </div>
-
-          <!-- 4. Symbol Deep -->
+          <!-- 3. Symbol 深入分析 -->
           <div class="analysis-block" id="block-symbol-deep">
             <section class="panel">
-              <h2 class="panel-title">5. Symbol 深入分析</h2>
-              <div class="mb-3">
-                <span class="badge bg-light text-dark me-2">SMA (Standard) – 全組合</span>
-                <div class="form-check form-switch d-inline-block">
-                  <input class="form-check-input" type="checkbox" id="separateToggle">
-                  <label class="form-check-label" for="separateToggle">Separate</label>
-                </div>
-              </div>
+              <h2 class="panel-title">Symbol 深入分析</h2>
               <div class="mb-3 small">
                 Symbol 單數: 150 &nbsp;|&nbsp; 勝率: 81.4% &nbsp;|&nbsp; 淨盈利: 12480 &nbsp;|&nbsp; PF: 2.18<br>
                 期望值/單: 40.00 &nbsp;|&nbsp; Max DD: 2280 &nbsp;|&nbsp; 最大連虧: 4
@@ -334,42 +335,10 @@
             </section>
           </div>
 
-          <!-- 5. Martingale -->
-          <div class="analysis-block" id="block-martingale">
-            <section class="panel">
-              <h2 class="panel-title">6. 馬丁層數分析</h2>
-              <div class="mb-3">
-                <strong>EURUSD - BUY</strong> TOTAL Profit: <span class="text-success">+1,245.80</span>, Trades: 48
-              </div>
-              <div class="table-responsive">
-                <table class="martingale">
-                  <thead>
-                    <tr>
-                      <th>#</th><th>Lots</th><th>Trades</th><th>SUM Profit</th><th>SUM Pips</th>
-                      <th>Cum Profit</th><th>Win Rate %</th><th>Min Win Profit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style="background:#fef2f2;"><td>1</td><td>0.01</td><td>18</td><td>-86.40</td><td>-124.5</td><td>-86.40</td><td>44.4%</td><td>-</td></tr>
-                    <tr style="background:#ecfdf5;"><td>2</td><td>0.02</td><td>12</td><td>152.30</td><td>98.2</td><td>65.90</td><td>75.0%</td><td>12.4</td></tr>
-                    <tr style="background:#ecfdf5;"><td>3</td><td>0.04</td><td>9</td><td>318.60</td><td>156.8</td><td>384.50</td><td>88.9%</td><td>28.6</td></tr>
-                    <tr style="background:#ecfdf5;"><td>4</td><td>0.08</td><td>6</td><td>512.40</td><td>210.3</td><td>896.90</td><td>100%</td><td>68.2</td></tr>
-                    <tr style="background:#dbeafe;"><td>5</td><td>0.16</td><td>3</td><td>348.90</td><td>95.1</td><td>1245.80</td><td>100%</td><td>102.5</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="small mt-2 text-muted">
-                <span style="background:#ecfdf5;padding:2px 8px;border-radius:4px;">綠色 = 安全層</span>
-                <span style="background:#fef2f2;padding:2px 8px;border-radius:4px;margin-left:8px;">紅色 = 風險層</span>
-                <span style="background:#dbeafe;padding:2px 8px;border-radius:4px;margin-left:8px;">藍色 = 高勝率層</span>
-              </div>
-            </section>
-          </div>
-
-          <!-- 6. SWOT -->
+          <!-- 4. SWOT -->
           <div class="analysis-block" id="block-swot">
             <section class="panel">
-              <h2 class="panel-title">7. SWOT 分析</h2>
+              <h2 class="panel-title">SWOT 分析</h2>
               <div class="swot-grid">
                 <div class="swot-box swot-s">
                   <h6 class="text-success">Strengths 優勢</h6>
@@ -472,7 +441,7 @@
       document.documentElement.setAttribute('data-mode', e.target.checked ? 'dark' : 'light');
     });
 
-    // Analysis Menu Switch
+    // Analysis Menu
     document.querySelectorAll('#analysisMenu button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
@@ -480,6 +449,92 @@
         document.querySelectorAll('.analysis-block').forEach(b => b.classList.remove('active'));
         document.getElementById('block-' + btn.dataset.block).classList.add('active');
       });
+    });
+
+    // Demo Martingale Data
+    const martingaleData = {
+      ALL: { label: 'All Symbols', rows: [
+        {layer:1, lots:0.01, trades:42, sumP:-186.4, cum:-186.4, wr:'41%', color:'#fef2f2'},
+        {layer:2, lots:0.02, trades:28, sumP:312.5, cum:126.1, wr:'71%', color:'#ecfdf5'},
+        {layer:3, lots:0.04, trades:18, sumP:485.2, cum:611.3, wr:'83%', color:'#ecfdf5'},
+        {layer:4, lots:0.08, trades:9, sumP:420.8, cum:1032.1, wr:'100%', color:'#dbeafe'}
+      ]},
+      EURUSD: { label: 'EURUSD - BUY', rows: [
+        {layer:1, lots:0.01, trades:18, sumP:-86.4, cum:-86.4, wr:'44%', color:'#fef2f2'},
+        {layer:2, lots:0.02, trades:12, sumP:152.3, cum:65.9, wr:'75%', color:'#ecfdf5'},
+        {layer:3, lots:0.04, trades:9, sumP:318.6, cum:384.5, wr:'89%', color:'#ecfdf5'},
+        {layer:4, lots:0.08, trades:6, sumP:512.4, cum:896.9, wr:'100%', color:'#dbeafe'},
+        {layer:5, lots:0.16, trades:3, sumP:348.9, cum:1245.8, wr:'100%', color:'#dbeafe'}
+      ]},
+      GBPUSD: { label: 'GBPUSD - BUY', rows: [
+        {layer:1, lots:0.01, trades:14, sumP:-42.1, cum:-42.1, wr:'50%', color:'#fef2f2'},
+        {layer:2, lots:0.02, trades:9, sumP:98.6, cum:56.5, wr:'67%', color:'#ecfdf5'},
+        {layer:3, lots:0.04, trades:5, sumP:187.3, cum:243.8, wr:'80%', color:'#ecfdf5'}
+      ]},
+      XAUUSD: { label: 'XAUUSD - BUY', rows: [
+        {layer:1, lots:0.10, trades:11, sumP:68.4, cum:68.4, wr:'64%', color:'#ecfdf5'},
+        {layer:2, lots:0.20, trades:6, sumP:245.8, cum:314.2, wr:'83%', color:'#ecfdf5'},
+        {layer:3, lots:0.40, trades:3, sumP:412.5, cum:726.7, wr:'100%', color:'#dbeafe'}
+      ]},
+      USDJPY: { label: 'USDJPY - SELL', rows: [
+        {layer:1, lots:0.01, trades:16, sumP:-55.2, cum:-55.2, wr:'44%', color:'#fef2f2'},
+        {layer:2, lots:0.02, trades:10, sumP:128.7, cum:73.5, wr:'70%', color:'#ecfdf5'}
+      ]},
+      AUDUSD: { label: 'AUDUSD - BUY', rows: [
+        {layer:1, lots:0.01, trades:12, sumP:22.4, cum:22.4, wr:'58%', color:'#ecfdf5'},
+        {layer:2, lots:0.02, trades:7, sumP:95.1, cum:117.5, wr:'71%', color:'#ecfdf5'}
+      ]}
+    };
+
+    function renderMartingale(symbol) {
+      const data = martingaleData[symbol] || martingaleData.ALL;
+      document.getElementById('currentSymbolLabel').textContent = data.label;
+      let html = `<div class="mb-2"><strong>${data.label}</strong></div>
+        <div class="table-responsive">
+          <table class="martingale">
+            <thead><tr>
+              <th>#</th><th>Lots</th><th>Trades</th><th>SUM Profit</th><th>Cum Profit</th><th>Win Rate %</th>
+            </tr></thead><tbody>`;
+      data.rows.forEach((r, i) => {
+        html += `<tr class="layer-row" data-layer="${i}" style="background:${r.color}">
+          <td>${r.layer}</td><td>${r.lots}</td><td>${r.trades}</td>
+          <td>${r.sumP > 0 ? '+'+r.sumP.toFixed(1) : r.sumP.toFixed(1)}</td>
+          <td>${r.cum > 0 ? '+'+r.cum.toFixed(1) : r.cum.toFixed(1)}</td>
+          <td>${r.wr}</td>
+        </tr>
+        <tr><td colspan="6" style="padding:0;border:none;">
+          <div class="layer-detail" id="layer-detail-${i}">
+            <strong>第 ${r.layer} 層詳細數據</strong><br>
+            Lots: ${r.lots} &nbsp;|&nbsp; 開單數量: ${r.trades}<br>
+            該層 SUM Profit: ${r.sumP.toFixed(2)} &nbsp;|&nbsp; 累積 Profit: ${r.cum.toFixed(2)}<br>
+            勝率: ${r.wr} &nbsp;|&nbsp; 平均每單: ${(r.sumP / r.trades).toFixed(2)}
+          </div>
+        </td></tr>`;
+      });
+      html += `</tbody></table></div>
+        <div class="small mt-2 text-muted">
+          <span style="background:#ecfdf5;padding:2px 8px;border-radius:4px;">綠色 = 安全層</span>
+          <span style="background:#fef2f2;padding:2px 8px;border-radius:4px;margin-left:8px;">紅色 = 風險層</span>
+          <span style="background:#dbeafe;padding:2px 8px;border-radius:4px;margin-left:8px;">藍色 = 高勝率層</span>
+          <span class="ms-3">（點擊層數可展開詳細）</span>
+        </div>`;
+      document.getElementById('martingaleContent').innerHTML = html;
+
+      // 點擊展開
+      document.querySelectorAll('.layer-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const detail = document.getElementById('layer-detail-' + row.dataset.layer);
+          detail.classList.toggle('show');
+        });
+      });
+    }
+
+    // Symbol 按鈕聯動
+    document.getElementById('symbolButtons').addEventListener('click', e => {
+      if (!e.target.classList.contains('symbol-btn')) return;
+      document.querySelectorAll('.symbol-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      renderMartingale(e.target.dataset.symbol);
     });
 
     // Start Analysis
@@ -492,7 +547,7 @@
       document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}，分析完成（Demo）</span>`;
       document.getElementById('analysisArea').style.display = 'block';
 
-      // Equity + DD Chart
+      // Equity Chart
       const ctx = document.getElementById('thaEquityChart').getContext('2d');
       if (window.thaChart) window.thaChart.destroy();
       window.thaChart = new Chart(ctx, {
@@ -500,18 +555,8 @@
         data: {
           labels: ['W1','W5','W10','W15','W20','W25','W30'],
           datasets: [
-            {
-              label: 'Equity',
-              data: [10000,12800,15200,17800,20100,22600,24800],
-              borderColor: '#16a34a', borderWidth: 2, tension: 0.35,
-              backgroundColor: 'rgba(22,163,74,0.08)', fill: true, pointRadius: 0, yAxisID: 'y'
-            },
-            {
-              label: 'Drawdown %',
-              data: [0,-2.1,-4.8,-3.2,-7.5,-5.1,-9.2],
-              borderColor: '#dc2626', borderWidth: 1.5, tension: 0.3,
-              backgroundColor: 'rgba(220,38,38,0.06)', fill: true, pointRadius: 0, yAxisID: 'y1'
-            }
+            { label: 'Equity', data: [10000,12800,15200,17800,20100,22600,24800], borderColor: '#16a34a', borderWidth: 2, tension: 0.35, backgroundColor: 'rgba(22,163,74,0.08)', fill: true, pointRadius: 0, yAxisID: 'y' },
+            { label: 'Drawdown %', data: [0,-2.1,-4.8,-3.2,-7.5,-5.1,-9.2], borderColor: '#dc2626', borderWidth: 1.5, tension: 0.3, backgroundColor: 'rgba(220,38,38,0.06)', fill: true, pointRadius: 0, yAxisID: 'y1' }
           ]
         },
         options: {
@@ -525,22 +570,25 @@
         }
       });
 
-      // Mini Equity Grid
+      // Mini Equity（線再幼）
       const grid = document.getElementById('miniEquityGrid');
       grid.innerHTML = '';
-      ['All Symbols','EURUSD','GBPUSD','XAUUSD','USDJPY','AUDUSD'].forEach((sym, i) => {
+      ['All','EURUSD','GBPUSD','XAUUSD','USDJPY','AUDUSD'].forEach((sym, i) => {
         const card = document.createElement('div');
         card.className = 'mini-card';
         card.innerHTML = `<div class="small fw-bold mb-1">${sym}</div><canvas id="mini${i}"></canvas>`;
         grid.appendChild(card);
         new Chart(document.getElementById('mini'+i), {
           type: 'line',
-          data: { labels: Array(20).fill(''), datasets: [{ data: Array.from({length:20}, () => Math.random()*100+50), borderColor: '#16a34a', borderWidth: 1.5, tension: 0.3, pointRadius: 0 }] },
+          data: { labels: Array(20).fill(''), datasets: [{ data: Array.from({length:20}, () => Math.random()*80+40), borderColor: '#16a34a', borderWidth: 1.2, tension: 0.3, pointRadius: 0 }] },
           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
         });
       });
 
-      // Cumulative & Weekday charts
+      // 預設顯示 ALL 馬丁
+      renderMartingale('ALL');
+
+      // Deep charts
       new Chart(document.getElementById('cumProfitChart'), {
         type: 'line',
         data: { labels: Array(30).fill(''), datasets: [{ data: Array.from({length:30}, (_,i) => i*400 + Math.random()*200), borderColor: '#0ea5e9', borderWidth: 2, tension: 0.3, pointRadius: 0 }] },
@@ -569,10 +617,4 @@
       new Chart(document.getElementById(id), {
         type: 'line',
         data: { labels: ['1','10','20','30','40'], datasets: [{ data: [1000,2800,4500,7200,9800], borderColor: '#16a34a', tension: 0.4, borderWidth: 2, pointRadius: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
-      });
-    }
-    createChart('curve1'); createChart('curve2'); createChart('curve3');
-  </script>
-</body>
-</html>
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y:
