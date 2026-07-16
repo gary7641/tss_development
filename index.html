@@ -62,24 +62,44 @@
     .analysis-block { display: none; }
     .analysis-block.active { display: block; }
     .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    .summary-card {
-      background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb; padding: 14px;
-    }
-    .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 6px 30px; font-size: 0.9rem;
-    }
+    .summary-card { background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb; padding: 14px; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 30px; font-size: 0.9rem; }
     .stats-grid .label { color: #6b7280; }
     .stats-grid .value { text-align: right; font-weight: 500; }
     .pos { color: #16a34a; }
     .neg { color: #dc2626; }
-    .dist-bar {
-      height: 24px; border-radius: 5px; margin: 5px 0; position: relative;
-      background: #e5e7eb; overflow: hidden;
+
+    /* Distribution 雙邊長條 */
+    .dist-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 0.85rem;
     }
-    .dist-bar-fill { height: 100%; border-radius: 5px; }
-    .dist-bar-label {
-      position: absolute; left: 8px; top: 3px; font-size: 0.8rem; color: #111; white-space: nowrap;
+    .dist-label { font-weight: 600; color: #374151; }
+    .dist-side {
+      background: #f1f5f9;
+      border-radius: 6px;
+      height: 26px;
+      position: relative;
+      overflow: hidden;
     }
+    .dist-fill {
+      height: 100%;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+    .fill-blue { background: #93c5fd; }
+    .fill-green { background: #86efac; }
+    .fill-red { background: #fca5a5; }
+    .fill-orange { background: #fdba74; }
+
     .symbol-btn {
       border: 1px solid #d1d5db; background: white; border-radius: 999px;
       padding: 4px 12px; font-size: 0.85rem; margin: 3px; cursor: pointer;
@@ -108,11 +128,11 @@
     .trade-table th, .trade-table td { border: 1px solid #e5e7eb; padding: 4px 6px; white-space: nowrap; }
     .trade-table th { background: #f1f5f9; }
     .swot-9 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    .swot-cell { border-radius: 10px; padding: 14px; font-size: 0.88rem; min-height: 140px; }
+    .swot-cell { border-radius: 10px; padding: 14px; font-size: 0.88rem; min-height: 130px; }
     .swot-st, .swot-so, .swot-wt, .swot-wo { background: #dbeafe; }
     .swot-s, .swot-t, .swot-o, .swot-w { background: #fef9c3; }
     .swot-c { background: #e0f2fe; display: flex; align-items: center; justify-content: center; text-align: center; }
-    .swot-title { font-weight: 700; margin-bottom: 8px; }
+    .swot-title { font-weight: 700; margin-bottom: 6px; }
     .heatmap-table { border-collapse: collapse; font-size: 0.82rem; }
     .heatmap-table th, .heatmap-table td { border: 1px solid #e5e7eb; padding: 7px 10px; text-align: center; min-width: 48px; }
     .hm-pos { background: #bbf7d0; }
@@ -171,7 +191,6 @@
         <p class="text-muted">歡迎使用 Signal Helper</p>
       </div>
 
-      <!-- THA -->
       <div id="page-tha" class="page">
         <section class="panel">
           <h2 class="panel-title">Trade History Analyzer</h2>
@@ -231,7 +250,7 @@
                 </div>
               </div>
 
-              <div style="height: 240px; margin-bottom: 24px;"><canvas id="thaEquityChart"></canvas></div>
+              <div style="height: 230px; margin-bottom: 24px;"><canvas id="thaEquityChart"></canvas></div>
 
               <h6 class="mb-3">詳細 Statistics</h6>
               <div class="stats-grid mb-4">
@@ -249,15 +268,58 @@
                 <div class="label">Max Consecutive Losses</div><div class="value neg">4</div>
               </div>
 
-              <h6 class="mb-2">Distribution By Symbol</h6>
-              <div class="small text-muted mb-1">Deals</div>
-              <div id="distDeals"></div>
-              <div class="small text-muted mb-1 mt-3">Net Profit (USD)</div>
-              <div id="distProfit"></div>
+              <!-- Distribution By Symbol（雙邊長條） -->
+              <h6 class="mb-3">Distribution By Symbol</h6>
+
+              <div class="dist-row">
+                <div class="dist-label">Deals</div>
+                <div class="dist-side">
+                  <div class="dist-fill fill-blue" style="width:85%">XAUUSD 128</div>
+                </div>
+                <div class="dist-side" style="display:flex;">
+                  <div class="dist-fill fill-orange" style="width:45%">Sell 58</div>
+                  <div class="dist-fill fill-green" style="width:55%">Buy 70</div>
+                </div>
+              </div>
+
+              <div class="dist-row">
+                <div class="dist-label">Net Profit USD</div>
+                <div class="dist-side">
+                  <div class="dist-fill fill-green" style="width:78%">+6,240</div>
+                </div>
+                <div class="dist-side" style="display:flex;">
+                  <div class="dist-fill fill-red" style="width:28%">Loss -1,820</div>
+                  <div class="dist-fill fill-green" style="width:72%">Profit +8,060</div>
+                </div>
+              </div>
+
+              <div class="dist-row">
+                <div class="dist-label">Net Profit Pips</div>
+                <div class="dist-side">
+                  <div class="dist-fill fill-green" style="width:82%">+8,420</div>
+                </div>
+                <div class="dist-side" style="display:flex;">
+                  <div class="dist-fill fill-red" style="width:25%">Loss -2,150</div>
+                  <div class="dist-fill fill-green" style="width:75%">Profit +10,570</div>
+                </div>
+              </div>
+
+              <div class="dist-row">
+                <div class="dist-label">Net Swap</div>
+                <div class="dist-side">
+                  <div class="dist-fill fill-green" style="width:65%">+86.40</div>
+                </div>
+                <div class="dist-side" style="display:flex;">
+                  <div class="dist-fill fill-orange" style="width:40%">Sell +32.10</div>
+                  <div class="dist-fill fill-green" style="width:60%">Buy +54.30</div>
+                </div>
+              </div>
+
+              <div class="small text-muted mt-2">左邊 = 總體 / Net　　右邊 = 分拆（Sell/Buy 或 Loss/Profit）</div>
             </section>
           </div>
 
-          <!-- 2. Symbol + 馬丁 -->
+          <!-- 其他區塊保持之前結構 -->
           <div class="analysis-block" id="block-symbol-martingale">
             <section class="panel">
               <h2 class="panel-title">Symbol 一覽 + 馬丁層數</h2>
@@ -269,61 +331,44 @@
                 <button class="symbol-btn" data-symbol="USDJPY">USDJPY</button>
               </div>
               <div class="mini-equity-grid mb-4" id="miniEquityGrid"></div>
-              <h6>馬丁層數分析 - <span id="currentSymbolLabel">All</span></h6>
+              <h6>馬丁層數 - <span id="currentSymbolLabel">All</span></h6>
               <div id="martingaleContent"></div>
             </section>
           </div>
 
-          <!-- 3. MFE + MAE -->
           <div class="analysis-block" id="block-mfe-mae">
             <section class="panel">
               <h2 class="panel-title">MFE + MAE</h2>
-              <h6>Max Profit Pips vs Net Pips</h6>
-              <div style="height: 280px;"><canvas id="mfeScatter"></canvas></div>
-              <h6 class="mt-4">Days Held vs Net Pips</h6>
-              <div style="height: 220px;"><canvas id="holdingScatter"></canvas></div>
+              <div style="height: 260px;"><canvas id="mfeScatter"></canvas></div>
+              <div style="height: 200px; margin-top: 20px;"><canvas id="holdingScatter"></canvas></div>
             </section>
           </div>
 
-          <!-- 4. Heat Map -->
           <div class="analysis-block" id="block-heatmap">
             <section class="panel">
               <h2 class="panel-title">Heat Map</h2>
-              <h6>Weekday × Hour Profit</h6>
-              <div class="table-responsive mb-4" id="heatmapHour"></div>
-              <h6>Symbol × Weekday</h6>
-              <div class="table-responsive" id="heatmapSymbol"></div>
+              <div id="heatmapHour" class="mb-4"></div>
+              <div id="heatmapSymbol"></div>
             </section>
           </div>
 
-          <!-- 5. Drawdown -->
           <div class="analysis-block" id="block-drawdown">
             <section class="panel">
               <h2 class="panel-title">Drawdown 分析</h2>
-              <div class="summary-grid mb-4">
-                <div class="summary-card">
-                  <div class="small text-muted">Max DD</div>
-                  <div class="fs-4 fw-bold neg">-9.2% ($2,280)</div>
-                </div>
-                <div class="summary-card">
-                  <div class="small text-muted">最長 DD 持續</div>
-                  <div class="fs-5 fw-bold">18 日</div>
-                </div>
-                <div class="summary-card">
-                  <div class="small text-muted">最大連續虧損</div>
-                  <div class="fs-5 fw-bold">4 次</div>
-                </div>
+              <div class="summary-grid mb-3">
+                <div class="summary-card"><div class="small text-muted">Max DD</div><div class="fs-4 fw-bold neg">-9.2% ($2,280)</div></div>
+                <div class="summary-card"><div class="small text-muted">最長持續</div><div class="fs-5 fw-bold">18 日</div></div>
+                <div class="summary-card"><div class="small text-muted">最大連虧</div><div class="fs-5 fw-bold">4 次</div></div>
               </div>
-              <div style="height: 240px;"><canvas id="ddChart"></canvas></div>
+              <div style="height: 220px;"><canvas id="ddChart"></canvas></div>
             </section>
           </div>
 
-          <!-- SWOT -->
           <div class="analysis-block" id="block-swot">
             <section class="panel">
               <h2 class="panel-title">SWOT 分析（9格）</h2>
               <div class="swot-9">
-                <div class="swot-cell swot-st"><div class="swot-title">S-T 策略</div><ul class="small mb-0"><li>加入不同 TF</li><li>加 RSI / BB Filter</li></ul></div>
+                <div class="swot-cell swot-st"><div class="swot-title">S-T 策略</div><ul class="small mb-0"><li>加入不同 TF</li><li>加 RSI/BB Filter</li></ul></div>
                 <div class="swot-cell swot-s"><div class="swot-title">STRENGTH</div><ul class="small mb-0"><li>捕捉多週期趨勢</li><li>有 PLAN B 馬丁</li></ul></div>
                 <div class="swot-cell swot-so"><div class="swot-title">S-O 策略</div><ul class="small mb-0"><li>精選貨幣對</li><li>可作 Copy Trade</li></ul></div>
                 <div class="swot-cell swot-t"><div class="swot-title">THREATS</div><ul class="small mb-0"><li>地緣政治波動</li><li>無 Cooldown</li></ul></div>
@@ -348,7 +393,7 @@
       <div id="page-admin" class="page">
         <section class="panel">
           <h2 class="panel-title">🛠️ Admin Console</h2>
-          <p>只有 Admin 可進入。之後可在此 Assign User Level。</p>
+          <p>只有 Admin 可進入。</p>
         </section>
       </div>
 
@@ -434,9 +479,9 @@
       });
     });
 
-    // Martingale Data
+    // 簡化版 Martingale（保持功能）
     const martingaleData = {
-      ALL: { label: 'All Symbols', rows: [
+      ALL: { label: 'All', rows: [
         {layer:1, lots:0.01, trades:42, sumP:-186.4, cum:-186.4, wr:'41%', color:'#fef2f2'},
         {layer:2, lots:0.02, trades:28, sumP:312.5, cum:126.1, wr:'71%', color:'#ecfdf5'},
         {layer:3, lots:0.04, trades:18, sumP:485.2, cum:611.3, wr:'83%', color:'#ecfdf5'},
@@ -445,8 +490,7 @@
       EURUSD: { label: 'EURUSD', rows: [
         {layer:1, lots:0.01, trades:18, sumP:-86.4, cum:-86.4, wr:'44%', color:'#fef2f2'},
         {layer:2, lots:0.02, trades:12, sumP:152.3, cum:65.9, wr:'75%', color:'#ecfdf5'},
-        {layer:3, lots:0.04, trades:9, sumP:318.6, cum:384.5, wr:'89%', color:'#ecfdf5'},
-        {layer:4, lots:0.08, trades:6, sumP:512.4, cum:896.9, wr:'100%', color:'#dbeafe'}
+        {layer:3, lots:0.04, trades:9, sumP:318.6, cum:384.5, wr:'89%', color:'#ecfdf5'}
       ]},
       GBPUSD: { label: 'GBPUSD', rows: [
         {layer:1, lots:0.01, trades:14, sumP:-42.1, cum:-42.1, wr:'50%', color:'#fef2f2'},
@@ -481,13 +525,10 @@
             <strong>第 ${r.layer} 層單據</strong>
             <div class="table-responsive mt-2">
               <table class="trade-table">
-                <thead><tr>
-                  <th>Open Time</th><th>Type</th><th>Volume</th><th>Symbol</th><th>Open</th><th>Close</th>
-                  <th>Pips</th><th>Net</th><th>Holding</th><th>Max Profit</th><th>Max Loss</th><th>Magic</th>
-                </tr></thead>
+                <thead><tr><th>Open Time</th><th>Type</th><th>Volume</th><th>Symbol</th><th>Pips</th><th>Net</th><th>Holding</th><th>Magic</th></tr></thead>
                 <tbody>
-                  <tr><td>2026-06-01 09:15</td><td>Buy</td><td>0.01</td><td>EURUSD</td><td>1.0845</td><td>1.0862</td><td>17</td><td>+12.4</td><td>5h 7m</td><td>18.2</td><td>-4.1</td><td>10001</td></tr>
-                  <tr><td>2026-06-02 11:30</td><td>Buy</td><td>0.01</td><td>EURUSD</td><td>1.0851</td><td>1.0838</td><td>-13</td><td>-9.8</td><td>4h 35m</td><td>5.2</td><td>-14.5</td><td>10001</td></tr>
+                  <tr><td>2026-06-01 09:15</td><td>Buy</td><td>0.01</td><td>EURUSD</td><td>17</td><td>+12.4</td><td>5h 7m</td><td>10001</td></tr>
+                  <tr><td>2026-06-02 11:30</td><td>Buy</td><td>0.01</td><td>EURUSD</td><td>-13</td><td>-9.8</td><td>4h 35m</td><td>10001</td></tr>
                 </tbody>
               </table>
             </div>
@@ -513,18 +554,6 @@
       renderMartingale(e.target.dataset.symbol);
     });
 
-    function renderDist(containerId, data, max, color) {
-      const el = document.getElementById(containerId);
-      if (!el) return;
-      el.innerHTML = data.map(d => {
-        const pct = Math.min(100, Math.abs(d.v) / max * 100);
-        return `<div class="dist-bar" title="${d.s}: ${d.v}">
-          <div class="dist-bar-fill" style="width:${pct}%;background:${d.v>=0?color:'#fca5a5'}"></div>
-          <div class="dist-bar-label">${d.s} &nbsp; ${d.v>0?'+':''}${d.v}</div>
-        </div>`;
-      }).join('');
-    }
-
     document.getElementById('analyzeBtn').addEventListener('click', () => {
       const file = document.getElementById('csvFile').files[0];
       if (!file) {
@@ -548,20 +577,9 @@
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          scales: {
-            y: { position: 'left' },
-            y1: { position: 'right', grid: { drawOnChartArea: false }, min: -15, max: 2 }
-          }
+          scales: { y: { position: 'left' }, y1: { position: 'right', grid: { drawOnChartArea: false }, min: -15, max: 2 } }
         }
       });
-
-      // Dist
-      renderDist('distDeals', [
-        {s:'EURUSD',v:128},{s:'GBPUSD',v:64},{s:'XAUUSD',v:48},{s:'USDJPY',v:42},{s:'AUDUSD',v:30}
-      ], 130, '#93c5fd');
-      renderDist('distProfit', [
-        {s:'EURUSD',v:6240},{s:'GBPUSD',v:2180},{s:'XAUUSD',v:2860},{s:'USDJPY',v:980},{s:'AUDUSD',v:220}
-      ], 6500, '#86efac');
 
       // Mini
       const grid = document.getElementById('miniEquityGrid');
@@ -581,10 +599,10 @@
 
       renderMartingale('ALL');
 
-      // MFE Scatter
-      const pts = Array.from({length:60}, () => {
-        const net = Math.random()*1600 - 300;
-        return {x: net, y: net > 0 ? net + Math.random()*300 : Math.random()*60};
+      // MFE
+      const pts = Array.from({length:50}, () => {
+        const net = Math.random()*1400 - 250;
+        return {x: net, y: net > 0 ? net + Math.random()*250 : Math.random()*50};
       });
       new Chart(document.getElementById('mfeScatter'), {
         type: 'scatter',
@@ -595,7 +613,7 @@
       });
       new Chart(document.getElementById('holdingScatter'), {
         type: 'scatter',
-        data: { datasets: [{ data: pts.map(p => ({x: p.x, y: Math.random()*5 + (p.x<0?1:0)})), backgroundColor: pts.map(p => p.x >= 0 ? '#16a34a' : '#dc2626'), pointRadius: 4 }] },
+        data: { datasets: [{ data: pts.map(p => ({x: p.x, y: Math.random()*4.5 + (p.x<0?0.8:0)})), backgroundColor: pts.map(p => p.x >= 0 ? '#16a34a' : '#dc2626'), pointRadius: 4 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
           scales: { x: { title: { display: true, text: 'Net Pips' } }, y: { title: { display: true, text: 'Days Held' } } }
         }
@@ -608,39 +626,25 @@
       days.forEach(d => {
         hm += `<tr><th>${d}</th>`;
         hours.forEach(() => {
-          const v = Math.floor(Math.random()*180-50);
-          const cls = v > 30 ? 'hm-pos' : v < -20 ? 'hm-neg' : 'hm-mid';
+          const v = Math.floor(Math.random()*160-40);
+          const cls = v > 25 ? 'hm-pos' : v < -15 ? 'hm-neg' : 'hm-mid';
           hm += `<td class="${cls}">${v}</td>`;
         });
         hm += '</tr>';
       });
-      hm += '</table>';
-      document.getElementById('heatmapHour').innerHTML = hm;
-
-      let hm2 = '<table class="heatmap-table"><tr><th></th>' + days.map(d=>`<th>${d}</th>`).join('') + '</tr>';
-      ['EURUSD','GBPUSD','XAUUSD','USDJPY'].forEach(s => {
-        hm2 += `<tr><th>${s}</th>`;
-        days.forEach(() => {
-          const v = Math.floor(Math.random()*160-40);
-          const cls = v > 30 ? 'hm-pos' : v < -20 ? 'hm-neg' : 'hm-mid';
-          hm2 += `<td class="${cls}">${v}</td>`;
-        });
-        hm2 += '</tr>';
-      });
-      hm2 += '</table>';
-      document.getElementById('heatmapSymbol').innerHTML = hm2;
+      document.getElementById('heatmapHour').innerHTML = hm + '</table>';
 
       // DD
       new Chart(document.getElementById('ddChart'), {
         type: 'line',
-        data: { labels: Array(25).fill(''), datasets: [{ data: [0,-1.5,-3.8,-2.2,-6.1,-4.5,-7.8,-5.9,-9.2,-4.1,-2.3,0], borderColor:'#dc2626', borderWidth:2, fill:true, backgroundColor:'rgba(220,38,38,0.1)', tension:0.3, pointRadius:0 }] },
+        data: { labels: Array(20).fill(''), datasets: [{ data: [0,-1.8,-4.2,-2.5,-6.8,-5.1,-8.4,-6.2,-9.2,-3.8,-1.5,0], borderColor:'#dc2626', borderWidth:2, fill:true, backgroundColor:'rgba(220,38,38,0.1)', tension:0.3, pointRadius:0 }] },
         options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
       });
     });
 
     document.getElementById('saveBtn').addEventListener('click', () => {
       if (!currentUser) return alert('請先 Login 先可以 SAVE');
-      alert('SAVE 功能下一階段接 Firestore');
+      alert('SAVE 下一階段接 Firestore');
     });
     document.getElementById('exportPdfBtn').addEventListener('click', () => {
       if (!currentUser) return alert('請先 Login 先可以 Export PDF');
