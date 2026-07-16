@@ -63,19 +63,32 @@
     .analysis-block.active { display: block; }
     .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
     .summary-card { background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb; padding: 14px; }
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 30px; font-size: 0.9rem; }
-    .stats-grid .label { color: #6b7280; }
-    .stats-grid .value { text-align: right; font-weight: 500; }
     .pos { color: #16a34a; }
     .neg { color: #dc2626; }
 
-    /* Distribution 雙邊長條 */
+    /* 詳細 Statistics - 2欄 */
+    .stats-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 40px;
+      font-size: 0.9rem;
+    }
+    .stats-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .stats-item .label { color: #6b7280; }
+    .stats-item .value { font-weight: 500; }
+
+    /* Distribution */
     .dist-row {
       display: grid;
-      grid-template-columns: 90px 1fr 1fr;
+      grid-template-columns: 100px 1fr 1fr;
       gap: 12px;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       font-size: 0.85rem;
     }
     .dist-label { font-weight: 600; color: #374151; }
@@ -85,10 +98,10 @@
       height: 26px;
       position: relative;
       overflow: hidden;
+      display: flex;
     }
     .dist-fill {
       height: 100%;
-      border-radius: 6px;
       display: flex;
       align-items: center;
       padding: 0 8px;
@@ -252,74 +265,71 @@
 
               <div style="height: 230px; margin-bottom: 24px;"><canvas id="thaEquityChart"></canvas></div>
 
+              <!-- 詳細 Statistics - 2欄 -->
               <h6 class="mb-3">詳細 Statistics</h6>
-              <div class="stats-grid mb-4">
-                <div class="label">Trades</div><div class="value">312</div>
-                <div class="label">Profit Trades</div><div class="value pos">254 (81.4%)</div>
-                <div class="label">Loss Trades</div><div class="value neg">58 (18.6%)</div>
-                <div class="label">Best trade</div><div class="value pos">+$1,245.80</div>
-                <div class="label">Worst trade</div><div class="value neg">-$386.20</div>
-                <div class="label">Gross Profit</div><div class="value pos">+$18,640.50</div>
-                <div class="label">Gross Loss</div><div class="value neg">-$6,160.50</div>
-                <div class="label">Recovery Factor</div><div class="value">2.18</div>
-                <div class="label">Profit Factor</div><div class="value">3.03</div>
-                <div class="label">Expected Payoff</div><div class="value pos">$40.00</div>
-                <div class="label">Max Consecutive Wins</div><div class="value">12</div>
-                <div class="label">Max Consecutive Losses</div><div class="value neg">4</div>
+              <div class="stats-2col mb-4">
+                <!-- 左欄 -->
+                <div>
+                  <div class="stats-item"><span class="label">Trades</span><span class="value">312</span></div>
+                  <div class="stats-item"><span class="label">Profit Trades</span><span class="value pos">254 (81.4%)</span></div>
+                  <div class="stats-item"><span class="label">Loss Trades</span><span class="value neg">58 (18.6%)</span></div>
+                  <div class="stats-item"><span class="label">Best trade</span><span class="value pos">+$1,245.80</span></div>
+                  <div class="stats-item"><span class="label">Worst trade</span><span class="value neg">-$386.20</span></div>
+                  <div class="stats-item"><span class="label">Gross Profit</span><span class="value pos">+$18,640.50</span></div>
+                  <div class="stats-item"><span class="label">Gross Loss</span><span class="value neg">-$6,160.50</span></div>
+                  <div class="stats-item"><span class="label">Max Consecutive Wins</span><span class="value">12</span></div>
+                </div>
+                <!-- 右欄 -->
+                <div>
+                  <div class="stats-item"><span class="label">Recovery Factor</span><span class="value">2.18</span></div>
+                  <div class="stats-item"><span class="label">Profit Factor</span><span class="value">3.03</span></div>
+                  <div class="stats-item"><span class="label">Expected Payoff</span><span class="value pos">$40.00</span></div>
+                  <div class="stats-item"><span class="label">Average Profit</span><span class="value pos">$73.40</span></div>
+                  <div class="stats-item"><span class="label">Average Loss</span><span class="value neg">-$106.20</span></div>
+                  <div class="stats-item"><span class="label">Max Consecutive Losses</span><span class="value neg">4</span></div>
+                  <div class="stats-item"><span class="label">Maximal Consecutive Profit</span><span class="value pos">$2,480</span></div>
+                  <div class="stats-item"><span class="label">Maximal Consecutive Loss</span><span class="value neg">-$680.50</span></div>
+                </div>
               </div>
 
-              <!-- Distribution By Symbol（雙邊長條） -->
+              <!-- Distribution -->
               <h6 class="mb-3">Distribution By Symbol</h6>
-
               <div class="dist-row">
                 <div class="dist-label">Deals</div>
+                <div class="dist-side"><div class="dist-fill fill-blue" style="width:85%">XAUUSD 128</div></div>
                 <div class="dist-side">
-                  <div class="dist-fill fill-blue" style="width:85%">XAUUSD 128</div>
-                </div>
-                <div class="dist-side" style="display:flex;">
                   <div class="dist-fill fill-orange" style="width:45%">Sell 58</div>
                   <div class="dist-fill fill-green" style="width:55%">Buy 70</div>
                 </div>
               </div>
-
               <div class="dist-row">
                 <div class="dist-label">Net Profit USD</div>
+                <div class="dist-side"><div class="dist-fill fill-green" style="width:78%">+6,240</div></div>
                 <div class="dist-side">
-                  <div class="dist-fill fill-green" style="width:78%">+6,240</div>
-                </div>
-                <div class="dist-side" style="display:flex;">
                   <div class="dist-fill fill-red" style="width:28%">Loss -1,820</div>
                   <div class="dist-fill fill-green" style="width:72%">Profit +8,060</div>
                 </div>
               </div>
-
               <div class="dist-row">
                 <div class="dist-label">Net Profit Pips</div>
+                <div class="dist-side"><div class="dist-fill fill-green" style="width:82%">+8,420</div></div>
                 <div class="dist-side">
-                  <div class="dist-fill fill-green" style="width:82%">+8,420</div>
-                </div>
-                <div class="dist-side" style="display:flex;">
                   <div class="dist-fill fill-red" style="width:25%">Loss -2,150</div>
                   <div class="dist-fill fill-green" style="width:75%">Profit +10,570</div>
                 </div>
               </div>
-
               <div class="dist-row">
                 <div class="dist-label">Net Swap</div>
+                <div class="dist-side"><div class="dist-fill fill-green" style="width:65%">+86.40</div></div>
                 <div class="dist-side">
-                  <div class="dist-fill fill-green" style="width:65%">+86.40</div>
-                </div>
-                <div class="dist-side" style="display:flex;">
                   <div class="dist-fill fill-orange" style="width:40%">Sell +32.10</div>
                   <div class="dist-fill fill-green" style="width:60%">Buy +54.30</div>
                 </div>
               </div>
-
-              <div class="small text-muted mt-2">左邊 = 總體 / Net　　右邊 = 分拆（Sell/Buy 或 Loss/Profit）</div>
             </section>
           </div>
 
-          <!-- 其他區塊保持之前結構 -->
+          <!-- 其他區塊 -->
           <div class="analysis-block" id="block-symbol-martingale">
             <section class="panel">
               <h2 class="panel-title">Symbol 一覽 + 馬丁層數</h2>
@@ -479,7 +489,6 @@
       });
     });
 
-    // 簡化版 Martingale（保持功能）
     const martingaleData = {
       ALL: { label: 'All', rows: [
         {layer:1, lots:0.01, trades:42, sumP:-186.4, cum:-186.4, wr:'41%', color:'#fef2f2'},
@@ -563,7 +572,6 @@
       document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}</span>`;
       document.getElementById('analysisArea').style.display = 'block';
 
-      // Equity
       const ctx = document.getElementById('thaEquityChart').getContext('2d');
       if (window.thaChart) window.thaChart.destroy();
       window.thaChart = new Chart(ctx, {
@@ -581,7 +589,6 @@
         }
       });
 
-      // Mini
       const grid = document.getElementById('miniEquityGrid');
       grid.innerHTML = '';
       ['All','EURUSD','GBPUSD','XAUUSD','USDJPY'].forEach((sym,i) => {
@@ -599,7 +606,6 @@
 
       renderMartingale('ALL');
 
-      // MFE
       const pts = Array.from({length:50}, () => {
         const net = Math.random()*1400 - 250;
         return {x: net, y: net > 0 ? net + Math.random()*250 : Math.random()*50};
@@ -619,7 +625,6 @@
         }
       });
 
-      // Heatmap
       const hours = ['00','04','08','12','16','20'];
       const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       let hm = '<table class="heatmap-table"><tr><th></th>' + hours.map(h=>`<th>${h}</th>`).join('') + '</tr>';
@@ -634,7 +639,6 @@
       });
       document.getElementById('heatmapHour').innerHTML = hm + '</table>';
 
-      // DD
       new Chart(document.getElementById('ddChart'), {
         type: 'line',
         data: { labels: Array(20).fill(''), datasets: [{ data: [0,-1.8,-4.2,-2.5,-6.8,-5.1,-8.4,-6.2,-9.2,-3.8,-1.5,0], borderColor:'#dc2626', borderWidth:2, fill:true, backgroundColor:'rgba(220,38,38,0.1)', tension:0.3, pointRadius:0 }] },
