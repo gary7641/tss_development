@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Signal Helper - THA</title>
+  <title>Signal Helper</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -41,9 +44,15 @@
     .btn-secondary-a2 {
       background: #f9fafb; border: 1px solid #d1d5db; color: #111827; border-radius: 999px; padding: 7px 18px;
     }
-    .btn-save {
-      background: #16a34a; border: none; color: white; font-weight: 600; border-radius: 999px; padding: 8px 20px;
+    .btn-save { background: #16a34a; border: none; color: white; font-weight: 600; border-radius: 999px; padding: 8px 20px; }
+    .user-menu {
+      position: absolute; top: 62px; right: 16px; background: white;
+      border: 1px solid #e5e7eb; border-radius: 12px; padding: 8px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12); z-index: 200; min-width: 230px; display: none;
     }
+    .user-menu.show { display: block; }
+    .user-menu li { padding: 0.55rem 1.2rem; cursor: pointer; list-style: none; font-size: 0.9rem; }
+    .user-menu li:hover { background: #f3f4f6; }
     .analysis-menu { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .analysis-menu button {
       border: 1px solid #d1d5db; background: white; border-radius: 999px;
@@ -52,60 +61,28 @@
     .analysis-menu button.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
     .analysis-block { display: none; }
     .analysis-block.active { display: block; }
-    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
-    .summary-card {
-      background: #f9fafb; border-radius: 14px; border: 1px solid rgba(148,163,184,0.3); padding: 14px 16px;
+    /* SWOT 9格 */
+    .swot-9 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
     }
-    .symbol-btn {
-      border: 1px solid #d1d5db; background: white; border-radius: 999px;
-      padding: 4px 12px; font-size: 0.85rem; margin: 3px; cursor: pointer;
+    .swot-cell {
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.88rem;
+      min-height: 140px;
     }
-    .symbol-btn.active { background: #e0f2fe; border-color: #0ea5e9; color: #0369a1; }
-    .mini-equity-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;
-    }
-    .mini-card {
-      background: #f9fafb; border-radius: 12px; padding: 10px; border: 1px solid #e5e7eb;
-      height: 155px; display: flex; flex-direction: column; position: relative;
-    }
-    .mini-card canvas { flex: 1; }
-    .mini-stats {
-      position: absolute; bottom: 6px; right: 8px; font-size: 0.72rem; text-align: right; line-height: 1.3;
-    }
-    table.martingale { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
-    table.martingale th, table.martingale td {
-      border: 1px solid #e5e7eb; padding: 6px 8px; text-align: center;
-    }
-    table.martingale th { background: #f3f4f6; }
-    .expand-btn {
-      background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 0 4px;
-    }
-    .layer-detail { display: none; background: #f8fafc; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin: 6px 0; }
-    .layer-detail.show { display: block; }
-    .trade-table { width: 100%; font-size: 0.78rem; border-collapse: collapse; }
-    .trade-table th, .trade-table td { border: 1px solid #e5e7eb; padding: 4px 6px; white-space: nowrap; }
-    .trade-table th { background: #f1f5f9; }
-    .swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .swot-box { border-radius: 12px; padding: 16px; min-height: 130px; }
-    .swot-s { background: #ecfdf5; border: 1px solid #a7f3d0; }
-    .swot-w { background: #fef2f2; border: 1px solid #fecaca; }
-    .swot-o { background: #eff6ff; border: 1px solid #bfdbfe; }
-    .swot-t { background: #fff7ed; border: 1px solid #fed7aa; }
-    .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 40px; font-size: 0.9rem;
-    }
-    .stats-grid .label { color: #6b7280; }
-    .stats-grid .value { text-align: right; font-weight: 500; }
-    .stats-grid .pos { color: #16a34a; }
-    .stats-grid .neg { color: #dc2626; }
-    .dist-bar {
-      height: 22px; border-radius: 4px; margin: 4px 0; position: relative;
-      background: #e5e7eb; overflow: hidden;
-    }
-    .dist-bar-fill { height: 100%; border-radius: 4px; }
-    .dist-bar-label {
-      position: absolute; left: 8px; top: 2px; font-size: 0.78rem; color: #111;
-    }
+    .swot-st { background: #dbeafe; }
+    .swot-s  { background: #fef9c3; }
+    .swot-so { background: #dbeafe; }
+    .swot-t  { background: #fef9c3; }
+    .swot-c  { background: #e0f2fe; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .swot-o  { background: #fef9c3; }
+    .swot-wt { background: #dbeafe; }
+    .swot-w  { background: #fef9c3; }
+    .swot-wo { background: #dbeafe; }
+    .swot-title { font-weight: 700; margin-bottom: 8px; font-size: 0.95rem; }
   </style>
 </head>
 <body>
@@ -114,8 +91,24 @@
       <div style="width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#fff,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🌳</div>
       <h5 class="mb-0 fw-bold">Signal Helper</h5>
     </div>
-    <div class="small">Gary 珅緒</div>
+    <div class="d-flex align-items-center gap-3">
+      <div id="userArea">
+        <button id="loginBtn" class="btn btn-light btn-sm">Login with Gmail</button>
+        <div id="userInfo" style="display:none; cursor:pointer;" class="fw-bold">
+          <span id="userName">User</span> ▼
+        </div>
+      </div>
+    </div>
   </header>
+
+  <!-- User Menu -->
+  <div id="userMenu" class="user-menu">
+    <ul class="list-unstyled mb-0">
+      <li id="menuProfile">👤 User Profile</li>
+      <li id="menuAdmin" style="display:none;">🛠️ Admin Console</li>
+      <li class="border-top mt-2 pt-2" id="menuLogout">🚪 Logout</li>
+    </ul>
+  </div>
 
   <div class="d-flex">
     <nav class="sidebar">
@@ -141,31 +134,34 @@
     </nav>
 
     <main class="flex-grow-1 p-3">
+      <!-- Dashboard -->
       <div id="page-dashboard" class="page active">
         <h2>Dashboard</h2>
         <p class="text-muted">歡迎使用 Signal Helper</p>
       </div>
 
+      <!-- THA -->
       <div id="page-tha" class="page">
         <section class="panel">
-          <h2 class="panel-title">1. 匯入 MT4/MT5 報表 CSV</h2>
+          <h2 class="panel-title">Trade History Analyzer (THA)</h2>
           <div class="d-flex flex-wrap gap-3 align-items-end">
             <div>
-              <label class="form-label small text-muted">交易報表 CSV</label>
+              <label class="form-label small text-muted">上傳 CSV</label>
               <input type="file" id="csvFile" accept=".csv,.html,.txt" class="form-control" style="min-width:240px;">
             </div>
             <div>
               <label class="form-label small text-muted">EA 類型</label>
               <select id="eaSelect" class="form-select" style="min-width:160px;">
-                <option value="SMA">SMA (Standard)</option>
-                <option value="MKD">MKD (Standard)</option>
+                <option value="SMA">SMA</option>
+                <option value="MKD">MKD</option>
                 <option value="Flash">Flash</option>
-                <option value="Other">Other EA</option>
+                <option value="Other">Other</option>
               </select>
             </div>
             <div class="d-flex gap-2">
               <button id="analyzeBtn" class="btn btn-primary-a2">🚀 開始分析</button>
               <button id="saveBtn" class="btn btn-save">💾 SAVE CSV REPORT</button>
+              <button id="exportPdfBtn" class="btn btn-secondary-a2">📄 EXPORT PDF</button>
               <button id="resetBtn" class="btn btn-secondary-a2">Reset</button>
             </div>
           </div>
@@ -175,170 +171,132 @@
         <div id="analysisArea" style="display:none;">
           <div class="analysis-menu" id="analysisMenu">
             <button class="active" data-block="overview">總覽 + 資金曲線</button>
-            <button data-block="symbol-martingale">Symbol 一覽 + 馬丁層數</button>
-            <button data-block="symbol-deep">Symbol 深入分析</button>
+            <button data-block="symbol-martingale">Symbol + 馬丁</button>
             <button data-block="mfe-mae">MFE + MAE</button>
             <button data-block="heatmap">Heat Map</button>
-            <button data-block="drawdown">Drawdown 分析</button>
+            <button data-block="drawdown">Drawdown</button>
             <button data-block="swot">SWOT 分析</button>
           </div>
 
-          <!-- 1. 總覽 + 資金曲線 + 詳細 Statistics -->
           <div class="analysis-block active" id="block-overview">
             <section class="panel">
-              <h2 class="panel-title">總覽 Summary + 資金曲線</h2>
-              <div class="summary-grid mb-4">
-                <div class="summary-card">
-                  <div class="small text-muted">成長 & 期間</div>
-                  <div class="fs-3 fw-bold text-success">+148.6%</div>
-                  <div class="small mt-2">勝率：81.4%</div>
-                  <div class="small">Max DD：-9.2% ($2,280)</div>
-                </div>
-                <div class="summary-card">
-                  <div class="small text-muted">Equity / Profit</div>
-                  <div class="fs-4 fw-bold">$24,800</div>
-                  <div class="small mt-1">Profit：+$12,480</div>
-                </div>
-                <div class="summary-card">
-                  <div class="small text-muted">Key Stats</div>
-                  <div class="small">總交易：312</div>
-                  <div class="small">Profit Factor：2.18</div>
-                  <div class="small">平均贏：$86.4</div>
-                </div>
-              </div>
-
-              <h6 class="mb-2">資金權益成長曲線 + Drawdown</h6>
+              <h2 class="panel-title">總覽 Summary</h2>
+              <p class="text-muted">（分析結果會顯示喺呢度）</p>
               <div style="height: 240px;"><canvas id="thaEquityChart"></canvas></div>
-
-              <!-- 詳細 Statistics（跟圖2） -->
-              <h6 class="mt-4 mb-3">詳細 Statistics</h6>
-              <div class="stats-grid mb-4">
-                <div><span class="label">Trades:</span></div><div class="value">312</div>
-                <div><span class="label">Profit Trades:</span></div><div class="value pos">254 (81.4%)</div>
-                <div><span class="label">Loss Trades:</span></div><div class="value neg">58 (18.6%)</div>
-                <div><span class="label">Best trade:</span></div><div class="value pos">+1,245.80 USD</div>
-                <div><span class="label">Worst trade:</span></div><div class="value neg">-386.20 USD</div>
-                <div><span class="label">Gross Profit:</span></div><div class="value pos">+18,640.50 USD</div>
-                <div><span class="label">Gross Loss:</span></div><div class="value neg">-6,160.50 USD</div>
-                <div><span class="label">Maximum consecutive wins:</span></div><div class="value">12 (1,856 USD)</div>
-                <div><span class="label">Maximal consecutive profit:</span></div><div class="value pos">2,480.30 USD (8)</div>
-                <div><span class="label">Recovery Factor:</span></div><div class="value">2.18</div>
-                <div><span class="label">Profit Factor:</span></div><div class="value">3.03</div>
-                <div><span class="label">Expected Payoff:</span></div><div class="value pos">40.00 USD</div>
-                <div><span class="label">Average Profit:</span></div><div class="value pos">73.40 USD</div>
-                <div><span class="label">Average Loss:</span></div><div class="value neg">-106.20 USD</div>
-                <div><span class="label">Maximum consecutive losses:</span></div><div class="value neg">4 (-420.80 USD)</div>
-                <div><span class="label">Maximal consecutive loss:</span></div><div class="value neg">-680.50 USD (3)</div>
-              </div>
-
-              <!-- Distribution By Symbol -->
-              <h6 class="mb-3">Distribution By Symbol</h6>
-              <div class="mb-2 small text-muted">Deals</div>
-              <div id="distDeals"></div>
-              <div class="mb-2 mt-3 small text-muted">Net Profit (USD)</div>
-              <div id="distProfit"></div>
-              <div class="mb-2 mt-3 small text-muted">Net Profit (Pips)</div>
-              <div id="distPips"></div>
             </section>
           </div>
 
-          <!-- 2. Symbol + 馬丁 -->
           <div class="analysis-block" id="block-symbol-martingale">
-            <section class="panel">
-              <h2 class="panel-title">Symbol 一覽 + 馬丁層數分析</h2>
-              <div class="mb-3" id="symbolButtons">
-                <button class="symbol-btn active" data-symbol="ALL">All Symbols</button>
-                <button class="symbol-btn" data-symbol="EURUSD">EURUSD</button>
-                <button class="symbol-btn" data-symbol="GBPUSD">GBPUSD</button>
-                <button class="symbol-btn" data-symbol="XAUUSD">XAUUSD</button>
-                <button class="symbol-btn" data-symbol="USDJPY">USDJPY</button>
-                <button class="symbol-btn" data-symbol="AUDUSD">AUDUSD</button>
-              </div>
-              <h6 class="mb-2">Mini Equity</h6>
-              <div class="mini-equity-grid mb-4" id="miniEquityGrid"></div>
-              <h6 class="mb-2">馬丁層數分析 - <span id="currentSymbolLabel">All Symbols</span></h6>
-              <div id="martingaleContent"></div>
-            </section>
+            <section class="panel"><h2 class="panel-title">Symbol + 馬丁層數</h2><p class="text-muted">開發中...</p></section>
           </div>
 
-          <!-- 3. Symbol 深入 -->
-          <div class="analysis-block" id="block-symbol-deep">
-            <section class="panel">
-              <h2 class="panel-title">Symbol 深入分析</h2>
-              <p class="text-muted small">開發中...</p>
-            </section>
-          </div>
-
-          <!-- 4. MFE + MAE (散點圖風格) -->
           <div class="analysis-block" id="block-mfe-mae">
-            <section class="panel">
-              <h2 class="panel-title">MFE + MAE</h2>
-              <div class="d-flex gap-2 mb-3">
-                <button class="btn btn-sm btn-primary" id="btnMFE">MFE</button>
-                <button class="btn btn-sm btn-outline-secondary" id="btnMAE">MAE</button>
-              </div>
-              <h6>Max Profit Pips vs Net Pips</h6>
-              <div style="height: 280px;"><canvas id="mfeScatter"></canvas></div>
-              <h6 class="mt-4">Days Held vs Net Pips</h6>
-              <div style="height: 220px;"><canvas id="holdingScatter"></canvas></div>
-            </section>
+            <section class="panel"><h2 class="panel-title">MFE + MAE</h2><p class="text-muted">開發中...</p></section>
           </div>
 
-          <!-- 5. Heat Map -->
           <div class="analysis-block" id="block-heatmap">
-            <section class="panel">
-              <h2 class="panel-title">Heat Map</h2>
-              <h6>Weekday × Hour Profit</h6>
-              <div class="table-responsive mb-4" id="heatmapHour"></div>
-              <h6>Symbol × Weekday Profit</h6>
-              <div class="table-responsive" id="heatmapSymbol"></div>
-            </section>
+            <section class="panel"><h2 class="panel-title">Heat Map</h2><p class="text-muted">開發中...</p></section>
           </div>
 
-          <!-- 6. Drawdown -->
           <div class="analysis-block" id="block-drawdown">
-            <section class="panel">
-              <h2 class="panel-title">Drawdown 分析</h2>
-              <div class="summary-grid mb-4">
-                <div class="summary-card">
-                  <div class="small text-muted">Max DD</div>
-                  <div class="fs-4 fw-bold text-danger">-9.2% ($2,280)</div>
-                </div>
-                <div class="summary-card">
-                  <div class="small text-muted">最長 DD 持續</div>
-                  <div class="fs-5 fw-bold">18 日</div>
-                </div>
-                <div class="summary-card">
-                  <div class="small text-muted">最大連續虧損</div>
-                  <div class="fs-5 fw-bold">4 次</div>
-                </div>
-              </div>
-              <div style="height: 240px;"><canvas id="ddChart"></canvas></div>
-            </section>
+            <section class="panel"><h2 class="panel-title">Drawdown 分析</h2><p class="text-muted">開發中...</p></section>
           </div>
 
-          <!-- 7. SWOT -->
+          <!-- SWOT 9格 -->
           <div class="analysis-block" id="block-swot">
             <section class="panel">
-              <h2 class="panel-title">SWOT 分析</h2>
-              <div class="swot-grid">
-                <div class="swot-box swot-s"><h6 class="text-success">Strengths</h6><ul class="small mb-0"><li>勝率 81.4%</li><li>PF 2.18</li></ul></div>
-                <div class="swot-box swot-w"><h6 class="text-danger">Weaknesses</h6><ul class="small mb-0"><li>第1層勝率偏低</li></ul></div>
-                <div class="swot-box swot-o"><h6 class="text-primary">Opportunities</h6><ul class="small mb-0"><li>優化高勝率時段</li></ul></div>
-                <div class="swot-box swot-t"><h6 class="text-warning">Threats</h6><ul class="small mb-0"><li>極端行情風險</li></ul></div>
+              <h2 class="panel-title">SWOT 分析（9格）</h2>
+              <div class="swot-9">
+                <div class="swot-cell swot-st">
+                  <div class="swot-title">S-T 策略</div>
+                  <ul class="small mb-0">
+                    <li>可試加入不同 TF，最大化 SMA 內 MLTF 優勢</li>
+                    <li>加入 RSI 或 BB 作 FILTER，減少噪音交易</li>
+                  </ul>
+                </div>
+                <div class="swot-cell swot-s">
+                  <div class="swot-title">STRENGTH 優勢</div>
+                  <ul class="small mb-0">
+                    <li>捕捉短、中、長期移動平均線</li>
+                    <li>有 MLTV，開單位置更精準</li>
+                    <li>有 PLAN B 多層智慧型馬丁</li>
+                  </ul>
+                </div>
+                <div class="swot-cell swot-so">
+                  <div class="swot-title">S-O 策略</div>
+                  <ul class="small mb-0">
+                    <li>從多貨幣對中挑選最優 1-2 對</li>
+                    <li>優化後可作 COPY TRADE</li>
+                  </ul>
+                </div>
+
+                <div class="swot-cell swot-t">
+                  <div class="swot-title">THREATS 威脅</div>
+                  <ul class="small mb-0">
+                    <li>中東局勢緊張，價格大幅波動</li>
+                    <li>沒有 SET COOLDOWN，STOP LOSS 後即再開單</li>
+                  </ul>
+                </div>
+                <div class="swot-cell swot-c">
+                  <div>
+                    <strong>SWOT</strong><br>
+                    <small>分析中心</small>
+                  </div>
+                </div>
+                <div class="swot-cell swot-o">
+                  <div class="swot-title">OPPORTUNITIES 機會</div>
+                  <ul class="small mb-0">
+                    <li>原 SETTING 是 TIGER SET 改版</li>
+                    <li>已運作 67 週 LIVE，有 risk free 紀錄</li>
+                  </ul>
+                </div>
+
+                <div class="swot-cell swot-wt">
+                  <div class="swot-title">W-T 策略</div>
+                  <ul class="small mb-0">
+                    <li>考慮開 NEWS FILTER</li>
+                    <li>由 PER TICK 改成 PER BAR</li>
+                    <li>增加 COOLDOWN AFTER CLOSE</li>
+                  </ul>
+                </div>
+                <div class="swot-cell swot-w">
+                  <div class="swot-title">WEAKNESS 弱點</div>
+                  <ul class="small mb-0">
+                    <li>原 SETTING 開了 10 層馬丁</li>
+                    <li>入市條件相對寬鬆，沒有其他 FILTER</li>
+                  </ul>
+                </div>
+                <div class="swot-cell swot-wo">
+                  <div class="swot-title">W-O 策略</div>
+                  <ul class="small mb-0">
+                    <li>增加不同 FILTER，令頭單更容易 TP</li>
+                    <li>增加馬丁 PIPS STEP，包住極端市況</li>
+                  </ul>
+                </div>
               </div>
             </section>
           </div>
         </div>
       </div>
 
+      <!-- Library -->
       <div id="page-library" class="page">
         <section class="panel">
           <h2 class="panel-title">📚 Signal History Library</h2>
-          <div id="libraryList" class="small text-muted">暫時未有 Record</div>
+          <div id="libraryList" class="small text-muted">請先 Login 後使用 SAVE 功能</div>
         </section>
       </div>
 
+      <!-- Admin Console -->
+      <div id="page-admin" class="page">
+        <section class="panel">
+          <h2 class="panel-title">🛠️ Admin Console</h2>
+          <p>只有 Admin 可以進入呢度。</p>
+          <p>之後可以喺呢度 Assign User Level。</p>
+        </section>
+      </div>
+
+      <!-- 其他頁面 -->
       <div id="page-live" class="page"><div class="panel"><h2>📡 Live Signals</h2><p>開發中...</p></div></div>
       <div id="page-mysignals" class="page"><div class="panel"><h2>📋 My Signals</h2><p>開發中...</p></div></div>
       <div id="page-register" class="page"><div class="panel"><h2>➕ Register Signal</h2><p>開發中...</p></div></div>
@@ -356,6 +314,59 @@
   </div>
 
   <script>
+    // ===== Firebase Config =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyDprZtAn7CdeRoeoyO7uel59936xxWIo1g",
+      authDomain: "ai-signal-portal.firebaseapp.com",
+      projectId: "ai-signal-portal",
+      storageBucket: "ai-signal-portal.firebasestorage.app",
+      messagingSenderId: "708453018931",
+      appId: "1:708453018931:web:201c1649e4da9d62e56246",
+      measurementId: "G-1BBZXCCNL2"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const ADMIN_EMAILS = ['gary7641@gmail.com', 'shenxu.gary@gmail.com'];
+    let currentUser = null;
+    let isAdmin = false;
+
+    // ===== Auth State =====
+    auth.onAuthStateChanged(user => {
+      currentUser = user;
+      isAdmin = user && ADMIN_EMAILS.includes(user.email);
+
+      if (user) {
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('userInfo').style.display = 'block';
+        document.getElementById('userName').textContent = user.displayName || user.email;
+        document.getElementById('menuAdmin').style.display = isAdmin ? 'block' : 'none';
+      } else {
+        document.getElementById('loginBtn').style.display = 'inline-block';
+        document.getElementById('userInfo').style.display = 'none';
+        document.getElementById('userMenu').classList.remove('show');
+      }
+    });
+
+    // Login with Google
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(err => alert('Login 失敗：' + err.message));
+    });
+
+    // User Menu
+    document.getElementById('userInfo').addEventListener('click', e => {
+      e.stopPropagation();
+      document.getElementById('userMenu').classList.toggle('show');
+    });
+    document.addEventListener('click', () => document.getElementById('userMenu').classList.remove('show'));
+
+    document.getElementById('menuLogout').addEventListener('click', () => auth.signOut());
+    document.getElementById('menuAdmin').addEventListener('click', () => switchPage('admin'));
+    document.getElementById('menuProfile').addEventListener('click', () => alert('User Profile 開發中'));
+
+    // ===== Page Routing =====
     function switchPage(pageId) {
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -371,6 +382,7 @@
       });
     });
 
+    // Analysis Menu
     document.querySelectorAll('#analysisMenu button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
@@ -380,124 +392,17 @@
       });
     });
 
-    const martingaleData = {
-      ALL: { label: 'All Symbols', rows: [
-        {layer:1, lots:0.01, trades:42, sumP:-186.4, cum:-186.4, wr:'41%', color:'#fef2f2'},
-        {layer:2, lots:0.02, trades:28, sumP:312.5, cum:126.1, wr:'71%', color:'#ecfdf5'},
-        {layer:3, lots:0.04, trades:18, sumP:485.2, cum:611.3, wr:'83%', color:'#ecfdf5'},
-        {layer:4, lots:0.08, trades:9, sumP:420.8, cum:1032.1, wr:'100%', color:'#dbeafe'}
-      ]},
-      EURUSD: { label: 'EURUSD - BUY', rows: [
-        {layer:1, lots:0.01, trades:18, sumP:-86.4, cum:-86.4, wr:'44%', color:'#fef2f2'},
-        {layer:2, lots:0.02, trades:12, sumP:152.3, cum:65.9, wr:'75%', color:'#ecfdf5'},
-        {layer:3, lots:0.04, trades:9, sumP:318.6, cum:384.5, wr:'89%', color:'#ecfdf5'},
-        {layer:4, lots:0.08, trades:6, sumP:512.4, cum:896.9, wr:'100%', color:'#dbeafe'}
-      ]},
-      GBPUSD: { label: 'GBPUSD - BUY', rows: [
-        {layer:1, lots:0.01, trades:14, sumP:-42.1, cum:-42.1, wr:'50%', color:'#fef2f2'},
-        {layer:2, lots:0.02, trades:9, sumP:98.6, cum:56.5, wr:'67%', color:'#ecfdf5'}
-      ]},
-      XAUUSD: { label: 'XAUUSD - BUY', rows: [
-        {layer:1, lots:0.10, trades:11, sumP:68.4, cum:68.4, wr:'64%', color:'#ecfdf5'},
-        {layer:2, lots:0.20, trades:6, sumP:245.8, cum:314.2, wr:'83%', color:'#ecfdf5'}
-      ]},
-      USDJPY: { label: 'USDJPY - SELL', rows: [
-        {layer:1, lots:0.01, trades:16, sumP:-55.2, cum:-55.2, wr:'44%', color:'#fef2f2'},
-        {layer:2, lots:0.02, trades:10, sumP:128.7, cum:73.5, wr:'70%', color:'#ecfdf5'}
-      ]},
-      AUDUSD: { label: 'AUDUSD - BUY', rows: [
-        {layer:1, lots:0.01, trades:12, sumP:22.4, cum:22.4, wr:'58%', color:'#ecfdf5'},
-        {layer:2, lots:0.02, trades:7, sumP:95.1, cum:117.5, wr:'71%', color:'#ecfdf5'}
-      ]}
-    };
-
-    const demoTrades = [
-      {openTime:'2026-06-01 09:15', type:'Buy', volume:0.01, symbol:'EURUSD', openPrice:1.0845, closeTime:'2026-06-01 14:22', closePrice:1.0862, commission:-0.07, swap:0, pips:17, net:12.4, holding:'5h 7m', maxProfit:18.2, maxPips:21, maxLoss:-4.1, maxLossPips:-6, magic:10001, comment:'SMA_L1'},
-      {openTime:'2026-06-02 11:30', type:'Buy', volume:0.01, symbol:'EURUSD', openPrice:1.0851, closeTime:'2026-06-02 16:05', closePrice:1.0838, commission:-0.07, swap:0, pips:-13, net:-9.8, holding:'4h 35m', maxProfit:5.2, maxPips:7, maxLoss:-14.5, maxLossPips:-16, magic:10001, comment:'SMA_L1'}
-    ];
-
-    function renderMartingale(symbol) {
-      const data = martingaleData[symbol] || martingaleData.ALL;
-      document.getElementById('currentSymbolLabel').textContent = data.label;
-      let html = `<div class="table-responsive"><table class="martingale">
-        <thead><tr><th style="width:36px"></th><th>#</th><th>Lots</th><th>Trades</th><th>SUM Profit</th><th>Cum Profit</th><th>Win Rate</th></tr></thead><tbody>`;
-      data.rows.forEach((r, i) => {
-        html += `<tr style="background:${r.color}">
-          <td><button class="expand-btn" data-layer="${i}">➕</button></td>
-          <td>${r.layer}</td><td>${r.lots}</td><td>${r.trades}</td>
-          <td>${r.sumP > 0 ? '+'+r.sumP.toFixed(1) : r.sumP.toFixed(1)}</td>
-          <td>${r.cum > 0 ? '+'+r.cum.toFixed(1) : r.cum.toFixed(1)}</td>
-          <td>${r.wr}</td>
-        </tr>
-        <tr><td colspan="7" style="padding:0;border:none;">
-          <div class="layer-detail" id="layer-detail-${i}">
-            <strong>第 ${r.layer} 層詳細單據</strong>
-            <div class="table-responsive mt-2">
-              <table class="trade-table">
-                <thead><tr>
-                  <th>Open Time</th><th>Type</th><th>Volume</th><th>Symbol</th><th>Open Price</th>
-                  <th>Close Time</th><th>Close Price</th><th>Commission</th><th>Swap</th>
-                  <th>Pips</th><th>Net Profit</th><th>Holding Time</th>
-                  <th>Max Profit</th><th>Max Pips</th><th>Max Loss</th><th>Max Loss Pips</th>
-                  <th>Magic No.</th><th>Comment</th>
-                </tr></thead>
-                <tbody>
-                  ${demoTrades.map(t => `<tr>
-                    <td>${t.openTime}</td><td>${t.type}</td><td>${t.volume}</td><td>${t.symbol}</td>
-                    <td>${t.openPrice}</td><td>${t.closeTime}</td><td>${t.closePrice}</td>
-                    <td>${t.commission}</td><td>${t.swap}</td><td>${t.pips}</td>
-                    <td>${t.net}</td><td>${t.holding}</td><td>${t.maxProfit}</td>
-                    <td>${t.maxPips}</td><td>${t.maxLoss}</td><td>${t.maxLossPips}</td>
-                    <td>${t.magic}</td><td>${t.comment}</td>
-                  </tr>`).join('')}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </td></tr>`;
-      });
-      html += `</tbody></table></div>
-        <div class="small mt-2 text-muted">點 ➕ / ➖ 可展開該層每一張單</div>`;
-      document.getElementById('martingaleContent').innerHTML = html;
-
-      document.querySelectorAll('.expand-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const detail = document.getElementById('layer-detail-' + btn.dataset.layer);
-          const isShow = detail.classList.toggle('show');
-          btn.textContent = isShow ? '➖' : '➕';
-        });
-      });
-    }
-
-    document.getElementById('symbolButtons').addEventListener('click', e => {
-      if (!e.target.classList.contains('symbol-btn')) return;
-      document.querySelectorAll('.symbol-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      renderMartingale(e.target.dataset.symbol);
-    });
-
-    // Distribution bars helper
-    function renderDistBars(containerId, data, maxVal, color) {
-      const el = document.getElementById(containerId);
-      el.innerHTML = data.map(d => {
-        const pct = Math.min(100, (Math.abs(d.value) / maxVal) * 100);
-        return `<div class="dist-bar" title="${d.symbol}: ${d.value}">
-          <div class="dist-bar-fill" style="width:${pct}%;background:${d.value >= 0 ? color : '#fca5a5'}"></div>
-          <div class="dist-bar-label">${d.symbol} &nbsp; ${d.value > 0 ? '+' : ''}${d.value}</div>
-        </div>`;
-      }).join('');
-    }
-
+    // Analyze
     document.getElementById('analyzeBtn').addEventListener('click', () => {
       const file = document.getElementById('csvFile').files[0];
       if (!file) {
         document.getElementById('tha-status').innerHTML = '<span class="text-danger">請先選擇檔案</span>';
         return;
       }
-      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}（Demo）</span>`;
+      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已載入：${file.name}（分析中...）</span>`;
       document.getElementById('analysisArea').style.display = 'block';
 
-      // Equity
+      // Demo Equity Chart
       const ctx = document.getElementById('thaEquityChart').getContext('2d');
       if (window.thaChart) window.thaChart.destroy();
       window.thaChart = new Chart(ctx, {
@@ -505,146 +410,37 @@
         data: {
           labels: ['W1','W5','W10','W15','W20','W25','W30'],
           datasets: [
-            { label: 'Equity', data: [10000,12800,15200,17800,20100,22600,24800], borderColor: '#16a34a', borderWidth: 2, tension: 0.35, fill: true, backgroundColor: 'rgba(22,163,74,0.08)', pointRadius: 0, yAxisID: 'y' },
+            { label: 'Equity', data: [10000,12800,15200,17800,20100,22600,24800], borderColor: '#16a34a', borderWidth: 2, tension: 0.35, fill: true, backgroundColor: 'rgba(22,163,74,0.08)', pointRadius: 0 },
             { label: 'Drawdown %', data: [0,-2.1,-4.8,-3.2,-7.5,-5.1,-9.2], borderColor: '#dc2626', borderWidth: 1.5, tension: 0.3, fill: true, backgroundColor: 'rgba(220,38,38,0.06)', pointRadius: 0, yAxisID: 'y1' }
           ]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } },
           scales: {
-            y: { position: 'left', title: { display: true, text: 'Equity' } },
-            y1: { position: 'right', title: { display: true, text: 'DD %' }, grid: { drawOnChartArea: false }, min: -15, max: 2 }
+            y: { position: 'left' },
+            y1: { position: 'right', grid: { drawOnChartArea: false }, min: -15, max: 2 }
           }
         }
-      });
-
-      // Mini Equity
-      const grid = document.getElementById('miniEquityGrid');
-      grid.innerHTML = '';
-      const miniData = [
-        {sym:'All', bal:24800, profit:148.6, dd:9.2},
-        {sym:'EURUSD', bal:12450, profit:86.2, dd:6.8},
-        {sym:'GBPUSD', bal:4820, profit:42.1, dd:11.4},
-        {sym:'XAUUSD', bal:3960, profit:68.5, dd:8.1},
-        {sym:'USDJPY', bal:2180, profit:31.2, dd:5.9},
-        {sym:'AUDUSD', bal:1390, profit:22.8, dd:7.3}
-      ];
-      miniData.forEach((d, i) => {
-        const card = document.createElement('div');
-        card.className = 'mini-card';
-        card.innerHTML = `<div class="small fw-bold mb-1">${d.sym}</div><canvas id="mini${i}"></canvas>
-          <div class="mini-stats">Bal: $${d.bal.toLocaleString()}<br>P%: +${d.profit}%<br>DD%: -${d.dd}%</div>`;
-        grid.appendChild(card);
-        new Chart(document.getElementById('mini'+i), {
-          type: 'line',
-          data: { labels: Array(15).fill(''), datasets: [{ data: Array.from({length:15},()=>Math.random()*50+30), borderColor:'#16a34a', borderWidth:1.2, tension:0.3, pointRadius:0 }] },
-          options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}} }
-        });
-      });
-
-      // Distribution By Symbol
-      const dealsData = [
-        {symbol:'EURUSD', value:128}, {symbol:'GBPUSD', value:64}, {symbol:'XAUUSD', value:48},
-        {symbol:'USDJPY', value:42}, {symbol:'AUDUSD', value:30}
-      ];
-      const profitData = [
-        {symbol:'EURUSD', value:6240}, {symbol:'GBPUSD', value:2180}, {symbol:'XAUUSD', value:2860},
-        {symbol:'USDJPY', value:980}, {symbol:'AUDUSD', value:220}
-      ];
-      const pipsData = [
-        {symbol:'EURUSD', value:8420}, {symbol:'GBPUSD', value:3120}, {symbol:'XAUUSD', value:4580},
-        {symbol:'USDJPY', value:1650}, {symbol:'AUDUSD', value:890}
-      ];
-      renderDistBars('distDeals', dealsData, 130, '#93c5fd');
-      renderDistBars('distProfit', profitData, 6500, '#86efac');
-      renderDistBars('distPips', pipsData, 8500, '#86efac');
-
-      renderMartingale('ALL');
-
-      // MFE Scatter (Max Profit Pips vs Net Pips)
-      const scatterData = Array.from({length:80}, () => {
-        const net = Math.random() * 1800 - 400;
-        const maxP = net > 0 ? net + Math.random()*400 : Math.random()*80;
-        return {x: net, y: maxP, color: net >= 0 ? '#16a34a' : '#dc2626'};
-      });
-      new Chart(document.getElementById('mfeScatter'), {
-        type: 'scatter',
-        data: {
-          datasets: [{
-            data: scatterData,
-            backgroundColor: scatterData.map(d => d.color),
-            pointRadius: 4
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { title: { display: true, text: 'Net Pips' }, grid: { color: '#e5e7eb' } },
-            y: { title: { display: true, text: 'Max Profit Pips' }, grid: { color: '#e5e7eb' } }
-          }
-        }
-      });
-
-      // Holding Time Scatter
-      new Chart(document.getElementById('holdingScatter'), {
-        type: 'scatter',
-        data: {
-          datasets: [{
-            data: scatterData.map(d => ({x: d.x, y: Math.random()*6 + (d.x < 0 ? 1 : 0)})),
-            backgroundColor: scatterData.map(d => d.color),
-            pointRadius: 4
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { title: { display: true, text: 'Net Pips' } },
-            y: { title: { display: true, text: 'Days Held' } }
-          }
-        }
-      });
-
-      // Heatmap simple
-      document.getElementById('heatmapHour').innerHTML = '<p class="text-muted small">Heat Map 已準備（之後可再美化）</p>';
-      document.getElementById('heatmapSymbol').innerHTML = '<p class="text-muted small">Heat Map 已準備（之後可再美化）</p>';
-
-      // DD Chart
-      new Chart(document.getElementById('ddChart'), {
-        type: 'line',
-        data: {
-          labels: Array(30).fill(''),
-          datasets: [{ data: [0,-1.2,-3.5,-2.1,-5.8,-4.2,-7.1,-6.3,-9.2,-5.4,-3.1,-1.8,0], borderColor:'#dc2626', borderWidth:2, fill:true, backgroundColor:'rgba(220,38,38,0.1)', tension:0.3, pointRadius:0 }]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
       });
     });
 
-    // SAVE
+    // SAVE（要 Login）
     document.getElementById('saveBtn').addEventListener('click', () => {
-      const ea = document.getElementById('eaSelect').value;
-      const signalId = 'SID' + Math.floor(10000 + Math.random()*90000);
-      const period = '20260101-20260716';
-      const symbolInfo = '5xCCY';
-      const recordName = `THA_${ea}_${signalId}_(${period})_${symbolInfo}`;
-
-      let library = JSON.parse(localStorage.getItem('signalLibrary') || '[]');
-      library = library.filter(r => !r.name.includes(signalId));
-      library.unshift({ name: recordName, ea, signalId, period, symbols: symbolInfo, savedAt: new Date().toLocaleString() });
-      localStorage.setItem('signalLibrary', JSON.stringify(library));
-
-      document.getElementById('tha-status').innerHTML = `<span class="text-success">✅ 已儲存：<strong>${recordName}</strong></span>`;
-      renderLibrary();
+      if (!currentUser) {
+        alert('請先用 Gmail Login 先可以 SAVE');
+        return;
+      }
+      alert('SAVE 功能已準備好接 Firestore（下一階段實作）');
     });
 
-    function renderLibrary() {
-      const library = JSON.parse(localStorage.getItem('signalLibrary') || '[]');
-      const el = document.getElementById('libraryList');
-      if (!library.length) { el.innerHTML = '暫時未有 Record'; return; }
-      el.innerHTML = library.map(r => `<div class="border rounded p-2 mb-2 bg-white"><strong>${r.name}</strong><br><span class="text-muted">儲存時間: ${r.savedAt}</span></div>`).join('');
-    }
+    // EXPORT PDF（要 Login）
+    document.getElementById('exportPdfBtn').addEventListener('click', () => {
+      if (!currentUser) {
+        alert('請先用 Gmail Login 先可以 Export PDF');
+        return;
+      }
+      window.print(); // 暫時用瀏覽器列印
+    });
 
     document.getElementById('resetBtn').addEventListener('click', () => {
       document.getElementById('csvFile').value = '';
@@ -653,7 +449,6 @@
     });
 
     switchPage('dashboard');
-    renderLibrary();
   </script>
 </body>
 </html>
