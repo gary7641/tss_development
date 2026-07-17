@@ -293,6 +293,126 @@
                         </div>
                     </div>
                 </div>
+                                <!-- PROJECT INVENTORY SECTION -->
+                <div id="section-inventory" class="dashboard-section d-none">
+                  <div class="card mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                      <h6 class="mb-0">📋 Project Inventory</h6>
+                      <span class="badge bg-primary">Last Updated: 2026-07-17</span>
+                    </div>
+                    <div class="card-body">
+
+                      <!-- ARCHITECTURE -->
+                      <h6 class="text-secondary mt-2 mb-2">🏗️ 專案架構</h6>
+                      <div class="table-responsive mb-4">
+                        <table class="table table-sm table-bordered">
+                          <thead class="table-light"><tr><th>檔案</th><th>版本</th><th>最後更新</th><th>狀態</th></tr></thead>
+                          <tbody>
+                            <tr><td>index.html</td><td>Dev</td><td>今日</td><td><span class="badge bg-success">Active</span></td></tr>
+                            <tr><td>admin.html</td><td>v0.1.1</td><td>5天前</td><td><span class="badge bg-success">Active</span></td></tr>
+                            <tr><td>tha.html</td><td>Demo</td><td>2天前</td><td><span class="badge bg-warning text-dark">Demo Only</span></td></tr>
+                            <tr><td>js/app.js</td><td>v0.1.0</td><td>5天前</td><td><span class="badge bg-success">Active</span></td></tr>
+                            <tr><td>js/admin.js</td><td>v0.1.1</td><td>5天前</td><td><span class="badge bg-success">Active</span></td></tr>
+                            <tr><td>js/csv-library.js</td><td>v0.1.0</td><td>5天前</td><td><span class="badge bg-success">Active</span></td></tr>
+                            <tr><td>js/firebase-config.js</td><td>—</td><td>5天前</td><td><span class="badge bg-success">Active</span></td></tr>
+                            <tr><td>js/theme-manager.js</td><td>—</td><td>3天前</td><td><span class="badge bg-info text-dark">New</span></td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <!-- COMPLETED -->
+                      <h6 class="text-success mt-3 mb-2">✅ 已完成功能</h6>
+                      <div class="table-responsive mb-4">
+                        <table class="table table-sm table-bordered">
+                          <thead class="table-light"><tr><th>模組</th><th>功能</th><th>完成度</th></tr></thead>
+                          <tbody>
+                            <tr class="table-success"><td>🔐 Auth</td><td>Firebase Google OAuth + Admin Whitelist</td><td><span class="badge bg-success">100%</span></td></tr>
+                            <tr class="table-success"><td>🗂️ 側邊欄</td><td>P1/P2/P3 導航 + Page 切換</td><td><span class="badge bg-success">100%</span></td></tr>
+                            <tr class="table-success"><td>📈 THA - CSV</td><td>MT4/MT5 CSV 解析引擎（含 Header 自動偵測）</td><td><span class="badge bg-success">95%</span></td></tr>
+                            <tr class="table-success"><td>📈 THA - 總覽</td><td>Summary Stats + Equity Curve + Distribution By Symbol</td><td><span class="badge bg-success">90%</span></td></tr>
+                            <tr class="table-success"><td>📊 THA - 馬丁</td><td>Symbol 按鈕 + Mini Equity + 馬丁層數分析 (BUY/SELL) + 顏色系統</td><td><span class="badge bg-success">85%</span></td></tr>
+                            <tr class="table-success"><td>📊 THA - 馬丁</td><td>Color Legend + 詳細單據表 + Magic/Comment 過濾 + Sorting</td><td><span class="badge bg-success">85%</span></td></tr>
+                            <tr class="table-success"><td>🛠️ Admin</td><td>Google 登入 + 權限驗證 + Overview Stats</td><td><span class="badge bg-success">100%</span></td></tr>
+                            <tr class="table-success"><td>🛠️ Admin</td><td>Users / Signals Library 表格 + System Status</td><td><span class="badge bg-success">90%</span></td></tr>
+                            <tr class="table-success"><td>🎨 Theme</td><td>ThemeManager class + 側邊欄樣式 + pulse-blue 動畫</td><td><span class="badge bg-success">80%</span></td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <!-- IN PROGRESS -->
+                      <h6 class="text-warning mt-3 mb-2">⚠️ 部分完成 / 有 Bug</h6>
+                      <div class="table-responsive mb-4">
+                        <table class="table table-sm table-bordered">
+                          <thead class="table-light"><tr><th>模組</th><th>問題</th><th>優先</th></tr></thead>
+                          <tbody>
+                            <tr class="table-warning"><td>📈 THA - MFE/MAE</td><td>UI 有，顯示「分析後顯示」，無真實邏輯</td><td><span class="badge bg-danger">🔴 高</span></td></tr>
+                            <tr class="table-warning"><td>📈 THA - SWOT</td><td>「9格 SWOT 已準備」，未完成</td><td><span class="badge bg-danger">🔴 高</span></td></tr>
+                            <tr class="table-warning"><td>📈 THA - Heat Map</td><td>UI placeholder，未實作</td><td><span class="badge bg-warning text-dark">🟡 中</span></td></tr>
+                            <tr class="table-warning"><td>📈 THA - Drawdown</td><td>UI placeholder，未實作</td><td><span class="badge bg-warning text-dark">🟡 中</span></td></tr>
+                            <tr class="table-warning"><td>📈 THA - SAVE</td><td>只係 alert()，未接 Firestore</td><td><span class="badge bg-warning text-dark">🟡 中</span></td></tr>
+                            <tr class="table-warning"><td>📈 THA - Export PDF</td><td>只係 window.print()，未格式化</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                            <tr class="table-warning"><td>🐛 CSS Bug</td><td>@keyframes pulse-blue 後多一個 } 括號</td><td><span class="badge bg-danger">🔴 高</span></td></tr>
+                            <tr class="table-warning"><td>🛠️ Admin</td><td>Active Today 顯示 0（Placeholder）</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                            <tr class="table-warning"><td>🛠️ Admin</td><td>Recent Activity Log 未實作</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                            <tr class="table-warning"><td>🛠️ Admin</td><td>Project Status 未擴充（Phase/Tasks/Schedule/Docs）</td><td><span class="badge bg-warning text-dark">🟡 中</span></td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <!-- NOT STARTED -->
+                      <h6 class="text-danger mt-3 mb-2">❌ 未開始</h6>
+                      <div class="table-responsive mb-4">
+                        <table class="table table-sm table-bordered">
+                          <thead class="table-light"><tr><th>模組</th><th>功能</th><th>優先</th></tr></thead>
+                          <tbody>
+                            <tr><td>📡 Live Signals</td><td>實時訊號顯示 + 過濾</td><td><span class="badge bg-danger">🔴 高</span></td></tr>
+                            <tr><td>📋 My Signals</td><td>個人訊號管理</td><td><span class="badge bg-danger">🔴 高</span></td></tr>
+                            <tr><td>➕ Register Signal</td><td>新增訊號表單 + Firestore</td><td><span class="badge bg-danger">🔴 高</span></td></tr>
+                            <tr><td>📚 Signal History</td><td>Firestore 訊號歷史讀取（基礎框架已有）</td><td><span class="badge bg-warning text-dark">🟡 中</span></td></tr>
+                            <tr><td>⚡ Cross Power</td><td>貨幣強弱分析</td><td><span class="badge bg-warning text-dark">🟡 中</span></td></tr>
+                            <tr><td>👥 Signal Group</td><td>群組功能</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                            <tr><td>💼 User Portfolio</td><td>投資組合追蹤</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                            <tr><td>📰 Market News</td><td>新聞 Feed</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                            <tr><td>🌍 World Monitor</td><td>全球市場監控</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                            <tr><td>🔧 FX Tools</td><td>Position Sizing / Margin Calculator</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                            <tr><td>📖 Signal Directory</td><td>訊號目錄</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                            <tr><td>📤 Export History</td><td>匯出歷史記錄</td><td><span class="badge bg-secondary">🟢 低</span></td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <!-- SUMMARY -->
+                      <h6 class="text-primary mt-3 mb-2">📊 整體完成度</h6>
+                      <div class="row g-3">
+                        <div class="col-md-4">
+                          <div class="card text-center border-success">
+                            <div class="card-body py-2">
+                              <div class="fs-3 fw-bold text-success">9</div>
+                              <div class="small text-muted">已完成模組</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="card text-center border-warning">
+                            <div class="card-body py-2">
+                              <div class="fs-3 fw-bold text-warning">10</div>
+                              <div class="small text-muted">部分完成 / Bug</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="card text-center border-danger">
+                            <div class="card-body py-2">
+                              <div class="fs-3 fw-bold text-danger">12</div>
+                              <div class="small text-muted">未開始</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
             </div>
         </div>
     </div>
