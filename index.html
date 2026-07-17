@@ -406,156 +406,153 @@
     document.getElementById('page-' + pageId)?.classList.add('active');
   }
 
-  // ==================== CSV 解析（保留你之前加強版） ====================
-function parseYourCSV(text) {
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
-  if (lines.length < 2) return null;
+  // ==================== CSV 解析 ====================
+  function parseYourCSV(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) return null;
 
-  // 搵 header
-  let headerIndex = 0;
-  for (let i = 0; i < Math.min(15, lines.length); i++) {
-    const lower = lines[i].toLowerCase();
-    if (lower.includes('open time') && lower.includes('net profit')) {
-      headerIndex = i;
-      break;
-    }
-  }
-
-  const headers = lines[headerIndex].split(',').map(h => h.trim().toLowerCase());
-  const getIdx = (name) => headers.indexOf(name);
-
-  const openTimeIdx = getIdx('open time');
-  const closeTimeIdx = getIdx('close time');
-  const typeIdx = getIdx('type');
-  const symbolIdx = getIdx('symbol');
-  const netProfitIdx = getIdx('net profit');
-  const lotsIdx = getIdx('lots');
-  const netPipsIdx = getIdx('net pips');
-  const swapIdx = getIdx('swap');
-  const magicIdx = getIdx('magic number');
-  const maxProfitIdx = getIdx('max profit');
-  const maxLossIdx = getIdx('max loss');
-  const maxPipsIdx = getIdx('max pips');
-  const maxLossPipsIdx = getIdx('max loss pips');
-  const holdingIdx = getIdx('holding time (hours)');
-
-  if (netProfitIdx === -1) return null;
-
-  // 搵 initial balance（簡化）
-  let initial_balance = 10000;
-
-  const trades = [];
-  for (let i = headerIndex + 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map(c => c.trim());
-    if (cols.length < 8) continue;
-
-    const type = (cols[typeIdx] || '').toLowerCase();
-    if (type === 'balance') continue;
-
-    const profit = parseFloat(cols[netProfitIdx] || 0);
-    if (isNaN(profit)) continue;
-
-    const openTimeStr = cols[openTimeIdx] || '';
-    const closeTimeStr = cols[closeTimeIdx] || openTimeStr;
-
-    let openTime = null;
-    if (openTimeStr) {
-      const parts = openTimeStr.split(' ');
-      const dmy = parts[0].split('/');
-      if (dmy.length === 3) {
-        openTime = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}T${parts[1] || '00:00:00'}`);
+    let headerIndex = 0;
+    for (let i = 0; i < Math.min(15, lines.length); i++) {
+      const lower = lines[i].toLowerCase();
+      if (lower.includes('open time') && lower.includes('net profit')) {
+        headerIndex = i;
+        break;
       }
     }
 
-    trades.push({
-      profit,
-      symbol: cols[symbolIdx] || 'UNKNOWN',
-      openTime,
-      openTimeStr,
-      closeTimeStr,
-      type,
-      lots: parseFloat(cols[lotsIdx] || 0),
-      pips: parseFloat(cols[netPipsIdx] || 0),
-      swap: parseFloat(cols[swapIdx] || 0),
-      magic: cols[magicIdx] || '',
-      maxProfit: parseFloat(cols[maxProfitIdx] || 0),
-      maxLoss: parseFloat(cols[maxLossIdx] || 0),
-      maxPips: parseFloat(cols[maxPipsIdx] || 0),
-      maxLossPips: parseFloat(cols[maxLossPipsIdx] || 0),
-      holdingHours: parseFloat(cols[holdingIdx] || 0)
+    const headers = lines[headerIndex].split(',').map(h => h.trim().toLowerCase());
+    const getIdx = (name) => headers.indexOf(name);
+
+    const openTimeIdx = getIdx('open time');
+    const closeTimeIdx = getIdx('close time');
+    const typeIdx = getIdx('type');
+    const symbolIdx = getIdx('symbol');
+    const netProfitIdx = getIdx('net profit');
+    const lotsIdx = getIdx('lots');
+    const netPipsIdx = getIdx('net pips');
+    const swapIdx = getIdx('swap');
+    const magicIdx = getIdx('magic number');
+    const maxProfitIdx = getIdx('max profit');
+    const maxLossIdx = getIdx('max loss');
+    const maxPipsIdx = getIdx('max pips');
+    const maxLossPipsIdx = getIdx('max loss pips');
+    const holdingIdx = getIdx('holding time (hours)');
+
+    if (netProfitIdx === -1) return null;
+
+    let initial_balance = 10000;
+    const trades = [];
+
+    for (let i = headerIndex + 1; i < lines.length; i++) {
+      const cols = lines[i].split(',').map(c => c.trim());
+      if (cols.length < 8) continue;
+
+      const type = (cols[typeIdx] || '').toLowerCase();
+      if (type === 'balance') continue;
+
+      const profit = parseFloat(cols[netProfitIdx] || 0);
+      if (isNaN(profit)) continue;
+
+      const openTimeStr = cols[openTimeIdx] || '';
+      const closeTimeStr = cols[closeTimeIdx] || openTimeStr;
+
+      let openTime = null;
+      if (openTimeStr) {
+        const parts = openTimeStr.split(' ');
+        const dmy = parts[0].split('/');
+        if (dmy.length === 3) {
+          openTime = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}T${parts[1] || '00:00:00'}`);
+        }
+      }
+
+      trades.push({
+        profit,
+        symbol: cols[symbolIdx] || 'UNKNOWN',
+        openTime,
+        openTimeStr,
+        closeTimeStr,
+        type,
+        lots: parseFloat(cols[lotsIdx] || 0),
+        pips: parseFloat(cols[netPipsIdx] || 0),
+        swap: parseFloat(cols[swapIdx] || 0),
+        magic: cols[magicIdx] || '',
+        maxProfit: parseFloat(cols[maxProfitIdx] || 0),
+        maxLoss: parseFloat(cols[maxLossIdx] || 0),
+        maxPips: parseFloat(cols[maxPipsIdx] || 0),
+        maxLossPips: parseFloat(cols[maxLossPipsIdx] || 0),
+        holdingHours: parseFloat(cols[holdingIdx] || 0)
+      });
+    }
+
+    if (trades.length === 0) return null;
+
+    trades.sort((a, b) => (a.openTime || 0) - (b.openTime || 0));
+
+    const bySymbol = {};
+    trades.forEach(t => {
+      if (!bySymbol[t.symbol]) {
+        bySymbol[t.symbol] = { deals: 0, total_profit: 0, buy_deals: 0, sell_deals: 0 };
+      }
+      bySymbol[t.symbol].deals++;
+      bySymbol[t.symbol].total_profit += t.profit;
+      if (t.type === 'buy') bySymbol[t.symbol].buy_deals++;
+      else if (t.type === 'sell') bySymbol[t.symbol].sell_deals++;
     });
+
+    let equity = initial_balance;
+    let peak = initial_balance;
+    let max_dd_money = 0;
+    let max_dd_pct = 0;
+    const equityCurve = [];
+    const equityLabels = [];
+
+    trades.forEach((t, idx) => {
+      equity += t.profit;
+      if (equity > peak) peak = equity;
+      const dd = peak - equity;
+      if (dd > max_dd_money) max_dd_money = dd;
+      if (peak > 0) max_dd_pct = Math.max(max_dd_pct, (dd / peak) * 100);
+      equityCurve.push(equity - initial_balance);
+      equityLabels.push(idx + 1);
+    });
+
+    const totalTrades = trades.length;
+    const winTrades = trades.filter(t => t.profit > 0).length;
+    const lossTrades = totalTrades - winTrades;
+    const winRate = totalTrades > 0 ? (winTrades / totalTrades * 100) : 0;
+    const avgWin = winTrades > 0 ? trades.filter(t => t.profit > 0).reduce((a, b) => a + b.profit, 0) / winTrades : 0;
+    const avgLoss = lossTrades > 0 ? trades.filter(t => t.profit < 0).reduce((a, b) => a + b.profit, 0) / lossTrades : 0;
+    const maxWin = Math.max(...trades.map(t => t.profit), 0);
+    const maxLoss = Math.min(...trades.map(t => t.profit), 0);
+
+    return {
+      trades,
+      totalTrades,
+      winTrades,
+      lossTrades,
+      winRate,
+      totalProfit: trades.reduce((a, b) => a + b.profit, 0),
+      avgWin,
+      avgLoss,
+      maxWin,
+      maxLoss,
+      max_dd_pct,
+      max_dd_money,
+      equityCurve,
+      equityLabels,
+      bySymbol,
+      initial_balance
+    };
   }
 
-  if (trades.length === 0) return null;
-
-  // 由舊到新排序
-  trades.sort((a, b) => (a.openTime || 0) - (b.openTime || 0));
-
-  // bySymbol 統計
-  const bySymbol = {};
-  trades.forEach(t => {
-    if (!bySymbol[t.symbol]) {
-      bySymbol[t.symbol] = { deals: 0, total_profit: 0, buy_deals: 0, sell_deals: 0 };
-    }
-    bySymbol[t.symbol].deals++;
-    bySymbol[t.symbol].total_profit += t.profit;
-    if (t.type === 'buy') bySymbol[t.symbol].buy_deals++;
-    else if (t.type === 'sell') bySymbol[t.symbol].sell_deals++;
-  });
-
-  // Equity + Max DD
-  let equity = initial_balance;
-  let peak = initial_balance;
-  let max_dd_money = 0;
-  let max_dd_pct = 0;
-  const equityCurve = [];
-  const equityLabels = [];
-
-  trades.forEach((t, idx) => {
-    equity += t.profit;
-    if (equity > peak) peak = equity;
-    const dd = peak - equity;
-    if (dd > max_dd_money) max_dd_money = dd;
-    if (peak > 0) max_dd_pct = Math.max(max_dd_pct, (dd / peak) * 100);
-    equityCurve.push(equity - initial_balance);
-    equityLabels.push(idx + 1);
-  });
-
-  const totalTrades = trades.length;
-  const winTrades = trades.filter(t => t.profit > 0).length;
-  const lossTrades = totalTrades - winTrades;
-  const winRate = totalTrades > 0 ? (winTrades / totalTrades * 100) : 0;
-  const avgWin = winTrades > 0 ? trades.filter(t => t.profit > 0).reduce((a, b) => a + b.profit, 0) / winTrades : 0;
-  const avgLoss = lossTrades > 0 ? trades.filter(t => t.profit < 0).reduce((a, b) => a + b.profit, 0) / lossTrades : 0;
-  const maxWin = Math.max(...trades.map(t => t.profit), 0);
-  const maxLoss = Math.min(...trades.map(t => t.profit), 0);
-
-  return {
-    trades,
-    totalTrades,
-    winTrades,
-    lossTrades,
-    winRate,
-    totalProfit: trades.reduce((a, b) => a + b.profit, 0),
-    avgWin,
-    avgLoss,
-    maxWin,
-    maxLoss,
-    max_dd_pct,
-    max_dd_money,
-    equityCurve,
-    equityLabels,
-    bySymbol,
-    initial_balance
-  };
-}
-
+  // ==================== 分析主函數 ====================
   function handleAnalyze() {
     const file = document.getElementById('csvFile').files[0];
     if (!file) {
       document.getElementById('tha-status').innerHTML = '<span class="text-danger">請先選擇檔案</span>';
       return;
     }
+
     const status = document.getElementById('tha-status');
     status.innerHTML = `<span class="text-primary">正在解析：${file.name} ...</span>`;
 
@@ -567,72 +564,70 @@ function parseYourCSV(text) {
           status.innerHTML = '<span class="text-danger">未能解析到有效交易</span>';
           return;
         }
+
         lastResult = result;
         document.getElementById('analysisArea').style.display = 'block';
         status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
 
-// ===== 更新總覽 Summary =====
-document.getElementById('stat-trades').textContent = result.totalTrades;
-document.getElementById('stat-winrate').textContent = result.winRate.toFixed(1) + '%';
-document.getElementById('stat-profit').textContent = (result.totalProfit >= 0 ? '+' : '') + result.totalProfit.toFixed(2);
-document.getElementById('stat-profit').className = 'fs-3 fw-bold ' + (result.totalProfit >= 0 ? 'pos' : 'neg');
+        // Summary
+        document.getElementById('stat-trades').textContent = result.totalTrades;
+        document.getElementById('stat-winrate').textContent = result.winRate.toFixed(1) + '%';
+        document.getElementById('stat-profit').textContent = (result.totalProfit >= 0 ? '+' : '') + result.totalProfit.toFixed(2);
+        document.getElementById('stat-profit').className = 'fs-3 fw-bold ' + (result.totalProfit >= 0 ? 'pos' : 'neg');
+        const profitPct = result.initial_balance > 0 ? (result.totalProfit / result.initial_balance * 100).toFixed(2) : 'N/A';
+        document.getElementById('stat-profit-pct').textContent = profitPct + '% of Balance';
+        document.getElementById('stat-dd-pct').textContent = result.max_dd_pct.toFixed(2) + '%';
+        document.getElementById('stat-dd-money').textContent = '$' + result.max_dd_money.toFixed(2);
 
-const profitPct = result.initial_balance > 0 ? (result.totalProfit / result.initial_balance * 100).toFixed(2) : 'N/A';
-document.getElementById('stat-profit-pct').textContent = profitPct + '% of Balance';
+        // 詳細 Statistics
+        document.getElementById('detailStats').innerHTML = `
+          <div>
+            <div class="stats-item"><span class="label">📈 Trades</span><span class="value">${result.totalTrades}</span></div>
+            <div class="stats-item"><span class="label">✅ Profit Trades</span><span class="value pos">${result.winTrades}</span></div>
+            <div class="stats-item"><span class="label">❌ Loss Trades</span><span class="value neg">${result.lossTrades}</span></div>
+            <div class="stats-item"><span class="label">🎯 Win Rate</span><span class="value">${result.winRate.toFixed(1)}%</span></div>
+            <div class="stats-item"><span class="label">💰 Total Profit</span><span class="value ${result.totalProfit>=0?'pos':'neg'}">${result.totalProfit.toFixed(2)}</span></div>
+          </div>
+          <div>
+            <div class="stats-item"><span class="label">📊 Avg Profit</span><span class="value pos">${result.avgWin.toFixed(2)}</span></div>
+            <div class="stats-item"><span class="label">📉 Avg Loss</span><span class="value neg">${result.avgLoss.toFixed(2)}</span></div>
+            <div class="stats-item"><span class="label">🏆 Max Win</span><span class="value pos">${result.maxWin.toFixed(2)}</span></div>
+            <div class="stats-item"><span class="label">💥 Max Loss</span><span class="value neg">${result.maxLoss.toFixed(2)}</span></div>
+            <div class="stats-item"><span class="label">📉 Max DD</span><span class="value neg">${result.max_dd_pct.toFixed(2)}%</span></div>
+          </div>
+        `;
 
-document.getElementById('stat-dd-pct').textContent = result.max_dd_pct.toFixed(2) + '%';
-document.getElementById('stat-dd-money').textContent = '$' + result.max_dd_money.toFixed(2);
+        // Equity Curve
+        const ctx = document.getElementById('thaEquityChart').getContext('2d');
+        if (window.thaChart) window.thaChart.destroy();
+        window.thaChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: result.equityLabels,
+            datasets: [{
+              data: result.equityCurve,
+              borderColor: '#16a34a',
+              borderWidth: 2,
+              tension: 0.2,
+              fill: true,
+              backgroundColor: 'rgba(22,163,74,0.08)',
+              pointRadius: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false } }
+          }
+        });
 
-// 詳細 Statistics
-document.getElementById('detailStats').innerHTML = `
-  <div>
-    <div class="stats-item"><span class="label">📈 Trades</span><span class="value">${result.totalTrades}</span></div>
-    <div class="stats-item"><span class="label">✅ Profit Trades</span><span class="value pos">${result.winTrades}</span></div>
-    <div class="stats-item"><span class="label">❌ Loss Trades</span><span class="value neg">${result.lossTrades}</span></div>
-    <div class="stats-item"><span class="label">🎯 Win Rate</span><span class="value">${result.winRate.toFixed(1)}%</span></div>
-    <div class="stats-item"><span class="label">💰 Total Profit</span><span class="value ${result.totalProfit>=0?'pos':'neg'}">${result.totalProfit.toFixed(2)}</span></div>
-  </div>
-  <div>
-    <div class="stats-item"><span class="label">📊 Avg Profit</span><span class="value pos">${result.avgWin.toFixed(2)}</span></div>
-    <div class="stats-item"><span class="label">📉 Avg Loss</span><span class="value neg">${result.avgLoss.toFixed(2)}</span></div>
-    <div class="stats-item"><span class="label">🏆 Max Win</span><span class="value pos">${result.maxWin.toFixed(2)}</span></div>
-    <div class="stats-item"><span class="label">💥 Max Loss</span><span class="value neg">${result.maxLoss.toFixed(2)}</span></div>
-    <div class="stats-item"><span class="label">📉 Max DD</span><span class="value neg">${result.max_dd_pct.toFixed(2)}%</span></div>
-  </div>
-`;
+        // Distribution
+        renderDistribution(result.bySymbol, result);
 
-// Equity Curve
-const ctx = document.getElementById('thaEquityChart').getContext('2d');
-if (window.thaChart) window.thaChart.destroy();
-window.thaChart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: result.equityLabels,
-    datasets: [{
-      data: result.equityCurve,
-      borderColor: '#16a34a',
-      borderWidth: 2,
-      tension: 0.2,
-      fill: true,
-      backgroundColor: 'rgba(22,163,74,0.08)',
-      pointRadius: 0
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: { x: { display: false } }
-  }
-});
-
-        // ===== 更新 Distribution By Symbol =====
-renderDistribution(result.bySymbol, result);
-        
-        // 更新 Summary、Equity、Distribution（請保留你之前的程式碼）
-        // ...
-
+        // Symbol + 馬丁
         renderSymbolMartingale(result);
+
       } catch (err) {
         console.error(err);
         status.innerHTML = '<span class="text-danger">解析出錯：' + err.message + '</span>';
@@ -641,65 +636,63 @@ renderDistribution(result.bySymbol, result);
     reader.readAsText(file);
   }
 
-function renderDistribution(bySymbol, result) {
-  const container = document.getElementById('distributionArea');
-  if (!container || !bySymbol) {
-    if (container) container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
-    return;
-  }
+  // ==================== Distribution ====================
+  function renderDistribution(bySymbol, result) {
+    const container = document.getElementById('distributionArea');
+    if (!container || !bySymbol) {
+      if (container) container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
+      return;
+    }
 
-  const symbols = Object.entries(bySymbol).sort((a, b) => b[1].deals - a[1].deals);
-  if (symbols.length === 0) {
-    container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
-    return;
-  }
+    const symbols = Object.entries(bySymbol).sort((a, b) => b[1].deals - a[1].deals);
+    if (symbols.length === 0) {
+      container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
+      return;
+    }
 
-  // 計算最大值用嚟做比例
-  let maxDeals = 1;
-  symbols.forEach(([_, s]) => { if (s.deals > maxDeals) maxDeals = s.deals; });
+    let maxDeals = 1;
+    symbols.forEach(([_, s]) => { if (s.deals > maxDeals) maxDeals = s.deals; });
 
-  let html = '';
+    let html = '';
 
-  // Deals
-  html += `<h6 class="mb-2">Deals Distribution By Symbol</h6>`;
-  symbols.slice(0, 12).forEach(([sym, s]) => {
-    const pct = (s.deals / maxDeals * 100).toFixed(0);
-    html += `
-      <div class="dist-row mb-2">
-        <div style="width:110px;font-weight:600;">${sym}</div>
-        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:24px;overflow:hidden;">
-          <div style="width:${pct}%;height:100%;background:#93c5fd;display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
-            ${s.deals}
+    html += `<h6 class="mb-2">Deals Distribution By Symbol</h6>`;
+    symbols.slice(0, 12).forEach(([sym, s]) => {
+      const pct = (s.deals / maxDeals * 100).toFixed(0);
+      html += `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.85rem;">
+          <div style="width:100px;font-weight:600;">${sym}</div>
+          <div style="flex:1;background:#f1f5f9;border-radius:6px;height:22px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:#93c5fd;display:flex;align-items:center;padding-left:8px;font-size:0.78rem;">
+              ${s.deals}
+            </div>
           </div>
-        </div>
-        <div style="width:120px;font-size:0.8rem;text-align:right;">
-          Buy: ${s.buy_deals || 0} | Sell: ${s.sell_deals || 0}
-        </div>
-      </div>`;
-  });
+          <div style="width:110px;text-align:right;font-size:0.78rem;">
+            Buy: ${s.buy_deals||0} | Sell: ${s.sell_deals||0}
+          </div>
+        </div>`;
+    });
 
-  // Net Profit
-  html += `<h6 class="mb-2 mt-4">Net Profit Distribution By Symbol</h6>`;
-  symbols.slice(0, 12).forEach(([sym, s]) => {
-    const profit = s.total_profit || 0;
-    const color = profit >= 0 ? '#86efac' : '#fca5a5';
+    html += `<h6 class="mb-2 mt-4">Net Profit Distribution By Symbol</h6>`;
     const absMax = Math.max(...symbols.map(([_, ss]) => Math.abs(ss.total_profit || 0)), 1);
-    const pct = (Math.abs(profit) / absMax * 100).toFixed(0);
-    html += `
-      <div class="dist-row mb-2">
-        <div style="width:110px;font-weight:600;">${sym}</div>
-        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:24px;overflow:hidden;">
-          <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
-            ${profit >= 0 ? '+' : ''}${profit.toFixed(0)}
+    symbols.slice(0, 12).forEach(([sym, s]) => {
+      const profit = s.total_profit || 0;
+      const color = profit >= 0 ? '#86efac' : '#fca5a5';
+      const pct = (Math.abs(profit) / absMax * 100).toFixed(0);
+      html += `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.85rem;">
+          <div style="width:100px;font-weight:600;">${sym}</div>
+          <div style="flex:1;background:#f1f5f9;border-radius:6px;height:22px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:8px;font-size:0.78rem;">
+              ${profit >= 0 ? '+' : ''}${profit.toFixed(0)}
+            </div>
           </div>
-        </div>
-      </div>`;
-  });
+        </div>`;
+    });
 
-  container.innerHTML = html;
-}
-  
-  // ==================== 正確馬丁層數（Lot Size 排序） ====================
+    container.innerHTML = html;
+  }
+
+  // ==================== Symbol + 馬丁 ====================
   function renderSymbolMartingale(result) {
     const btnContainer = document.getElementById('symbolButtons');
     const grid = document.getElementById('miniEquityGrid');
@@ -716,6 +709,7 @@ function renderDistribution(bySymbol, result) {
       .sort((a, b) => b[1].deals - a[1].deals)
       .slice(0, 30);
 
+    // 按鈕
     sorted.forEach(([sym, stats]) => {
       const btn = document.createElement('button');
       btn.className = 'btn btn-outline-primary btn-sm me-1 mb-1';
@@ -724,12 +718,65 @@ function renderDistribution(bySymbol, result) {
       btnContainer.appendChild(btn);
     });
 
-    // All Symbols 放最前
-    // （可按之前提供的 All Symbols 小卡 code 加入）
+    // All Symbols 小卡
+    const allCard = document.createElement('div');
+    allCard.className = 'mini-card';
+    allCard.innerHTML = `
+      <div class="symbol-name">All Symbols</div>
+      <div class="mini-canvas-wrap"><canvas id="mini-all"></canvas></div>
+      <div class="profit-value ${result.totalProfit >= 0 ? 'pos' : 'neg'}">${result.totalProfit >= 0 ? '+' : ''}${result.totalProfit.toFixed(0)}</div>
+      <div class="mdd-value">MDD: ${result.max_dd_pct.toFixed(1)}%</div>
+    `;
+    allCard.onclick = () => showMartingaleDetail('ALL', result);
+    grid.appendChild(allCard);
+
+    setTimeout(() => {
+      const canvas = document.getElementById('mini-all');
+      if (canvas) {
+        const chart = new Chart(canvas.getContext('2d'), {
+          type: 'line',
+          data: { labels: result.equityLabels, datasets: [{ data: result.equityCurve, borderColor: '#0ea5e9', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+        });
+        window.miniCharts.push(chart);
+      }
+    }, 50);
 
     // 個別 Symbol 小卡
     sorted.forEach(([sym, stats]) => {
-      // （用之前提供的 mini card + MDD code）
+      const symbolTrades = result.trades.filter(t => t.symbol === sym);
+      let equity = 0, peak = 0, maxDD = 0;
+      const curve = [];
+      symbolTrades.forEach(t => {
+        equity += t.profit;
+        if (equity > peak) peak = equity;
+        maxDD = Math.max(maxDD, peak - equity);
+        curve.push(equity);
+      });
+      const mddPct = peak > 0 ? (maxDD / peak * 100).toFixed(1) : '0.0';
+
+      const card = document.createElement('div');
+      card.className = 'mini-card';
+      const safeId = 'mini-' + sym.replace(/[^a-zA-Z0-9]/g, '_');
+      card.innerHTML = `
+        <div class="symbol-name">${sym}</div>
+        <div class="mini-canvas-wrap"><canvas id="${safeId}"></canvas></div>
+        <div class="profit-value ${stats.total_profit >= 0 ? 'pos' : 'neg'}">${stats.total_profit >= 0 ? '+' : ''}${stats.total_profit.toFixed(0)}</div>
+        <div class="mdd-value">MDD: ${mddPct}% ($${maxDD.toFixed(0)})</div>
+      `;
+      card.onclick = () => showMartingaleDetail(sym, result);
+      grid.appendChild(card);
+
+      setTimeout(() => {
+        const canvas = document.getElementById(safeId);
+        if (!canvas) return;
+        const chart = new Chart(canvas.getContext('2d'), {
+          type: 'line',
+          data: { labels: curve.map((_, i) => i), datasets: [{ data: curve, borderColor: '#16a34a', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+        });
+        window.miniCharts.push(chart);
+      }, 60);
     });
   }
 
@@ -737,7 +784,9 @@ function renderDistribution(bySymbol, result) {
     const content = document.getElementById('martingaleContent');
     if (!content) return;
 
-    const symbolTrades = result.trades.filter(t => t.symbol === symbol);
+    const isAll = symbol === 'ALL';
+    const symbolTrades = isAll ? result.trades : result.trades.filter(t => t.symbol === symbol);
+
     if (!symbolTrades.length) {
       content.innerHTML = '<p class="text-muted">無交易資料</p>';
       return;
@@ -746,9 +795,9 @@ function renderDistribution(bySymbol, result) {
     const buyTrades = symbolTrades.filter(t => t.type === 'buy');
     const sellTrades = symbolTrades.filter(t => t.type === 'sell');
 
-    let html = `<h5 class="mb-3">馬丁層數分析 – ${symbol}</h5>`;
-    html += buildMartingaleTable(symbol, 'BUY', buyTrades);
-    html += buildMartingaleTable(symbol, 'SELL', sellTrades);
+    let html = `<h5 class="mb-3">馬丁層數分析 – ${isAll ? 'All Symbols' : symbol}</h5>`;
+    html += buildMartingaleTable(isAll ? 'ALL' : symbol, 'BUY', buyTrades);
+    html += buildMartingaleTable(isAll ? 'ALL' : symbol, 'SELL', sellTrades);
     content.innerHTML = html;
   }
 
@@ -757,7 +806,6 @@ function renderDistribution(bySymbol, result) {
       return `<div class="mb-4 text-muted">${side === 'BUY' ? '📈' : '📉'} ${side} 無交易</div>`;
     }
 
-    // ===== 正確邏輯：Lot Size 由細到大 =====
     const lotMap = {};
     trades.forEach(t => {
       const lotKey = t.lots.toFixed(2);
@@ -883,65 +931,6 @@ function renderDistribution(bySymbol, result) {
       row.style.display = 'table-row';
       btn.textContent = '➖';
     }
-
-    function renderDistribution(bySymbol, result) {
-  const container = document.getElementById('distributionArea');
-  if (!container || !bySymbol) {
-    if (container) container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
-    return;
-  }
-
-  const symbols = Object.entries(bySymbol).sort((a, b) => b[1].deals - a[1].deals);
-  if (symbols.length === 0) {
-    container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
-    return;
-  }
-
-  // 計算最大值用嚟做比例
-  let maxDeals = 1;
-  symbols.forEach(([_, s]) => { if (s.deals > maxDeals) maxDeals = s.deals; });
-
-  let html = '';
-
-  // Deals
-  html += `<h6 class="mb-2">Deals Distribution By Symbol</h6>`;
-  symbols.slice(0, 12).forEach(([sym, s]) => {
-    const pct = (s.deals / maxDeals * 100).toFixed(0);
-    html += `
-      <div class="dist-row mb-2">
-        <div style="width:110px;font-weight:600;">${sym}</div>
-        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:24px;overflow:hidden;">
-          <div style="width:${pct}%;height:100%;background:#93c5fd;display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
-            ${s.deals}
-          </div>
-        </div>
-        <div style="width:120px;font-size:0.8rem;text-align:right;">
-          Buy: ${s.buy_deals || 0} | Sell: ${s.sell_deals || 0}
-        </div>
-      </div>`;
-  });
-
-  // Net Profit
-  html += `<h6 class="mb-2 mt-4">Net Profit Distribution By Symbol</h6>`;
-  symbols.slice(0, 12).forEach(([sym, s]) => {
-    const profit = s.total_profit || 0;
-    const color = profit >= 0 ? '#86efac' : '#fca5a5';
-    const absMax = Math.max(...symbols.map(([_, ss]) => Math.abs(ss.total_profit || 0)), 1);
-    const pct = (Math.abs(profit) / absMax * 100).toFixed(0);
-    html += `
-      <div class="dist-row mb-2">
-        <div style="width:110px;font-weight:600;">${sym}</div>
-        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:24px;overflow:hidden;">
-          <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
-            ${profit >= 0 ? '+' : ''}${profit.toFixed(0)}
-          </div>
-        </div>
-      </div>`;
-  });
-
-  container.innerHTML = html;
-}
-    
   }
 </script>
 </body>
