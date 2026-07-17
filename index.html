@@ -566,6 +566,61 @@ function parseYourCSV(text) {
         document.getElementById('analysisArea').style.display = 'block';
         status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
 
+// ===== 更新總覽 Summary =====
+document.getElementById('stat-trades').textContent = result.totalTrades;
+document.getElementById('stat-winrate').textContent = result.winRate.toFixed(1) + '%';
+document.getElementById('stat-profit').textContent = (result.totalProfit >= 0 ? '+' : '') + result.totalProfit.toFixed(2);
+document.getElementById('stat-profit').className = 'fs-3 fw-bold ' + (result.totalProfit >= 0 ? 'pos' : 'neg');
+
+const profitPct = result.initial_balance > 0 ? (result.totalProfit / result.initial_balance * 100).toFixed(2) : 'N/A';
+document.getElementById('stat-profit-pct').textContent = profitPct + '% of Balance';
+
+document.getElementById('stat-dd-pct').textContent = result.max_dd_pct.toFixed(2) + '%';
+document.getElementById('stat-dd-money').textContent = '$' + result.max_dd_money.toFixed(2);
+
+// 詳細 Statistics
+document.getElementById('detailStats').innerHTML = `
+  <div>
+    <div class="stats-item"><span class="label">📈 Trades</span><span class="value">${result.totalTrades}</span></div>
+    <div class="stats-item"><span class="label">✅ Profit Trades</span><span class="value pos">${result.winTrades}</span></div>
+    <div class="stats-item"><span class="label">❌ Loss Trades</span><span class="value neg">${result.lossTrades}</span></div>
+    <div class="stats-item"><span class="label">🎯 Win Rate</span><span class="value">${result.winRate.toFixed(1)}%</span></div>
+    <div class="stats-item"><span class="label">💰 Total Profit</span><span class="value ${result.totalProfit>=0?'pos':'neg'}">${result.totalProfit.toFixed(2)}</span></div>
+  </div>
+  <div>
+    <div class="stats-item"><span class="label">📊 Avg Profit</span><span class="value pos">${result.avgWin.toFixed(2)}</span></div>
+    <div class="stats-item"><span class="label">📉 Avg Loss</span><span class="value neg">${result.avgLoss.toFixed(2)}</span></div>
+    <div class="stats-item"><span class="label">🏆 Max Win</span><span class="value pos">${result.maxWin.toFixed(2)}</span></div>
+    <div class="stats-item"><span class="label">💥 Max Loss</span><span class="value neg">${result.maxLoss.toFixed(2)}</span></div>
+    <div class="stats-item"><span class="label">📉 Max DD</span><span class="value neg">${result.max_dd_pct.toFixed(2)}%</span></div>
+  </div>
+`;
+
+// Equity Curve
+const ctx = document.getElementById('thaEquityChart').getContext('2d');
+if (window.thaChart) window.thaChart.destroy();
+window.thaChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: result.equityLabels,
+    datasets: [{
+      data: result.equityCurve,
+      borderColor: '#16a34a',
+      borderWidth: 2,
+      tension: 0.2,
+      fill: true,
+      backgroundColor: 'rgba(22,163,74,0.08)',
+      pointRadius: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { display: false } }
+  }
+});
+        
         // 更新 Summary、Equity、Distribution（請保留你之前的程式碼）
         // ...
 
