@@ -667,7 +667,7 @@ function renderDistribution(bySymbol, result) {
     return;
   }
 
-  // 計算詳細 BUY / SELL
+  // 詳細計算
   const detailed = {};
   result.trades.forEach(t => {
     if (!detailed[t.symbol]) {
@@ -683,7 +683,6 @@ function renderDistribution(bySymbol, result) {
     d.profit += t.profit;
     d.pips += t.pips;
     d.swap += t.swap;
-
     if (t.type === 'buy') {
       d.buy_deals++;
       d.buy_profit += t.profit;
@@ -697,94 +696,177 @@ function renderDistribution(bySymbol, result) {
     }
   });
 
-  const sorted = Object.entries(detailed).sort((a, b) => b[1].deals - a[1].deals).slice(0, 12);
+  const sorted = Object.entries(detailed).sort((a, b) => b[1].deals - a[1].deals).slice(0, 10);
 
-  // 計算各指標最大值
+  // 最大值
   let maxDeals = 1, maxProfit = 1, maxPips = 1, maxSwap = 1;
+  let maxBuyDeals = 1, maxSellDeals = 1;
+  let maxBuyProfit = 1, maxSellProfit = 1;
+  let maxBuyPips = 1, maxSellPips = 1;
+  let maxBuySwap = 1, maxSellSwap = 1;
+
   sorted.forEach(([_, d]) => {
-    maxDeals = Math.max(maxDeals, d.buy_deals, d.sell_deals);
-    maxProfit = Math.max(maxProfit, Math.abs(d.buy_profit), Math.abs(d.sell_profit));
-    maxPips = Math.max(maxPips, Math.abs(d.buy_pips), Math.abs(d.sell_pips));
-    maxSwap = Math.max(maxSwap, Math.abs(d.buy_swap), Math.abs(d.sell_swap));
+    maxDeals = Math.max(maxDeals, d.deals);
+    maxProfit = Math.max(maxProfit, Math.abs(d.profit));
+    maxPips = Math.max(maxPips, Math.abs(d.pips));
+    maxSwap = Math.max(maxSwap, Math.abs(d.swap));
+    maxBuyDeals = Math.max(maxBuyDeals, d.buy_deals);
+    maxSellDeals = Math.max(maxSellDeals, d.sell_deals);
+    maxBuyProfit = Math.max(maxBuyProfit, Math.abs(d.buy_profit));
+    maxSellProfit = Math.max(maxSellProfit, Math.abs(d.sell_profit));
+    maxBuyPips = Math.max(maxBuyPips, Math.abs(d.buy_pips));
+    maxSellPips = Math.max(maxSellPips, Math.abs(d.sell_pips));
+    maxBuySwap = Math.max(maxBuySwap, Math.abs(d.buy_swap));
+    maxSellSwap = Math.max(maxSellSwap, Math.abs(d.sell_swap));
   });
 
-  function makeDivergingBar(buyVal, sellVal, maxVal, buyColor, sellColor) {
-    const buyPct = Math.min(50, (Math.abs(buyVal) / maxVal * 50));
-    const sellPct = Math.min(50, (Math.abs(sellVal) / maxVal * 50));
+  function leftBar(val, max, color) {
+    const pct = Math.max(2, (Math.abs(val) / max * 100));
+    return `<div style="height:18px;background:${color};width:${pct}%;border-radius:3px;" title="${val}"></div>`;
+  }
+
+  function diverging(buyVal, sellVal, maxBuy, maxSell, buyColor, sellColor) {
+    const buyPct = Math.min(48, (Math.abs(buyVal) / maxBuy * 48));
+    const sellPct = Math.min(48, (Math.abs(sellVal) / maxSell * 48));
     return `
-      <div style="display:flex;width:100%;height:22px;background:#f1f5f9;border-radius:4px;overflow:hidden;position:relative;">
-        <div style="width:50%;display:flex;justify-content:flex-end;">
-          <div style="width:${buyPct}%;height:100%;background:${buyColor};"></div>
+      <div style="display:flex;height:18px;width:100%;">
+        <div style="width:50%;display:flex;justify-content:flex-end;padding-right:1px;">
+          <div style="width:${sellPct}%;height:100%;background:${sellColor};border-radius:3px 0 0 3px;" title="Sell: ${sellVal}"></div>
         </div>
-        <div style="width:50%;display:flex;justify-content:flex-start;">
-          <div style="width:${sellPct}%;height:100%;background:${sellColor};"></div>
+        <div style="width:50%;display:flex;justify-content:flex-start;padding-left:1px;">
+          <div style="width:${buyPct}%;height:100%;background:${buyColor};border-radius:0 3px 3px 0;" title="Buy: ${buyVal}"></div>
         </div>
       </div>
     `;
   }
 
-  let html = '';
+  let html = `<div style="font-size:0.85rem;">`;
 
-  // 1. Deals
-  html += `<h6 class="mb-2">1. Deals（左 Buy 藍 / 右 Sell 橙）</h6>`;
-  sorted.forEach(([sym, d]) => {
-    html += `
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.85rem;">
-        <div style="width:90px;font-weight:600;">${sym}</div>
-        <div style="flex:1;">
-          ${makeDivergingBar(d.buy_deals, d.sell_deals, maxDeals, '#60a5fa', '#fb923c')}
+  // ===== Deals =====
+  html += `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+      <div>
+        <div style="font-weight:600;margin-bottom:8px;color:#64748b;">Deals</div>
+        ${sorted.map(([sym, d]) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:70px;">${sym}</div>
+            <div style="flex:1;background:#f1f5f9;border-radius:3px;height:18px;">
+              ${leftBar(d.deals, maxDeals, '#93c5fd')}
+            </div>
+            <div style="width:40px;text-align:right;">${d.deals}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-weight:600;margin-bottom:8px;color:#64748b;">
+          <span>Sell</span><span>Buy</span>
         </div>
-        <div style="width:130px;text-align:right;font-size:0.78rem;">
-          <span style="color:#2563eb;">B ${d.buy_deals}</span> | <span style="color:#ea580c;">S ${d.sell_deals}</span>
-        </div>
-      </div>`;
-  });
+        ${sorted.map(([sym, d]) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:70px;">${sym}</div>
+            <div style="flex:1;">
+              ${diverging(d.buy_deals, d.sell_deals, maxBuyDeals, maxSellDeals, '#86efac', '#fdba74')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 
-  // 2. Net Profit USD
-  html += `<h6 class="mb-2 mt-4">2. Net Profit USD（左 Buy / 右 Sell）</h6>`;
-  sorted.forEach(([sym, d]) => {
-    html += `
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.85rem;">
-        <div style="width:90px;font-weight:600;">${sym}</div>
-        <div style="flex:1;">
-          ${makeDivergingBar(d.buy_profit, d.sell_profit, maxProfit, '#4ade80', '#f87171')}
+  // ===== Net Profit USD =====
+  html += `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+      <div>
+        <div style="font-weight:600;margin-bottom:8px;color:#64748b;">Net Profit, USD</div>
+        ${sorted.map(([sym, d]) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:70px;">${sym}</div>
+            <div style="flex:1;background:#f1f5f9;border-radius:3px;height:18px;">
+              ${leftBar(d.profit, maxProfit, d.profit >= 0 ? '#86efac' : '#fca5a5')}
+            </div>
+            <div style="width:60px;text-align:right;${d.profit>=0?'color:#16a34a':'color:#dc2626'}">${d.profit.toFixed(0)}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-weight:600;margin-bottom:8px;color:#64748b;">
+          <span>Loss, USD</span><span>Profit, USD</span>
         </div>
-        <div style="width:150px;text-align:right;font-size:0.78rem;">
-          <span class="pos">B ${d.buy_profit.toFixed(0)}</span> | <span class="neg">S ${d.sell_profit.toFixed(0)}</span>
-        </div>
-      </div>`;
-  });
+        ${sorted.map(([sym, d]) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:70px;">${sym}</div>
+            <div style="flex:1;">
+              ${diverging(d.buy_profit, d.sell_profit, maxBuyProfit, maxSellProfit, '#86efac', '#fca5a5')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 
-  // 3. Net Profit Pips
-  html += `<h6 class="mb-2 mt-4">3. Net Profit Pips（左 Buy / 右 Sell）</h6>`;
-  sorted.forEach(([sym, d]) => {
-    html += `
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.85rem;">
-        <div style="width:90px;font-weight:600;">${sym}</div>
-        <div style="flex:1;">
-          ${makeDivergingBar(d.buy_pips, d.sell_pips, maxPips, '#4ade80', '#f87171')}
+  // ===== Net Profit Pips =====
+  html += `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+      <div>
+        <div style="font-weight:600;margin-bottom:8px;color:#64748b;">Net Profit, Pips</div>
+        ${sorted.map(([sym, d]) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:70px;">${sym}</div>
+            <div style="flex:1;background:#f1f5f9;border-radius:3px;height:18px;">
+              ${leftBar(d.pips, maxPips, d.pips >= 0 ? '#86efac' : '#fca5a5')}
+            </div>
+            <div style="width:60px;text-align:right;${d.pips>=0?'color:#16a34a':'color:#dc2626'}">${d.pips.toFixed(0)}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-weight:600;margin-bottom:8px;color:#64748b;">
+          <span>Loss, Pips</span><span>Profit, Pips</span>
         </div>
-        <div style="width:150px;text-align:right;font-size:0.78rem;">
-          <span class="pos">B ${d.buy_pips.toFixed(0)}</span> | <span class="neg">S ${d.sell_pips.toFixed(0)}</span>
-        </div>
-      </div>`;
-  });
+        ${sorted.map(([sym, d]) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:70px;">${sym}</div>
+            <div style="flex:1;">
+              ${diverging(d.buy_pips, d.sell_pips, maxBuyPips, maxSellPips, '#86efac', '#fca5a5')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 
-  // 4. Net Swap
-  html += `<h6 class="mb-2 mt-4">4. Net Swap USD（左 Buy / 右 Sell）</h6>`;
-  sorted.forEach(([sym, d]) => {
-    html += `
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.85rem;">
-        <div style="width:90px;font-weight:600;">${sym}</div>
-        <div style="flex:1;">
-          ${makeDivergingBar(d.buy_swap, d.sell_swap, maxSwap, '#60a5fa', '#f87171')}
+  // ===== Net Swap =====
+  html += `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div>
+        <div style="font-weight:600;margin-bottom:8px;color:#64748b;">Net Swap, USD</div>
+        ${sorted.map(([sym, d]) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:70px;">${sym}</div>
+            <div style="flex:1;background:#f1f5f9;border-radius:3px;height:18px;">
+              ${leftBar(d.swap, maxSwap, d.swap >= 0 ? '#93c5fd' : '#fca5a5')}
+            </div>
+            <div style="width:60px;text-align:right;${d.swap>=0?'color:#2563eb':'color:#dc2626'}">${d.swap.toFixed(1)}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-weight:600;margin-bottom:8px;color:#64748b;">
+          <span>Sell Swap</span><span>Buy Swap</span>
         </div>
-        <div style="width:150px;text-align:right;font-size:0.78rem;">
-          <span class="pos">B ${d.buy_swap.toFixed(1)}</span> | <span class="neg">S ${d.sell_swap.toFixed(1)}</span>
-        </div>
-      </div>`;
-  });
+        ${sorted.map(([sym, d]) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:70px;">${sym}</div>
+            <div style="flex:1;">
+              ${diverging(d.buy_swap, d.sell_swap, maxBuySwap, maxSellSwap, '#86efac', '#fdba74')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 
+  html += `</div>`;
   container.innerHTML = html;
 }
 
