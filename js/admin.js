@@ -44,7 +44,7 @@ const DOM = {
         overview: document.getElementById('section-overview'),
         users: document.getElementById('section-users'),
         signals: document.getElementById('section-signals'),
-        system: document.getElementById('section-system')
+        system: document.getElementById('section-system'),             inventory: document.getElementById('section-inventory')
     },
     // Stats
     statTotalUsers: document.getElementById('stat-total-users'),
@@ -156,7 +156,7 @@ function navigateToSection(sectionName) {
         overview: 'Overview',
         users: 'User Management',
         signals: 'Signals Library',
-        system: 'System Status'
+        system: 'System Status',             inventory: 'Project Inventory'
     };
     if (DOM.dashboardTitle) {
         DOM.dashboardTitle.textContent = titles[sectionName] || 'Dashboard';
