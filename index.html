@@ -1087,7 +1087,24 @@ function buildMartingaleTable(symbol, side, trades) {
 
   html += `</tbody></table></div>
     <div class="small text-muted mt-2">
-      顏色說明：紅色 = ≤0% | 淺黃 = 1%~79% | 綠色 = >80% | 藍色 = >90% | 亮藍 = >95%
+      <div class="small text-muted mt-2 d-flex flex-wrap gap-3 align-items-center">
+  <span>顏色說明：</span>
+  <span style="display:inline-flex;align-items:center;gap:4px;">
+    <span style="width:14px;height:14px;background:#fecaca;border:1px solid #ccc;display:inline-block;"></span> ≤0%
+  </span>
+  <span style="display:inline-flex;align-items:center;gap:4px;">
+    <span style="width:14px;height:14px;background:#fef9c3;border:1px solid #ccc;display:inline-block;"></span> 1%~79%
+  </span>
+  <span style="display:inline-flex;align-items:center;gap:4px;">
+    <span style="width:14px;height:14px;background:#bbf7d0;border:1px solid #ccc;display:inline-block;"></span> >80%
+  </span>
+  <span style="display:inline-flex;align-items:center;gap:4px;">
+    <span style="width:14px;height:14px;background:#bfdbfe;border:1px solid #ccc;display:inline-block;"></span> >90%
+  </span>
+  <span style="display:inline-flex;align-items:center;gap:4px;">
+    <span style="width:14px;height:14px;background:#60a5fa;border:1px solid #ccc;display:inline-block;"></span> >95%
+  </span>
+</div>
     </div>
   </div>`;
   return html;
