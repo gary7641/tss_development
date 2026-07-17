@@ -111,12 +111,13 @@
     
     /* ===== 馬丁表格顏色 ===== */
 .martingale-table tr.layer-red td { background-color: #fecaca !important; }
-.martingale-table tr.layer-yellow td { background-color: #fef08a !important; }
+.martingale-table tr.layer-yellow td { background-color: #fef9c3 !important; } /* 較淺黃 */
 .martingale-table tr.layer-green td { background-color: #bbf7d0 !important; }
 .martingale-table tr.layer-blue td { background-color: #bfdbfe !important; }
 .martingale-table tr.layer-bright-blue td { 
   background-color: #93c5fd !important; 
   font-weight: 600;
+}
 }
 
 .expand-btn { cursor: pointer; font-size: 1.2rem; user-select: none; }
@@ -411,143 +412,153 @@
   }
 
   // ==================== CSV 解析 ====================
-  function parseYourCSV(text) {
-    const lines = text.split(/\r?\n/).filter(l => l.trim());
-    if (lines.length < 2) return null;
+function parseYourCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) return null;
 
-    let headerIndex = 0;
-    for (let i = 0; i < Math.min(15, lines.length); i++) {
-      const lower = lines[i].toLowerCase();
-      if (lower.includes('open time') && lower.includes('net profit')) {
-        headerIndex = i;
-        break;
-      }
+  let headerIndex = 0;
+  for (let i = 0; i < Math.min(15, lines.length); i++) {
+    const lower = lines[i].toLowerCase();
+    if (lower.includes('open time') && lower.includes('net profit')) {
+      headerIndex = i;
+      break;
     }
-
-    const headers = lines[headerIndex].split(',').map(h => h.trim().toLowerCase());
-    const getIdx = (name) => headers.indexOf(name);
-
-    const openTimeIdx = getIdx('open time');
-    const closeTimeIdx = getIdx('close time');
-    const typeIdx = getIdx('type');
-    const symbolIdx = getIdx('symbol');
-    const netProfitIdx = getIdx('net profit');
-    const lotsIdx = getIdx('lots');
-    const netPipsIdx = getIdx('net pips');
-    const swapIdx = getIdx('swap');
-    const magicIdx = getIdx('magic number');
-    const maxProfitIdx = getIdx('max profit');
-    const maxLossIdx = getIdx('max loss');
-    const maxPipsIdx = getIdx('max pips');
-    const maxLossPipsIdx = getIdx('max loss pips');
-    const holdingIdx = getIdx('holding time (hours)');
-
-    if (netProfitIdx === -1) return null;
-
-    let initial_balance = 10000;
-    const trades = [];
-
-    for (let i = headerIndex + 1; i < lines.length; i++) {
-      const cols = lines[i].split(',').map(c => c.trim());
-      if (cols.length < 8) continue;
-
-      const type = (cols[typeIdx] || '').toLowerCase();
-      if (type === 'balance') continue;
-
-      const profit = parseFloat(cols[netProfitIdx] || 0);
-      if (isNaN(profit)) continue;
-
-      const openTimeStr = cols[openTimeIdx] || '';
-      const closeTimeStr = cols[closeTimeIdx] || openTimeStr;
-
-      let openTime = null;
-      if (openTimeStr) {
-        const parts = openTimeStr.split(' ');
-        const dmy = parts[0].split('/');
-        if (dmy.length === 3) {
-          openTime = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}T${parts[1] || '00:00:00'}`);
-        }
-      }
-
-      trades.push({
-        profit,
-        symbol: cols[symbolIdx] || 'UNKNOWN',
-        openTime,
-        openTimeStr,
-        closeTimeStr,
-        type,
-        lots: parseFloat(cols[lotsIdx] || 0),
-        pips: parseFloat(cols[netPipsIdx] || 0),
-        swap: parseFloat(cols[swapIdx] || 0),
-        magic: cols[magicIdx] || '',
-        maxProfit: parseFloat(cols[maxProfitIdx] || 0),
-        maxLoss: parseFloat(cols[maxLossIdx] || 0),
-        maxPips: parseFloat(cols[maxPipsIdx] || 0),
-        maxLossPips: parseFloat(cols[maxLossPipsIdx] || 0),
-        holdingHours: parseFloat(cols[holdingIdx] || 0)
-      });
-    }
-
-    if (trades.length === 0) return null;
-
-    trades.sort((a, b) => (a.openTime || 0) - (b.openTime || 0));
-
-    const bySymbol = {};
-    trades.forEach(t => {
-      if (!bySymbol[t.symbol]) {
-        bySymbol[t.symbol] = { deals: 0, total_profit: 0, buy_deals: 0, sell_deals: 0 };
-      }
-      bySymbol[t.symbol].deals++;
-      bySymbol[t.symbol].total_profit += t.profit;
-      if (t.type === 'buy') bySymbol[t.symbol].buy_deals++;
-      else if (t.type === 'sell') bySymbol[t.symbol].sell_deals++;
-    });
-
-    let equity = initial_balance;
-    let peak = initial_balance;
-    let max_dd_money = 0;
-    let max_dd_pct = 0;
-    const equityCurve = [];
-    const equityLabels = [];
-
-    trades.forEach((t, idx) => {
-      equity += t.profit;
-      if (equity > peak) peak = equity;
-      const dd = peak - equity;
-      if (dd > max_dd_money) max_dd_money = dd;
-      if (peak > 0) max_dd_pct = Math.max(max_dd_pct, (dd / peak) * 100);
-      equityCurve.push(equity - initial_balance);
-      equityLabels.push(idx + 1);
-    });
-
-    const totalTrades = trades.length;
-    const winTrades = trades.filter(t => t.profit > 0).length;
-    const lossTrades = totalTrades - winTrades;
-    const winRate = totalTrades > 0 ? (winTrades / totalTrades * 100) : 0;
-    const avgWin = winTrades > 0 ? trades.filter(t => t.profit > 0).reduce((a, b) => a + b.profit, 0) / winTrades : 0;
-    const avgLoss = lossTrades > 0 ? trades.filter(t => t.profit < 0).reduce((a, b) => a + b.profit, 0) / lossTrades : 0;
-    const maxWin = Math.max(...trades.map(t => t.profit), 0);
-    const maxLoss = Math.min(...trades.map(t => t.profit), 0);
-
-    return {
-      trades,
-      totalTrades,
-      winTrades,
-      lossTrades,
-      winRate,
-      totalProfit: trades.reduce((a, b) => a + b.profit, 0),
-      avgWin,
-      avgLoss,
-      maxWin,
-      maxLoss,
-      max_dd_pct,
-      max_dd_money,
-      equityCurve,
-      equityLabels,
-      bySymbol,
-      initial_balance
-    };
   }
+
+  const headers = lines[headerIndex].split(',').map(h => h.trim().toLowerCase());
+  const getIdx = (name) => headers.indexOf(name);
+
+  const openTimeIdx = getIdx('open time');
+  const typeIdx = getIdx('type');
+  const lotsIdx = getIdx('lots');
+  const symbolIdx = getIdx('symbol');
+  const openPriceIdx = getIdx('open price');
+  const closeTimeIdx = getIdx('close time');
+  const closePriceIdx = getIdx('close price');
+  const commissionIdx = getIdx('commission');
+  const swapIdx = getIdx('swap');
+  const netPipsIdx = getIdx('net pips');
+  const netProfitIdx = getIdx('net profit');
+  const maxProfitIdx = getIdx('max profit');
+  const maxPipsIdx = getIdx('max pips');
+  const maxLossIdx = getIdx('max loss');
+  const maxLossPipsIdx = getIdx('max loss pips');
+  const magicIdx = getIdx('magic number');
+  const commentIdx = getIdx('comment');
+  const holdingIdx = getIdx('holding time (hours)');
+  const holdingStrIdx = getIdx('holding time');
+
+  if (netProfitIdx === -1) return null;
+
+  let initial_balance = 10000;
+  const trades = [];
+
+  for (let i = headerIndex + 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.trim());
+    if (cols.length < 8) continue;
+
+    const type = (cols[typeIdx] || '').toLowerCase();
+    if (type === 'balance') continue;
+
+    const profit = parseFloat(cols[netProfitIdx] || 0);
+    if (isNaN(profit)) continue;
+
+    const openTimeStr = cols[openTimeIdx] || '';
+    const closeTimeStr = cols[closeTimeIdx] || openTimeStr;
+
+    let openTime = null;
+    if (openTimeStr) {
+      const parts = openTimeStr.split(' ');
+      const dmy = parts[0].split('/');
+      if (dmy.length === 3) {
+        openTime = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}T${parts[1] || '00:00:00'}`);
+      }
+    }
+
+    trades.push({
+      openTimeStr,
+      closeTimeStr,
+      openTime,
+      type,
+      lots: parseFloat(cols[lotsIdx] || 0),
+      symbol: cols[symbolIdx] || 'UNKNOWN',
+      openPrice: parseFloat(cols[openPriceIdx] || 0),
+      closePrice: parseFloat(cols[closePriceIdx] || 0),
+      commission: parseFloat(cols[commissionIdx] || 0),
+      swap: parseFloat(cols[swapIdx] || 0),
+      pips: parseFloat(cols[netPipsIdx] || 0),
+      profit,
+      maxProfit: parseFloat(cols[maxProfitIdx] || 0),
+      maxPips: parseFloat(cols[maxPipsIdx] || 0),
+      maxLoss: parseFloat(cols[maxLossIdx] || 0),
+      maxLossPips: parseFloat(cols[maxLossPipsIdx] || 0),
+      magic: cols[magicIdx] || '',
+      comment: cols[commentIdx] || '',
+      holdingHours: parseFloat(cols[holdingIdx] || 0),
+      holdingStr: cols[holdingStrIdx] || ''
+    });
+  }
+
+  if (trades.length === 0) return null;
+
+  trades.sort((a, b) => (a.openTime || 0) - (b.openTime || 0));
+
+  const bySymbol = {};
+  trades.forEach(t => {
+    if (!bySymbol[t.symbol]) {
+      bySymbol[t.symbol] = { deals: 0, total_profit: 0, buy_deals: 0, sell_deals: 0 };
+    }
+    bySymbol[t.symbol].deals++;
+    bySymbol[t.symbol].total_profit += t.profit;
+    if (t.type === 'buy') bySymbol[t.symbol].buy_deals++;
+    else if (t.type === 'sell') bySymbol[t.symbol].sell_deals++;
+  });
+
+  let equity = initial_balance;
+  let peak = initial_balance;
+  let max_dd_money = 0;
+  let max_dd_pct = 0;
+  const equityCurve = [];
+  const equityLabels = [];
+
+  trades.forEach((t, idx) => {
+    equity += t.profit;
+    if (equity > peak) peak = equity;
+    const dd = peak - equity;
+    if (dd > max_dd_money) max_dd_money = dd;
+    if (peak > 0) max_dd_pct = Math.max(max_dd_pct, (dd / peak) * 100);
+    equityCurve.push(equity - initial_balance);
+    equityLabels.push(idx + 1);
+  });
+
+  const totalTrades = trades.length;
+  const winTrades = trades.filter(t => t.profit > 0).length;
+  const lossTrades = totalTrades - winTrades;
+  const winRate = totalTrades > 0 ? (winTrades / totalTrades * 100) : 0;
+  const avgWin = winTrades > 0 ? trades.filter(t => t.profit > 0).reduce((a, b) => a + b.profit, 0) / winTrades : 0;
+  const avgLoss = lossTrades > 0 ? trades.filter(t => t.profit < 0).reduce((a, b) => a + b.profit, 0) / lossTrades : 0;
+  const maxWin = Math.max(...trades.map(t => t.profit), 0);
+  const maxLoss = Math.min(...trades.map(t => t.profit), 0);
+
+  return {
+    trades,
+    totalTrades,
+    winTrades,
+    lossTrades,
+    winRate,
+    totalProfit: trades.reduce((a, b) => a + b.profit, 0),
+    avgWin,
+    avgLoss,
+    maxWin,
+    maxLoss,
+    max_dd_pct,
+    max_dd_money,
+    equityCurve,
+    equityLabels,
+    bySymbol,
+    initial_balance
+  };
+}
 
   // ==================== 分析主函數 ====================
   function handleAnalyze() {
