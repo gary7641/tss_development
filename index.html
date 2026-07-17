@@ -695,14 +695,19 @@ function parseYourCSV(text) {
         // Distribution
         renderDistribution(result.bySymbol, result);
 
-        // Symbol + 馬丁
-        renderSymbolMartingale(result);
+// Symbol + 馬丁
+renderSymbolMartingale(result);
 
-        // MFE + MAE（確保區塊已顯示）
-        document.getElementById('block-mfe-mae').classList.add('active');
-        setTimeout(() => {
-        renderMfeMae(result);
-        }, 100);
+// MFE + MAE
+document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
+document.querySelector('#analysisMenu button[data-block="mfe-mae"]').classList.add('active');
+
+document.querySelectorAll('.analysis-block').forEach(b => b.classList.remove('active'));
+document.getElementById('block-mfe-mae').classList.add('active');
+
+setTimeout(() => {
+  renderMfeMae(result);
+}, 150);
 
       } catch (err) {
         console.error(err);
