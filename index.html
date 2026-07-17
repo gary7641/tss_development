@@ -697,6 +697,9 @@ function parseYourCSV(text) {
 
         // Symbol + 馬丁
         renderSymbolMartingale(result);
+       
+        // MFE / MAE
+        renderMfeMae(result);
 
       } catch (err) {
         console.error(err);
@@ -1288,6 +1291,66 @@ function sortDetailTable(tableId, colIndex) {
       btn.textContent = '➖';
     }
   }
+
+  // ==================== MFE + MAE ====================
+function renderMfeMae(result) {
+  const trades = result.trades;
+  if (!trades || trades.length === 0) return;
+
+  const dataPoints = trades.map((t, i) => ({
+    x: t.maxLoss || 0,        // MAE
+    y: t.maxProfit || 0,      // MFE
+    profit: t.profit,
+    symbol: t.symbol,
+    label: `Trade ${i+1}`
+  }));
+
+  // Scatter Plot
+  const ctx = document.getElementById('mfeMaeChart').getContext('2d');
+  if (window.mfeChart) window.mfeChart.destroy();
+
+  window.mfeChart = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Trades',
+        data: dataPoints,
+        backgroundColor: dataPoints.map(p => p.profit >= 0 ? '#4ade80' : '#f87171'),
+        borderColor: '#1e2937',
+        borderWidth: 1,
+        pointRadius: 5,
+        pointHoverRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.raw.label} | Profit: ${ctx.raw.profit.toFixed(2)} | MFE: ${ctx.raw.y} | MAE: ${ctx.raw.x}`
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'MAE (Max Adverse)' } },
+        y: { title: { display: true, text: 'MFE (Max Favorable)' } }
+      }
+    }
+  });
+
+  // Summary
+  const avgMFE = dataPoints.reduce((a, b) => a + b.y, 0) / dataPoints.length;
+  const avgMAE = dataPoints.reduce((a, b) => a + b.x, 0) / dataPoints.length;
+
+  document.getElementById('mfeMaeSummary').innerHTML = `
+    <div><span class="label">Avg MFE</span><span class="value pos">${avgMFE.toFixed(1)}</span></div>
+    <div><span class="label">Avg MAE</span><span class="value neg">${avgMAE.toFixed(1)}</span></div>
+    <div><span class="label">Ratio</span><span class="value">${(avgMFE / Math.abs(avgMAE)).toFixed(2)}</span></div>
+  `;
+}
+  
 </script>
 </body>
 </html>
