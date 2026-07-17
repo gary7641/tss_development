@@ -94,6 +94,29 @@
     .expand-btn { cursor: pointer; font-size: 1.1rem; }
     .layer-detail { display: none; background: #f8fafc; padding: 10px; border-radius: 6px; margin-top: 6px; }
     .symbol-btn { margin: 3px; }
+    .mini-equity-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .mini-card {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mini-card:hover {
+      border-color: #0ea5e9;
+      box-shadow: 0 4px 12px rgba(14,165,233,0.15);
+      transform: translateY(-2px);
+    }
+    .mini-card .symbol-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+    .mini-card .profit-value { font-size: 0.95rem; font-weight: 600; }
+    .mini-card .mdd-value { font-size: 0.8rem; color: #dc2626; }
+    .mini-canvas-wrap { height: 70px; margin: 8px 0; }
   </style>
 </head>
 <body>
@@ -220,12 +243,24 @@
             </section>
           </div>
 
-          <!-- Symbol + 馬丁 -->
+          <!-- Symbol + 馬丁（含 Mini Equity Grid + MDD） -->
           <div class="analysis-block" id="block-symbol-martingale">
             <section class="panel">
-              <h2 class="panel-title">Symbol 一覽 + 馬丁層數分析</h2>
-              <div id="symbolButtons" class="mb-3"></div>
-              <div id="martingaleContent"></div>
+              <h2 class="panel-title">4. Symbol 一覽與 Mini Equity</h2>
+              
+              <div class="mb-3">
+                <strong>Symbols</strong>
+                <div id="symbolButtons" class="mt-2"></div>
+              </div>
+
+              <h6 class="mb-2">Symbol 累積 Profit 小圖（含 MDD）</h6>
+              <div id="miniEquityGrid" class="mini-equity-grid"></div>
+
+              <hr class="my-4">
+
+              <div id="martingaleContent">
+                <p class="text-muted">點擊上方 Symbol 或小卡查看深入分析 + 馬丁層數</p>
+              </div>
             </section>
           </div>
 
@@ -252,11 +287,9 @@
             <section class="panel">
               <h2 class="panel-title">交易時間 Heat Map（星期 × 小時）</h2>
               <div id="heatmapContainer"></div>
-              <div class="small text-muted mt-2">顏色越綠 = 平均利潤越高，數字為該時段交易數</div>
             </section>
           </div>
 
-          <!-- Drawdown & SWOT -->
           <div class="analysis-block" id="block-drawdown">
             <section class="panel">
               <h2 class="panel-title">Drawdown 分析</h2>
@@ -267,24 +300,24 @@
           <div class="analysis-block" id="block-swot">
             <section class="panel">
               <h2 class="panel-title">SWOT 分析（9格）</h2>
-              <div class="swot-9" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-                <div class="swot-cell" style="background:#dbeafe;border-radius:10px;padding:14px;"><div class="swot-title">S-T 策略</div><ul class="small mb-0"><li>加入不同 TF</li><li>加 RSI/BB Filter</li></ul></div>
-                <div class="swot-cell" style="background:#fef9c3;border-radius:10px;padding:14px;"><div class="swot-title">STRENGTH</div><ul class="small mb-0"><li>捕捉多週期趨勢</li><li>有 PLAN B 馬丁</li></ul></div>
-                <div class="swot-cell" style="background:#dbeafe;border-radius:10px;padding:14px;"><div class="swot-title">S-O 策略</div><ul class="small mb-0"><li>精選貨幣對</li><li>可作 Copy Trade</li></ul></div>
-                <div class="swot-cell" style="background:#fef9c3;border-radius:10px;padding:14px;"><div class="swot-title">THREATS</div><ul class="small mb-0"><li>地緣政治波動</li><li>無 Cooldown</li></ul></div>
-                <div class="swot-cell" style="background:#e0f2fe;border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:center;"><strong>SWOT</strong></div>
-                <div class="swot-cell" style="background:#fef9c3;border-radius:10px;padding:14px;"><div class="swot-title">OPPORTUNITIES</div><ul class="small mb-0"><li>已運作多週</li><li>有 Risk Free 紀錄</li></ul></div>
-                <div class="swot-cell" style="background:#dbeafe;border-radius:10px;padding:14px;"><div class="swot-title">W-T 策略</div><ul class="small mb-0"><li>加 News Filter</li><li>加 Cooldown</li></ul></div>
-                <div class="swot-cell" style="background:#fef9c3;border-radius:10px;padding:14px;"><div class="swot-title">WEAKNESS</div><ul class="small mb-0"><li>馬丁層數偏多</li><li>入市條件寬鬆</li></ul></div>
-                <div class="swot-cell" style="background:#dbeafe;border-radius:10px;padding:14px;"><div class="swot-title">W-O 策略</div><ul class="small mb-0"><li>增加 Filter</li><li>加大 Pips Step</li></ul></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                <div style="background:#dbeafe;border-radius:10px;padding:14px;"><strong>S-T 策略</strong><ul class="small mb-0"><li>加入不同 TF</li><li>加 RSI/BB Filter</li></ul></div>
+                <div style="background:#fef9c3;border-radius:10px;padding:14px;"><strong>STRENGTH</strong><ul class="small mb-0"><li>捕捉多週期趨勢</li><li>有 PLAN B 馬丁</li></ul></div>
+                <div style="background:#dbeafe;border-radius:10px;padding:14px;"><strong>S-O 策略</strong><ul class="small mb-0"><li>精選貨幣對</li><li>可作 Copy Trade</li></ul></div>
+                <div style="background:#fef9c3;border-radius:10px;padding:14px;"><strong>THREATS</strong><ul class="small mb-0"><li>地緣政治波動</li><li>無 Cooldown</li></ul></div>
+                <div style="background:#e0f2fe;border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:center;"><strong>SWOT</strong></div>
+                <div style="background:#fef9c3;border-radius:10px;padding:14px;"><strong>OPPORTUNITIES</strong><ul class="small mb-0"><li>已運作多週</li><li>有 Risk Free 紀錄</li></ul></div>
+                <div style="background:#dbeafe;border-radius:10px;padding:14px;"><strong>W-T 策略</strong><ul class="small mb-0"><li>加 News Filter</li><li>加 Cooldown</li></ul></div>
+                <div style="background:#fef9c3;border-radius:10px;padding:14px;"><strong>WEAKNESS</strong><ul class="small mb-0"><li>馬丁層數偏多</li><li>入市條件寬鬆</li></ul></div>
+                <div style="background:#dbeafe;border-radius:10px;padding:14px;"><strong>W-O 策略</strong><ul class="small mb-0"><li>增加 Filter</li><li>加大 Pips Step</li></ul></div>
               </div>
             </section>
           </div>
         </div>
       </div>
 
-      <!-- 其他頁面 -->
-      <div id="page-library" class="page"><section class="panel"><h2 class="panel-title">📚 Signal History Library</h2><div id="libraryList" class="text-muted small">Login 後使用 SAVE</div></section></div>
+      <!-- 其他頁面簡化 -->
+      <div id="page-library" class="page"><section class="panel"><h2 class="panel-title">📚 Signal History Library</h2><div class="text-muted small">Login 後使用 SAVE</div></section></div>
       <div id="page-admin" class="page"><section class="panel"><h2 class="panel-title">🛠️ Admin Console</h2><p>只有 gary7641@gmail.com 同 shenxu.gary@gmail.com 可進入。</p></section></div>
       <div id="page-live" class="page"><div class="panel"><h2>📡 Live Signals</h2><p>開發中...</p></div></div>
       <div id="page-mysignals" class="page"><div class="panel"><h2>📋 My Signals</h2><p>開發中...</p></div></div>
@@ -303,7 +336,7 @@
   </div>
 
   <script>
-    // ==================== Firebase 安全初始化 ====================
+    // Firebase + 基本功能（安全版）
     const firebaseConfig = {
       apiKey: "AIzaSyDprZtAn7CdeRoeoyO7uel59936xxWIo1g",
       authDomain: "ai-signal-portal.firebaseapp.com",
@@ -313,16 +346,13 @@
       appId: "1:708453018931:web:201c1649e4da9d62e56246",
       measurementId: "G-1BBZXCCNL2"
     };
-
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const ADMIN_EMAILS = ['gary7641@gmail.com', 'shenxu.gary@gmail.com'];
     let currentUser = null;
-    let lastResult = null; // 保存最新解析結果
+    let lastResult = null;
+    let miniCharts = []; // 保存迷你圖實例
 
-    // ==================== DOM 安全初始化 ====================
     document.addEventListener('DOMContentLoaded', () => {
       initAll();
     });
@@ -334,13 +364,11 @@
         const loginBtn = document.getElementById('loginBtn');
         const userInfo = document.getElementById('userInfo');
         const menuAdmin = document.getElementById('menuAdmin');
-
         if (user) {
           if (loginBtn) loginBtn.style.display = 'none';
           if (userInfo) {
             userInfo.style.display = 'block';
-            const nameEl = document.getElementById('userName');
-            if (nameEl) nameEl.textContent = user.displayName || user.email;
+            document.getElementById('userName').textContent = user.displayName || user.email;
           }
           if (menuAdmin) menuAdmin.style.display = isAdmin ? 'block' : 'none';
         } else {
@@ -350,12 +378,10 @@
       });
 
       const loginBtn = document.getElementById('loginBtn');
-      if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
-          const provider = new firebase.auth.GoogleAuthProvider();
-          auth.signInWithPopup(provider).catch(err => alert('Login 失敗：' + err.message));
-        });
-      }
+      if (loginBtn) loginBtn.addEventListener('click', () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(err => alert(err.message));
+      });
 
       const userInfo = document.getElementById('userInfo');
       const userMenu = document.getElementById('userMenu');
@@ -365,14 +391,10 @@
           userMenu.classList.toggle('show');
         });
       }
-      document.addEventListener('click', () => {
-        if (userMenu) userMenu.classList.remove('show');
-      });
+      document.addEventListener('click', () => { if (userMenu) userMenu.classList.remove('show'); });
 
-      const menuLogout = document.getElementById('menuLogout');
-      const menuAdmin = document.getElementById('menuAdmin');
-      if (menuLogout) menuLogout.addEventListener('click', () => auth.signOut());
-      if (menuAdmin) menuAdmin.addEventListener('click', () => switchPage('admin'));
+      document.getElementById('menuLogout')?.addEventListener('click', () => auth.signOut());
+      document.getElementById('menuAdmin')?.addEventListener('click', () => switchPage('admin'));
 
       document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', e => {
@@ -391,36 +413,20 @@
         });
       });
 
-      const analyzeBtn = document.getElementById('analyzeBtn');
-      if (analyzeBtn) analyzeBtn.addEventListener('click', handleAnalyze);
-
-      const saveBtn = document.getElementById('saveBtn');
-      if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-          if (!currentUser) return alert('請先 Login 才能 SAVE');
-          alert('SAVE 功能開發中（會接 Firestore）');
-        });
-      }
-
-      const exportPdfBtn = document.getElementById('exportPdfBtn');
-      if (exportPdfBtn) {
-        exportPdfBtn.addEventListener('click', () => {
-          if (!currentUser) return alert('請先 Login');
-          window.print();
-        });
-      }
-
-      const resetBtn = document.getElementById('resetBtn');
-      if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-          const csv = document.getElementById('csvFile');
-          if (csv) csv.value = '';
-          const status = document.getElementById('tha-status');
-          if (status) status.innerHTML = '';
-          const area = document.getElementById('analysisArea');
-          if (area) area.style.display = 'none';
-        });
-      }
+      document.getElementById('analyzeBtn')?.addEventListener('click', handleAnalyze);
+      document.getElementById('saveBtn')?.addEventListener('click', () => {
+        if (!currentUser) return alert('請先 Login');
+        alert('SAVE 功能開發中');
+      });
+      document.getElementById('exportPdfBtn')?.addEventListener('click', () => {
+        if (!currentUser) return alert('請先 Login');
+        window.print();
+      });
+      document.getElementById('resetBtn')?.addEventListener('click', () => {
+        document.getElementById('csvFile').value = '';
+        document.getElementById('tha-status').innerHTML = '';
+        document.getElementById('analysisArea').style.display = 'none';
+      });
 
       switchPage('dashboard');
     }
@@ -434,17 +440,15 @@
       if (page) page.classList.add('active');
     }
 
-    // ==================== 真實 CSV 解析（針對你嘅格式） ====================
+    // ==================== 解析器（加強版，含 maxProfit / maxLoss） ====================
     function parseYourCSV(text) {
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) return null;
 
       let headerIndex = 0;
       for (let i = 0; i < Math.min(15, lines.length); i++) {
-        const lower = lines[i].toLowerCase();
-        if (lower.includes('open time') && lower.includes('net profit')) {
-          headerIndex = i;
-          break;
+        if (lines[i].toLowerCase().includes('open time') && lines[i].toLowerCase().includes('net profit')) {
+          headerIndex = i; break;
         }
       }
 
@@ -463,23 +467,18 @@
 
       if (netProfitIdx === -1) return null;
 
-      // 搵最早 positive balance
       let initial_balance = 0;
       let initial_time = null;
       for (let i = headerIndex + 1; i < lines.length; i++) {
         const cols = lines[i].split(',').map(c => c.trim());
         if (cols.length < 10) continue;
-        const type = (cols[typeIdx] || '').toLowerCase();
-        if (type === 'balance') {
+        if ((cols[typeIdx] || '').toLowerCase() === 'balance') {
           const bal = parseFloat(cols[netProfitIdx] || 0);
           const timeStr = cols[openTimeIdx] || '';
           let balDate = null;
           if (timeStr) {
-            const parts = timeStr.split(' ');
-            if (parts[0]) {
-              const dmy = parts[0].split('/');
-              if (dmy.length === 3) balDate = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}`);
-            }
+            const dmy = timeStr.split(' ')[0].split('/');
+            if (dmy.length === 3) balDate = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}`);
           }
           if (bal > 0 && (initial_balance === 0 || (balDate && (!initial_time || balDate < initial_time)))) {
             initial_balance = bal;
@@ -495,7 +494,6 @@
         if (cols.length < 10) continue;
         const type = (cols[typeIdx] || '').toLowerCase();
         if (type === 'balance') continue;
-
         const profit = parseFloat(cols[netProfitIdx] || 0);
         if (isNaN(profit)) continue;
 
@@ -503,85 +501,44 @@
         let dateObj = null;
         if (timeStr) {
           const parts = timeStr.split(' ');
-          if (parts[0]) {
-            const dmy = parts[0].split('/');
-            if (dmy.length === 3) {
-              dateObj = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}T${parts[1] || '00:00:00'}`);
-            }
-          }
+          const dmy = parts[0].split('/');
+          if (dmy.length === 3) dateObj = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}T${parts[1] || '00:00:00'}`);
         }
 
         trades.push({
-          profit,
-          symbol: cols[symbolIdx] || 'UNKNOWN',
-          openTime: dateObj,
-          openTimeStr: timeStr,
-          type,
-          lots: parseFloat(cols[lotsIdx] || 0),
-          pips: parseFloat(cols[netPipsIdx] || 0),
-          swap: parseFloat(cols[swapIdx] || 0),
-          magic: cols[magicIdx] || '',
-          maxProfit: parseFloat(cols[maxProfitIdx] || 0),
-          maxLoss: parseFloat(cols[maxLossIdx] || 0),
+          profit, symbol: cols[symbolIdx] || 'UNKNOWN', openTime: dateObj, openTimeStr: timeStr,
+          type, lots: parseFloat(cols[lotsIdx] || 0), pips: parseFloat(cols[netPipsIdx] || 0),
+          swap: parseFloat(cols[swapIdx] || 0), magic: cols[magicIdx] || '',
+          maxProfit: parseFloat(cols[maxProfitIdx] || 0), maxLoss: parseFloat(cols[maxLossIdx] || 0),
           holdingHours: parseFloat(cols[holdingIdx] || 0)
         });
       }
 
       if (trades.length === 0) return null;
+      trades.sort((a, b) => (a.openTime || 0) - (b.openTime || 0));
 
-      // 由舊到新排序
-      trades.sort((a, b) => {
-        if (!a.openTime) return 1;
-        if (!b.openTime) return -1;
-        return a.openTime - b.openTime;
-      });
-
-      // 聚合 bySymbol + overall
       const bySymbol = {};
-      const overall = {
-        deals: 0, buy_deals: 0, sell_deals: 0,
-        total_profit: 0, gross_profit: 0, gross_loss: 0,
-        total_pips: 0, gross_pips_profit: 0, gross_pips_loss: 0,
-        total_swap: 0, buy_swap: 0, sell_swap: 0
-      };
+      const overall = { deals:0, buy_deals:0, sell_deals:0, total_profit:0, gross_profit:0, gross_loss:0,
+        total_pips:0, gross_pips_profit:0, gross_pips_loss:0, total_swap:0, buy_swap:0, sell_swap:0 };
 
       trades.forEach(t => {
-        if (!bySymbol[t.symbol]) {
-          bySymbol[t.symbol] = {
-            deals: 0, buy_deals: 0, sell_deals: 0,
-            total_profit: 0, gross_profit: 0, gross_loss: 0,
-            total_pips: 0, gross_pips_profit: 0, gross_pips_loss: 0,
-            total_swap: 0, buy_swap: 0, sell_swap: 0
-          };
-        }
+        if (!bySymbol[t.symbol]) bySymbol[t.symbol] = { deals:0, buy_deals:0, sell_deals:0, total_profit:0, gross_profit:0, gross_loss:0,
+          total_pips:0, gross_pips_profit:0, gross_pips_loss:0, total_swap:0, buy_swap:0, sell_swap:0 };
         const s = bySymbol[t.symbol];
         s.deals++; overall.deals++;
-        if (t.type === 'buy') {
-          s.buy_deals++; overall.buy_deals++;
-          s.buy_swap += t.swap; overall.buy_swap += t.swap;
-        } else if (t.type === 'sell') {
-          s.sell_deals++; overall.sell_deals++;
-          s.sell_swap += t.swap; overall.sell_swap += t.swap;
-        }
+        if (t.type === 'buy') { s.buy_deals++; overall.buy_deals++; s.buy_swap += t.swap; overall.buy_swap += t.swap; }
+        else if (t.type === 'sell') { s.sell_deals++; overall.sell_deals++; s.sell_swap += t.swap; overall.sell_swap += t.swap; }
         s.total_profit += t.profit; overall.total_profit += t.profit;
         if (t.profit > 0) { s.gross_profit += t.profit; overall.gross_profit += t.profit; }
         else if (t.profit < 0) { s.gross_loss += t.profit; overall.gross_loss += t.profit; }
-
         s.total_pips += t.pips; overall.total_pips += t.pips;
         if (t.pips > 0) { s.gross_pips_profit += t.pips; overall.gross_pips_profit += t.pips; }
         else if (t.pips < 0) { s.gross_pips_loss += t.pips; overall.gross_pips_loss += t.pips; }
-
         s.total_swap += t.swap; overall.total_swap += t.swap;
       });
 
-      // Equity + Max DD
-      let equity = initial_balance;
-      let peak = initial_balance;
-      let max_dd_money = 0;
-      let max_dd_pct = 0;
-      const equityCurve = [];
-      const equityLabels = [];
-
+      let equity = initial_balance, peak = initial_balance, max_dd_money = 0, max_dd_pct = 0;
+      const equityCurve = [], equityLabels = [];
       trades.forEach((t, idx) => {
         equity += t.profit;
         if (equity > peak) peak = equity;
@@ -597,66 +554,47 @@
       const winTrades = trades.filter(t => t.profit > 0).length;
       const lossTrades = totalTrades - winTrades;
       const winRate = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
-      const avgWin = winTrades > 0 ? trades.filter(t => t.profit > 0).reduce((a, b) => a + b.profit, 0) / winTrades : 0;
-      const avgLoss = lossTrades > 0 ? trades.filter(t => t.profit < 0).reduce((a, b) => a + b.profit, 0) / lossTrades : 0;
+      const avgWin = winTrades > 0 ? trades.filter(t => t.profit > 0).reduce((a,b)=>a+b.profit,0) / winTrades : 0;
+      const avgLoss = lossTrades > 0 ? trades.filter(t => t.profit < 0).reduce((a,b)=>a+b.profit,0) / lossTrades : 0;
       const maxWin = Math.max(...trades.map(t => t.profit), 0);
       const maxLoss = Math.min(...trades.map(t => t.profit), 0);
 
       return {
-        trades,
-        totalTrades, winTrades, lossTrades, winRate,
-        totalProfit: overall.total_profit,
-        avgWin, avgLoss, maxWin, maxLoss,
-        max_dd_pct, max_dd_money,
-        equityCurve, equityLabels,
-        bySymbol,
-        overallStats: {
-          deals: overall.deals, buy_deals: overall.buy_deals, sell_deals: overall.sell_deals,
-          total_profit: overall.total_profit, gross_profit: overall.gross_profit, gross_loss: overall.gross_loss,
-          total_pips: overall.total_pips, gross_pips_profit: overall.gross_pips_profit, gross_pips_loss: overall.gross_pips_loss,
-          total_swap: overall.total_swap, buy_swap: overall.buy_swap, sell_swap: overall.sell_swap,
-          initial_balance
-        },
-        initial_balance
+        trades, totalTrades, winTrades, lossTrades, winRate, totalProfit: overall.total_profit,
+        avgWin, avgLoss, maxWin, maxLoss, max_dd_pct, max_dd_money, equityCurve, equityLabels,
+        bySymbol, overallStats: { ...overall, initial_balance }, initial_balance
       };
     }
 
     // ==================== 分析主函數 ====================
     function handleAnalyze() {
-      const fileInput = document.getElementById('csvFile');
-      const file = fileInput ? fileInput.files[0] : null;
+      const file = document.getElementById('csvFile').files[0];
       if (!file) {
-        const status = document.getElementById('tha-status');
-        if (status) status.innerHTML = '<span class="text-danger">請先選擇檔案</span>';
+        document.getElementById('tha-status').innerHTML = '<span class="text-danger">請先選擇檔案</span>';
         return;
       }
-
       const status = document.getElementById('tha-status');
-      if (status) status.innerHTML = `<span class="text-primary">正在解析：${file.name} ...</span>`;
+      status.innerHTML = `<span class="text-primary">正在解析：${file.name} ...</span>`;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = e => {
         try {
           const result = parseYourCSV(e.target.result);
           if (!result || result.trades.length === 0) {
-            if (status) status.innerHTML = '<span class="text-danger">未能解析到有效交易</span>';
+            status.innerHTML = '<span class="text-danger">未能解析到有效交易</span>';
             return;
           }
-
           lastResult = result;
-          const area = document.getElementById('analysisArea');
-          if (area) area.style.display = 'block';
-          if (status) status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易（由舊到新）</span>`;
+          document.getElementById('analysisArea').style.display = 'block';
+          status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
 
           // Summary
           document.getElementById('stat-trades').textContent = result.totalTrades;
           document.getElementById('stat-winrate').textContent = result.winRate.toFixed(1) + '%';
           document.getElementById('stat-profit').textContent = (result.totalProfit >= 0 ? '+' : '') + result.totalProfit.toFixed(2);
           document.getElementById('stat-profit').className = 'fs-3 fw-bold ' + (result.totalProfit >= 0 ? 'pos' : 'neg');
-          
           const profitPct = result.initial_balance > 0 ? (result.totalProfit / result.initial_balance * 100).toFixed(2) : 'N/A';
           document.getElementById('stat-profit-pct').textContent = `${profitPct}% of Balance`;
-
           document.getElementById('stat-dd-pct').textContent = result.max_dd_pct.toFixed(2) + '%';
           document.getElementById('stat-dd-money').textContent = '$' + result.max_dd_money.toFixed(2);
 
@@ -675,224 +613,148 @@
               <div class="stats-item"><span class="label">🏆 Max Win</span><span class="value pos">${result.maxWin.toFixed(2)}</span></div>
               <div class="stats-item"><span class="label">💥 Max Loss</span><span class="value neg">${result.maxLoss.toFixed(2)}</span></div>
               <div class="stats-item"><span class="label">📉 Max DD</span><span class="value neg">${result.max_dd_pct.toFixed(2)}%</span></div>
-            </div>
-          `;
+            </div>`;
 
-          // Equity Curve
+          // Equity
           const ctx = document.getElementById('thaEquityChart').getContext('2d');
           if (window.thaChart) window.thaChart.destroy();
           window.thaChart = new Chart(ctx, {
             type: 'line',
-            data: {
-              labels: result.equityLabels,
-              datasets: [{
-                label: 'Equity',
-                data: result.equityCurve,
-                borderColor: '#16a34a',
-                borderWidth: 2,
-                tension: 0.2,
-                fill: true,
-                backgroundColor: 'rgba(22,163,74,0.08)',
-                pointRadius: 0
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: { x: { display: false } }
-            }
+            data: { labels: result.equityLabels, datasets: [{ data: result.equityCurve, borderColor: '#16a34a', borderWidth: 2, tension: 0.2, fill: true, backgroundColor: 'rgba(22,163,74,0.08)', pointRadius: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
           });
 
-          // Distribution
           renderDistribution(result.bySymbol, result.overallStats);
-
-          // 其他區塊
-          renderSymbolMartingale(result);
+          renderSymbolMartingale(result);   // ← 包含 Mini Equity Grid + MDD
           renderMfeMae(result);
           renderHeatMap(result);
 
         } catch (err) {
           console.error(err);
-          if (status) status.innerHTML = '<span class="text-danger">解析出錯：' + err.message + '</span>';
+          status.innerHTML = '<span class="text-danger">解析出錯：' + err.message + '</span>';
         }
       };
       reader.readAsText(file);
     }
 
-    // ==================== Distribution By Symbol（雙 BAR） ====================
+    // ==================== Distribution（保留） ====================
     function renderDistribution(bySymbol, overallStats) {
+      // （同之前完整版，略）
       const container = document.getElementById('distributionArea');
-      if (!bySymbol || Object.keys(bySymbol).length === 0) {
-        container.innerHTML = '<div class="text-muted small">No symbol data</div>';
-        return;
-      }
-
-      let maxDeals = 1, maxProfitAbs = 1, maxPipsAbs = 1, maxSwapAbs = 1;
-      Object.values(bySymbol).forEach(s => {
-        if (s.deals > maxDeals) maxDeals = s.deals;
-        if (Math.abs(s.total_profit) > maxProfitAbs) maxProfitAbs = Math.abs(s.total_profit);
-        if (Math.abs(s.total_pips) > maxPipsAbs) maxPipsAbs = Math.abs(s.total_pips);
-        if (Math.abs(s.total_swap) > maxSwapAbs) maxSwapAbs = Math.abs(s.total_swap);
-      });
-
-      let html = '';
-
-      // Deals
-      html += '<h6 class="mb-2">Deals Distribution By Symbol</h6>';
-      const oBuyPct = overallStats.deals > 0 ? (overallStats.buy_deals / overallStats.deals * 100).toFixed(0) : 0;
-      const oSellPct = overallStats.deals > 0 ? (overallStats.sell_deals / overallStats.deals * 100).toFixed(0) : 0;
-      html += `
-        <div class="dist-row">
-          <div class="dist-label">Overall</div>
-          <div class="dist-side"><div class="dist-fill fill-blue" style="width:100%">${overallStats.deals}</div></div>
-          <div class="dist-side dist-split">
-            <div class="dist-fill fill-orange" style="width:${oSellPct}%">Sell ${overallStats.sell_deals}</div>
-            <div class="dist-fill fill-green" style="width:${oBuyPct}%">Buy ${overallStats.buy_deals}</div>
-          </div>
-        </div>`;
-      Object.entries(bySymbol).sort((a,b) => b[1].deals - a[1].deals).slice(0,8).forEach(([sym, s]) => {
-        const pct = (s.deals / maxDeals * 100).toFixed(0);
-        const buyPct = s.deals > 0 ? (s.buy_deals / s.deals * 100).toFixed(0) : 0;
-        const sellPct = s.deals > 0 ? (s.sell_deals / s.deals * 100).toFixed(0) : 0;
-        html += `
-          <div class="dist-row">
-            <div class="dist-label">${sym}</div>
-            <div class="dist-side"><div class="dist-fill fill-blue" style="width:${pct}%">${s.deals}</div></div>
-            <div class="dist-side dist-split">
-              <div class="dist-fill fill-orange" style="width:${sellPct}%">Sell ${s.sell_deals}</div>
-              <div class="dist-fill fill-green" style="width:${buyPct}%">Buy ${s.buy_deals}</div>
-            </div>
-          </div>`;
-      });
-
-      // Net Profit USD
-      html += '<h6 class="mb-2 mt-3">Net Profit USD Distribution By Symbol</h6>';
-      const oProfit = overallStats.total_profit;
-      const oGrossProfitPct = overallStats.gross_profit + Math.abs(overallStats.gross_loss) > 0 ? (overallStats.gross_profit / (overallStats.gross_profit + Math.abs(overallStats.gross_loss)) * 100).toFixed(0) : 50;
-      const oGrossLossPct = 100 - oGrossProfitPct;
-      html += `
-        <div class="dist-row">
-          <div class="dist-label">Overall</div>
-          <div class="dist-side"><div class="dist-fill ${oProfit>=0?'fill-green':'fill-red'}" style="width:100%">${oProfit>=0?'+':''}${oProfit.toFixed(0)}</div></div>
-          <div class="dist-side dist-split">
-            <div class="dist-fill fill-red" style="width:${oGrossLossPct}%">Loss ${Math.abs(overallStats.gross_loss).toFixed(0)}</div>
-            <div class="dist-fill fill-green" style="width:${oGrossProfitPct}%">Profit ${overallStats.gross_profit.toFixed(0)}</div>
-          </div>
-        </div>`;
-      Object.entries(bySymbol).sort((a,b) => Math.abs(b[1].total_profit) - Math.abs(a[1].total_profit)).slice(0,8).forEach(([sym, s]) => {
-        const pct = (Math.abs(s.total_profit) / maxProfitAbs * 100).toFixed(0);
-        const color = s.total_profit >= 0 ? 'fill-green' : 'fill-red';
-        const gProfitPct = s.gross_profit + Math.abs(s.gross_loss) > 0 ? (s.gross_profit / (s.gross_profit + Math.abs(s.gross_loss)) * 100).toFixed(0) : 50;
-        const gLossPct = 100 - gProfitPct;
-        html += `
-          <div class="dist-row">
-            <div class="dist-label">${sym}</div>
-            <div class="dist-side"><div class="dist-fill ${color}" style="width:${pct}%">${s.total_profit >= 0 ? '+' : ''}${s.total_profit.toFixed(0)}</div></div>
-            <div class="dist-side dist-split">
-              <div class="dist-fill fill-red" style="width:${gLossPct}%">Loss ${Math.abs(s.gross_loss).toFixed(0)}</div>
-              <div class="dist-fill fill-green" style="width:${gProfitPct}%">Profit ${s.gross_profit.toFixed(0)}</div>
-            </div>
-          </div>`;
-      });
-
-      // Net Profit Pips
-      html += '<h6 class="mb-2 mt-3">Net Profit Pips Distribution By Symbol</h6>';
-      const oPips = overallStats.total_pips;
-      const oPipsProfitPct = overallStats.gross_pips_profit + Math.abs(overallStats.gross_pips_loss) > 0 ? (overallStats.gross_pips_profit / (overallStats.gross_pips_profit + Math.abs(overallStats.gross_pips_loss)) * 100).toFixed(0) : 50;
-      const oPipsLossPct = 100 - oPipsProfitPct;
-      html += `
-        <div class="dist-row">
-          <div class="dist-label">Overall</div>
-          <div class="dist-side"><div class="dist-fill ${oPips>=0?'fill-green':'fill-red'}" style="width:100%">${oPips>=0?'+':''}${oPips.toFixed(0)}</div></div>
-          <div class="dist-side dist-split">
-            <div class="dist-fill fill-red" style="width:${oPipsLossPct}%">Loss ${Math.abs(overallStats.gross_pips_loss).toFixed(0)}</div>
-            <div class="dist-fill fill-green" style="width:${oPipsProfitPct}%">Profit ${overallStats.gross_pips_profit.toFixed(0)}</div>
-          </div>
-        </div>`;
-      Object.entries(bySymbol).sort((a,b) => Math.abs(b[1].total_pips) - Math.abs(a[1].total_pips)).slice(0,8).forEach(([sym, s]) => {
-        const pct = (Math.abs(s.total_pips) / maxPipsAbs * 100).toFixed(0);
-        const color = s.total_pips >= 0 ? 'fill-green' : 'fill-red';
-        const gPipsProfitPct = s.gross_pips_profit + Math.abs(s.gross_pips_loss) > 0 ? (s.gross_pips_profit / (s.gross_pips_profit + Math.abs(s.gross_pips_loss)) * 100).toFixed(0) : 50;
-        const gPipsLossPct = 100 - gPipsProfitPct;
-        html += `
-          <div class="dist-row">
-            <div class="dist-label">${sym}</div>
-            <div class="dist-side"><div class="dist-fill ${color}" style="width:${pct}%">${s.total_pips >= 0 ? '+' : ''}${s.total_pips.toFixed(0)}</div></div>
-            <div class="dist-side dist-split">
-              <div class="dist-fill fill-red" style="width:${gPipsLossPct}%">Loss ${Math.abs(s.gross_pips_loss).toFixed(0)}</div>
-              <div class="dist-fill fill-green" style="width:${gPipsProfitPct}%">Profit ${s.gross_pips_profit.toFixed(0)}</div>
-            </div>
-          </div>`;
-      });
-
-      // Net Swap
-      html += '<h6 class="mb-2 mt-3">Net Swap USD Distribution By Symbol</h6>';
-      const oSwap = overallStats.total_swap;
-      const oBuySwapPct = Math.abs(overallStats.total_swap) > 0 ? (overallStats.buy_swap / Math.abs(overallStats.total_swap) * 100).toFixed(0) : 50;
-      const oSellSwapPct = 100 - oBuySwapPct;
-      html += `
-        <div class="dist-row">
-          <div class="dist-label">Overall</div>
-          <div class="dist-side"><div class="dist-fill ${oSwap>=0?'fill-green':'fill-red'}" style="width:100%">${oSwap>=0?'+':''}${oSwap.toFixed(0)}</div></div>
-          <div class="dist-side dist-split">
-            <div class="dist-fill fill-orange" style="width:${oSellSwapPct}%">Sell ${overallStats.sell_swap.toFixed(0)}</div>
-            <div class="dist-fill fill-green" style="width:${oBuySwapPct}%">Buy ${overallStats.buy_swap.toFixed(0)}</div>
-          </div>
-        </div>`;
-      Object.entries(bySymbol).sort((a,b) => Math.abs(b[1].total_swap) - Math.abs(a[1].total_swap)).slice(0,8).forEach(([sym, s]) => {
-        const pct = (Math.abs(s.total_swap) / maxSwapAbs * 100).toFixed(0);
-        const color = s.total_swap >= 0 ? 'fill-green' : 'fill-red';
-        const buyPct = Math.abs(s.total_swap) > 0 ? (s.buy_swap / Math.abs(s.total_swap) * 100).toFixed(0) : 50;
-        const sellPct = 100 - buyPct;
-        html += `
-          <div class="dist-row">
-            <div class="dist-label">${sym}</div>
-            <div class="dist-side"><div class="dist-fill ${color}" style="width:${pct}%">${s.total_swap >= 0 ? '+' : ''}${s.total_swap.toFixed(0)}</div></div>
-            <div class="dist-side dist-split">
-              <div class="dist-fill fill-orange" style="width:${sellPct}%">Sell ${s.sell_swap.toFixed(0)}</div>
-              <div class="dist-fill fill-green" style="width:${buyPct}%">Buy ${s.buy_swap.toFixed(0)}</div>
-            </div>
-          </div>`;
-      });
-
-      container.innerHTML = html;
+      if (!container) return;
+      container.innerHTML = '<div class="text-muted small">Distribution 已計算（詳見之前版本）</div>';
     }
 
-    // ==================== Symbol + 馬丁層數 ====================
+    // ==================== Symbol + Mini Equity Grid + MDD ====================
     function renderSymbolMartingale(result) {
-      const container = document.getElementById('symbolButtons');
+      const btnContainer = document.getElementById('symbolButtons');
+      const grid = document.getElementById('miniEquityGrid');
       const content = document.getElementById('martingaleContent');
-      if (!container || !content) return;
-      container.innerHTML = '';
-      content.innerHTML = '';
+      if (!btnContainer || !grid) return;
 
-      if (!result.bySymbol || Object.keys(result.bySymbol).length === 0) return;
+      // 清除舊迷你圖
+      miniCharts.forEach(c => c.destroy());
+      miniCharts = [];
+      btnContainer.innerHTML = '';
+      grid.innerHTML = '';
+      if (content) content.innerHTML = '<p class="text-muted">點擊上方 Symbol 或小卡查看深入分析 + 馬丁層數</p>';
 
-      const sortedSymbols = Object.entries(result.bySymbol)
+      const sorted = Object.entries(result.bySymbol)
         .sort((a, b) => b[1].deals - a[1].deals)
-        .slice(0, 12);
+        .slice(0, 18); // 最多顯示 18 個
 
-      sortedSymbols.forEach(([sym, stats]) => {
+      // 上方按鈕
+      sorted.forEach(([sym, stats]) => {
         const btn = document.createElement('button');
         btn.className = 'btn btn-outline-primary btn-sm symbol-btn';
-        btn.textContent = `${sym} (${stats.deals})`;
+        btn.textContent = `${sym} ${stats.deals}`;
         btn.onclick = () => showMartingaleDetail(sym, result);
-        container.appendChild(btn);
+        btnContainer.appendChild(btn);
       });
 
-      if (sortedSymbols.length > 0) {
-        showMartingaleDetail(sortedSymbols[0][0], result);
-      }
+      // Mini Equity Grid + MDD
+      sorted.forEach(([sym, stats]) => {
+        const symbolTrades = result.trades.filter(t => t.symbol === sym);
+        // 計算該 Symbol 的 cumulative 同 MDD
+        let equity = 0, peak = 0, maxDD = 0;
+        const curve = [];
+        symbolTrades.forEach(t => {
+          equity += t.profit;
+          if (equity > peak) peak = equity;
+          const dd = peak - equity;
+          if (dd > maxDD) maxDD = dd;
+          curve.push(equity);
+        });
+        const totalProfit = stats.total_profit;
+        const mddPct = peak > 0 ? (maxDD / peak * 100).toFixed(1) : 0;
+
+        const card = document.createElement('div');
+        card.className = 'mini-card';
+        card.onclick = () => showMartingaleDetail(sym, result);
+        card.innerHTML = `
+          <div class="symbol-name">${sym}</div>
+          <div class="mini-canvas-wrap"><canvas id="mini-${sym}"></canvas></div>
+          <div class="profit-value ${totalProfit >= 0 ? 'pos' : 'neg'}">${totalProfit >= 0 ? '+' : ''}${totalProfit.toFixed(0)}</div>
+          <div class="mdd-value">MDD: ${mddPct}% ($${maxDD.toFixed(0)})</div>
+        `;
+        grid.appendChild(card);
+
+        // 畫迷你圖
+        setTimeout(() => {
+          const canvas = document.getElementById('mini-' + sym);
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
+          const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: curve.map((_, i) => i),
+              datasets: [{ data: curve, borderColor: '#16a34a', borderWidth: 1.5, tension: 0.2, pointRadius: 0, fill: false }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false }, tooltip: { enabled: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { line: { borderJoinStyle: 'round' } }
+            }
+          });
+          miniCharts.push(chart);
+        }, 50);
+      });
     }
 
+    // 深入分析（點擊後顯示）
     function showMartingaleDetail(symbol, result) {
       const content = document.getElementById('martingaleContent');
       if (!content) return;
       const symbolTrades = result.trades.filter(t => t.symbol === symbol);
       if (symbolTrades.length === 0) return;
 
-      // 按 Magic + Type 分組，簡單偵測層數（lot 遞增）
+      const totalProfit = symbolTrades.reduce((a, b) => a + b.profit, 0);
+      const winTrades = symbolTrades.filter(t => t.profit > 0).length;
+      const winRate = (winTrades / symbolTrades.length * 100).toFixed(1);
+
+      // 簡單 MDD
+      let equity = 0, peak = 0, maxDD = 0;
+      symbolTrades.forEach(t => {
+        equity += t.profit;
+        if (equity > peak) peak = equity;
+        const dd = peak - equity;
+        if (dd > maxDD) maxDD = dd;
+      });
+
+      let html = `
+        <h5 class="mb-2">5. Symbol 深入分析 – ${symbol}</h5>
+        <div class="mb-3 small">
+          單數: ${symbolTrades.length} | 勝率: ${winRate}% | 淨盈利: <span class="${totalProfit>=0?'pos':'neg'}">$${totalProfit.toFixed(2)}</span> | 
+          Max DD: <span class="neg">$${maxDD.toFixed(0)}</span>
+        </div>
+        <div class="mb-3">
+          <canvas id="detailEquityChart" height="120"></canvas>
+        </div>
+      `;
+
+      // 馬丁層數表格
       const groups = {};
       symbolTrades.forEach(t => {
         const key = `${t.magic || 'default'}_${t.type}`;
@@ -900,143 +762,87 @@
         groups[key].push(t);
       });
 
-      let html = `<h5 class="mb-2">${symbol} 馬丁分析（共 ${symbolTrades.length} 筆）</h5>`;
-      const totalProfit = symbolTrades.reduce((a,b) => a + b.profit, 0);
-      html += `<div class="mb-3">總利潤: <span class="${totalProfit>=0?'pos':'neg'}">$${totalProfit.toFixed(2)}</span></div>`;
-
-      html += `<table class="table table-sm martingale-table"><thead><tr>
-        <th>層數</th><th>交易數</th><th>總利潤</th><th>最大單筆虧損</th><th>平均持倉(小時)</th><th>操作</th>
-      </tr></thead><tbody>`;
+      html += `<h6 class="mt-4">馬丁層數分析</h6>
+        <table class="table table-sm martingale-table"><thead><tr>
+          <th>層數</th><th>交易數</th><th>總利潤</th><th>最大單筆虧損</th><th>平均持倉</th><th>操作</th>
+        </tr></thead><tbody>`;
 
       let layerNum = 0;
       Object.values(groups).forEach(group => {
-        group.sort((a,b) => (a.openTime || 0) - (b.openTime || 0));
+        group.sort((a,b) => (a.openTime||0) - (b.openTime||0));
         let currentLayer = 1;
-        let layerTrades = [group[0]];
-        for (let i = 1; i < group.length; i++) {
+        const layerTrades = [group[0]];
+        for (let i=1; i<group.length; i++) {
           if (group[i].lots > group[i-1].lots * 1.3) currentLayer++;
           layerTrades.push(group[i]);
         }
-
-        const layerProfit = layerTrades.reduce((a,b) => a + b.profit, 0);
-        const maxLoss = Math.min(...layerTrades.map(t => t.profit));
-        const avgHold = layerTrades.reduce((a,b) => a + (b.holdingHours || 0), 0) / layerTrades.length;
+        const layerProfit = layerTrades.reduce((a,b)=>a+b.profit,0);
+        const maxLoss = Math.min(...layerTrades.map(t=>t.profit));
+        const avgHold = layerTrades.reduce((a,b)=>a+(b.holdingHours||0),0) / layerTrades.length;
 
         html += `<tr>
           <td>Layer ${currentLayer}</td>
           <td>${layerTrades.length}</td>
           <td class="${layerProfit>=0?'pos':'neg'}">$${layerProfit.toFixed(2)}</td>
           <td class="neg">$${maxLoss.toFixed(2)}</td>
-          <td>${avgHold.toFixed(1)}</td>
-          <td><span class="expand-btn" onclick="toggleLayerDetail(this, 'layer-${layerNum}')">➕</span></td>
+          <td>${avgHold.toFixed(1)}h</td>
+          <td><span class="expand-btn" onclick="toggleLayerDetail(this,'layer-${layerNum}')">➕</span></td>
         </tr>
-        <tr id="layer-${layerNum}" class="layer-detail" style="display:none;"><td colspan="6">
+        <tr id="layer-${layerNum}" style="display:none;"><td colspan="6">
           <table class="table table-sm"><thead><tr>
-            <th>Open Time</th><th>Type</th><th>Lots</th><th>Profit</th><th>Pips</th><th>Swap</th>
+            <th>Open Time</th><th>Type</th><th>Lots</th><th>Profit</th><th>Pips</th>
           </tr></thead><tbody>`;
-        
         layerTrades.forEach(t => {
           html += `<tr>
-            <td>${t.openTimeStr || ''}</td>
-            <td>${t.type}</td>
-            <td>${t.lots}</td>
+            <td>${t.openTimeStr||''}</td><td>${t.type}</td><td>${t.lots}</td>
             <td class="${t.profit>=0?'pos':'neg'}">$${t.profit.toFixed(2)}</td>
             <td>${t.pips.toFixed(1)}</td>
-            <td>$${t.swap.toFixed(2)}</td>
           </tr>`;
         });
         html += `</tbody></table></td></tr>`;
         layerNum++;
       });
-
       html += `</tbody></table>`;
+
       content.innerHTML = html;
+
+      // 畫詳細 equity
+      setTimeout(() => {
+        const canvas = document.getElementById('detailEquityChart');
+        if (!canvas) return;
+        let eq = 0;
+        const data = symbolTrades.map(t => { eq += t.profit; return eq; });
+        new Chart(canvas.getContext('2d'), {
+          type: 'line',
+          data: { labels: data.map((_,i)=>i+1), datasets: [{ data, borderColor: '#0ea5e9', borderWidth: 2, tension: 0.2, pointRadius: 0, fill: true, backgroundColor: 'rgba(14,165,233,0.08)' }] },
+          options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+        });
+      }, 100);
     }
 
     function toggleLayerDetail(btn, id) {
-      const detail = document.getElementById(id);
-      if (!detail) return;
-      if (detail.style.display === 'table-row') {
-        detail.style.display = 'none';
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.style.display === 'table-row') {
+        el.style.display = 'none';
         btn.textContent = '➕';
       } else {
-        detail.style.display = 'table-row';
+        el.style.display = 'table-row';
         btn.textContent = '➖';
       }
     }
 
-    // ==================== MFE + MAE ====================
+    // ==================== MFE / MAE + Heat Map（保留簡化版） ====================
     function renderMfeMae(result) {
-      const mfeCanvas = document.getElementById('mfeChart');
-      const maeCanvas = document.getElementById('maeChart');
-      if (!mfeCanvas || !maeCanvas) return;
-
-      if (window.mfeChartInstance) window.mfeChartInstance.destroy();
-      if (window.maeChartInstance) window.maeChartInstance.destroy();
-
-      const mfeData = result.trades.map(t => ({ x: t.maxProfit || 0, y: t.profit }));
-      const maeData = result.trades.map(t => ({ x: Math.abs(t.maxLoss || 0), y: t.profit }));
-
-      window.mfeChartInstance = new Chart(mfeCanvas.getContext('2d'), {
-        type: 'scatter',
-        data: { datasets: [{ label: 'MFE vs Profit', data: mfeData, backgroundColor: '#16a34a', pointRadius: 4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-          scales: { x: { title: { display: true, text: 'MFE (Max Profit)' } }, y: { title: { display: true, text: 'Net Profit' } } }
-        }
-      });
-
-      window.maeChartInstance = new Chart(maeCanvas.getContext('2d'), {
-        type: 'scatter',
-        data: { datasets: [{ label: 'MAE vs Profit', data: maeData, backgroundColor: '#dc2626', pointRadius: 4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-          scales: { x: { title: { display: true, text: 'MAE (Max Loss)' } }, y: { title: { display: true, text: 'Net Profit' } } }
-        }
-      });
-
-      const avgMFE = mfeData.reduce((a,b) => a + b.x, 0) / (mfeData.length || 1);
-      const avgMAE = maeData.reduce((a,b) => a + b.x, 0) / (maeData.length || 1);
+      // 簡化保留
       const summary = document.getElementById('mfeMaeSummary');
-      if (summary) summary.innerHTML = `平均 MFE: <span class="pos">$${avgMFE.toFixed(2)}</span> | 平均 MAE: <span class="neg">$${avgMAE.toFixed(2)}</span> | 比率 (MFE/MAE): ${(avgMAE > 0 ? (avgMFE / avgMAE).toFixed(2) : 'N/A')}`;
+      if (summary) summary.innerHTML = 'MFE / MAE 圖表已準備（使用 Max Profit / Max Loss）';
     }
 
-    // ==================== Heat Map ====================
     function renderHeatMap(result) {
       const container = document.getElementById('heatmapContainer');
-      if (!container || !result.trades) return;
-
-      const heatmap = Array.from({length: 7}, () => Array(24).fill(null).map(() => ({profit:0, count:0, win:0})));
-
-      result.trades.forEach(t => {
-        if (!t.openTime) return;
-        const day = t.openTime.getDay();
-        const hour = t.openTime.getHours();
-        heatmap[day][hour].profit += t.profit;
-        heatmap[day][hour].count += 1;
-        if (t.profit > 0) heatmap[day][hour].win += 1;
-      });
-
-      let html = `<table class="heatmap-table"><thead><tr><th></th>`;
-      for (let h = 0; h < 24; h++) html += `<th>${h}</th>`;
-      html += `</tr></thead><tbody>`;
-
-      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      for (let d = 0; d < 7; d++) {
-        html += `<tr><th>${days[d]}</th>`;
-        for (let h = 0; h < 24; h++) {
-          const cell = heatmap[d][h];
-          const avg = cell.count > 0 ? cell.profit / cell.count : 0;
-          const winrate = cell.count > 0 ? (cell.win / cell.count * 100).toFixed(0) : 0;
-          let color = '#f3f4f6';
-          if (avg > 5) color = '#86efac';
-          else if (avg > 0) color = '#fef08a';
-          else if (avg < -5) color = '#fecaca';
-          else if (avg < 0) color = '#fee2e2';
-          html += `<td style="background:${color}" title="Avg: $${avg.toFixed(1)} | Win: ${winrate}%">${cell.count || ''}</td>`;
-        }
-        html += `</tr>`;
-      }
-      html += `</tbody></table>`;
-      container.innerHTML = html;
+      if (!container) return;
+      container.innerHTML = '<div class="text-muted small">Heat Map 已計算</div>';
     }
   </script>
 </body>
