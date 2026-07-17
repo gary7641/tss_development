@@ -699,16 +699,18 @@ function parseYourCSV(text) {
 renderSymbolMartingale(result);
 
 // MFE + MAE
-document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
-document.querySelector('#analysisMenu button[data-block="mfe-mae"]').classList.add('active');
-
-document.querySelectorAll('.analysis-block').forEach(b => b.classList.remove('active'));
-document.getElementById('block-mfe-mae').classList.add('active');
-
 setTimeout(() => {
-  renderMfeMae(result);
-}, 150);
+  document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
+  const mfeBtn = document.querySelector('#analysisMenu button[data-block="mfe-mae"]');
+  if (mfeBtn) mfeBtn.classList.add('active');
 
+  document.querySelectorAll('.analysis-block').forEach(b => b.classList.remove('active'));
+  const mfeBlock = document.getElementById('block-mfe-mae');
+  if (mfeBlock) mfeBlock.classList.add('active');
+
+  renderMfeMae(result);
+}, 200);
+        
       } catch (err) {
         console.error(err);
         status.innerHTML = '<span class="text-danger">解析出錯：' + err.message + '</span>';
