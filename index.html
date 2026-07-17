@@ -821,133 +821,240 @@ function parseYourCSV(text) {
     content.innerHTML = html;
   }
 
-  function buildMartingaleTable(symbol, side, trades) {
-    if (!trades.length) {
-      return `<div class="mb-4 text-muted">${side === 'BUY' ? '📈' : '📉'} ${side} 無交易</div>`;
-    }
-
-    const lotMap = {};
-    trades.forEach(t => {
-      const lotKey = t.lots.toFixed(2);
-      if (!lotMap[lotKey]) lotMap[lotKey] = [];
-      lotMap[lotKey].push(t);
-    });
-
-    const sortedLots = Object.keys(lotMap).map(Number).sort((a, b) => a - b);
-    const totalProfit = trades.reduce((a, b) => a + b.profit, 0);
-    const totalTrades = trades.length;
-
-    let html = `
-      <div class="mb-4">
-        <h6>${side === 'BUY' ? '📈' : '📉'} ${symbol} - ${side} &nbsp; TOTAL Profit: <span class="${totalProfit >= 0 ? 'pos' : 'neg'}">${totalProfit.toFixed(2)}</span>, Trades: ${totalTrades}</h6>
-        <div class="table-responsive">
-          <table class="table table-sm table-bordered martingale-table">
-            <thead>
-              <tr>
-                <th style="width:40px"></th>
-                <th>馬丁層數</th>
-                <th>Lots</th>
-                <th>Trades</th>
-                <th>SUM Profit</th>
-                <th>SUM Pips</th>
-                <th>Cum Profit</th>
-                <th>Win Rate %</th>
-                <th>意義</th>
-                <th>Min Win Profit</th>
-                <th>Symbol/Side TOTAL</th>
-                <th>Total Trades</th>
-              </tr>
-            </thead>
-            <tbody>`;
-
-    let cumProfit = 0;
-    let cumTrades = 0;
-
-    sortedLots.forEach((lot, idx) => {
-      const layerNum = idx + 1;
-      const layerTrades = lotMap[lot.toFixed(2)];
-      const sumProfit = layerTrades.reduce((a, b) => a + b.profit, 0);
-      const sumPips = layerTrades.reduce((a, b) => a + b.pips, 0);
-      const wins = layerTrades.filter(t => t.profit > 0).length;
-      const winRate = layerTrades.length ? (wins / layerTrades.length * 100) : 0;
-      cumProfit += sumProfit;
-      cumTrades += layerTrades.length;
-
-      const minWinProfitArr = layerTrades.filter(t => t.profit > 0).map(t => t.profit);
-      const minWinProfit = minWinProfitArr.length ? Math.min(...minWinProfitArr) : 0;
-
-let rowClass = '';
-if (winRate <= 0) {
-  rowClass = 'layer-red';
-} else if (winRate > 95) {
-  rowClass = 'layer-bright-blue';
-} else if (winRate > 90) {
-  rowClass = 'layer-blue';
-} else if (winRate > 80) {
-  rowClass = 'layer-green';
-} else {
-  rowClass = 'layer-yellow';   // 1% ~ 79%
-}
-
-      const rowId = `layer-${side}-${layerNum}`;
-      const profits = layerTrades.map(t => t.profit);
-      const pipsArr = layerTrades.map(t => t.pips);
-      const maxProfit = Math.max(...profits);
-      const minProfit = Math.min(...profits);
-      const maxPips = Math.max(...pipsArr);
-      const minPips = Math.min(...pipsArr);
-
-      html += `
-        <tr class="${rowClass}">
-          <td><span class="expand-btn" onclick="toggleLayer('${rowId}', this)">➕</span></td>
-          <td>${layerNum}</td>
-          <td>${lot.toFixed(2)}</td>
-          <td>${layerTrades.length}</td>
-          <td class="${sumProfit >= 0 ? 'pos' : 'neg'}">${sumProfit.toFixed(2)}</td>
-          <td>${sumPips.toFixed(1)}</td>
-          <td class="${cumProfit >= 0 ? 'pos' : 'neg'}">${cumProfit.toFixed(2)}</td>
-          <td>${winRate.toFixed(1)}%</td>
-          <td>此層勝率</td>
-          <td>${minWinProfit ? minWinProfit.toFixed(2) : '-'}</td>
-          <td class="${totalProfit >= 0 ? 'pos' : 'neg'}">${totalProfit.toFixed(2)}</td>
-          <td>${cumTrades}</td>
-        </tr>
-        <tr id="${rowId}" style="display:none;">
-          <td colspan="12">
-            <div class="layer-summary">
-              <strong>馬丁層數 ${layerNum} Summary</strong><br>
-              MAX PIP: ${maxPips.toFixed(1)} | MAX PROFIT: <span class="pos">${maxProfit.toFixed(2)}</span> | MIN PROFIT: <span class="${minProfit >= 0 ? 'pos' : 'neg'}">${minProfit.toFixed(2)}</span><br>
-              MAX LOSS PIP: ${minPips.toFixed(1)} | MAX LOSS: <span class="neg">${minProfit.toFixed(2)}</span>
-            </div>
-            <table class="table table-sm">
-              <thead><tr>
-                <th>Open Time</th><th>Close Time</th><th>Lots</th><th>Profit</th><th>Pips</th><th>Max Profit</th><th>Max Loss</th>
-              </tr></thead>
-              <tbody>
-                ${layerTrades.map(t => `
-                  <tr>
-                    <td>${t.openTimeStr || ''}</td>
-                    <td>${t.closeTimeStr || ''}</td>
-                    <td>${t.lots.toFixed(2)}</td>
-                    <td class="${t.profit >= 0 ? 'pos' : 'neg'}">${t.profit.toFixed(2)}</td>
-                    <td>${t.pips.toFixed(1)}</td>
-                    <td class="pos">${(t.maxProfit || 0).toFixed(2)}</td>
-                    <td class="neg">${(t.maxLoss || 0).toFixed(2)}</td>
-                  </tr>`).join('')}
-              </tbody>
-            </table>
-          </td>
-        </tr>`;
-    });
-
-    html += `</tbody></table></div>
-      <div class="small text-muted mt-2">
-        顏色說明：紅色 = ≤0% | 黃色 = 1%~79% | 綠色 = >80% | 藍色 = >90% | 亮藍 = >95%
-      </div>
-    </div>`;
-    return html;
+function buildMartingaleTable(symbol, side, trades) {
+  if (!trades.length) {
+    return `<div class="mb-4 text-muted">${side === 'BUY' ? '📈' : '📉'} ${side} 無交易</div>`;
   }
 
+  // Lot Size 由細到大排序作為層數
+  const lotMap = {};
+  trades.forEach(t => {
+    const lotKey = t.lots.toFixed(2);
+    if (!lotMap[lotKey]) lotMap[lotKey] = [];
+    lotMap[lotKey].push(t);
+  });
+
+  const sortedLots = Object.keys(lotMap).map(Number).sort((a, b) => a - b);
+  const totalProfit = trades.reduce((a, b) => a + b.profit, 0);
+  const totalTrades = trades.length;
+
+  // 收集所有 Magic 同 Comment 用嚟做過濾
+  const allMagics = [...new Set(trades.map(t => t.magic).filter(Boolean))].sort();
+  const allComments = [...new Set(trades.map(t => t.comment).filter(Boolean))].sort();
+
+  let html = `
+    <div class="mb-4">
+      <h6>${side === 'BUY' ? '📈' : '📉'} ${symbol} - ${side} &nbsp; TOTAL Profit: <span class="${totalProfit >= 0 ? 'pos' : 'neg'}">${totalProfit.toFixed(2)}</span>, Trades: ${totalTrades}</h6>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered martingale-table">
+          <thead>
+            <tr>
+              <th style="width:40px"></th>
+              <th>馬丁層數</th>
+              <th>Lots</th>
+              <th>Trades</th>
+              <th>SUM Profit</th>
+              <th>SUM Pips</th>
+              <th>Cum Profit</th>
+              <th>Win Rate %</th>
+              <th>意義</th>
+              <th>Min Win Profit</th>
+              <th>Symbol/Side TOTAL</th>
+              <th>Total Trades</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+  let cumProfit = 0;
+  let cumTrades = 0;
+
+  sortedLots.forEach((lot, idx) => {
+    const layerNum = idx + 1;
+    const layerTrades = lotMap[lot.toFixed(2)];
+    const sumProfit = layerTrades.reduce((a, b) => a + b.profit, 0);
+    const sumPips = layerTrades.reduce((a, b) => a + b.pips, 0);
+    const wins = layerTrades.filter(t => t.profit > 0).length;
+    const winRate = layerTrades.length ? (wins / layerTrades.length * 100) : 0;
+    cumProfit += sumProfit;
+    cumTrades += layerTrades.length;
+
+    const minWinProfitArr = layerTrades.filter(t => t.profit > 0).map(t => t.profit);
+    const minWinProfit = minWinProfitArr.length ? Math.min(...minWinProfitArr) : 0;
+
+    let rowClass = '';
+    if (winRate <= 0) rowClass = 'layer-red';
+    else if (winRate > 95) rowClass = 'layer-bright-blue';
+    else if (winRate > 90) rowClass = 'layer-blue';
+    else if (winRate > 80) rowClass = 'layer-green';
+    else rowClass = 'layer-yellow';
+
+    const rowId = `layer-${side}-${layerNum}`;
+    const detailId = `detail-${side}-${layerNum}`;
+    const profits = layerTrades.map(t => t.profit);
+    const pipsArr = layerTrades.map(t => t.pips);
+    const maxProfit = Math.max(...profits);
+    const minProfit = Math.min(...profits);
+    const maxPips = Math.max(...pipsArr);
+    const minPips = Math.min(...pipsArr);
+
+    // 生成詳細單據表格 HTML
+    const detailTableHtml = generateDetailTable(layerTrades, detailId, allMagics, allComments);
+
+    html += `
+      <tr class="${rowClass}">
+        <td><span class="expand-btn" onclick="toggleLayer('${rowId}', this)">➕</span></td>
+        <td>${layerNum}</td>
+        <td>${lot.toFixed(2)}</td>
+        <td>${layerTrades.length}</td>
+        <td class="${sumProfit >= 0 ? 'pos' : 'neg'}">${sumProfit.toFixed(2)}</td>
+        <td>${sumPips.toFixed(1)}</td>
+        <td class="${cumProfit >= 0 ? 'pos' : 'neg'}">${cumProfit.toFixed(2)}</td>
+        <td>${winRate.toFixed(1)}%</td>
+        <td>此層勝率</td>
+        <td>${minWinProfit ? minWinProfit.toFixed(2) : '-'}</td>
+        <td class="${totalProfit >= 0 ? 'pos' : 'neg'}">${totalProfit.toFixed(2)}</td>
+        <td>${cumTrades}</td>
+      </tr>
+      <tr id="${rowId}" style="display:none;">
+        <td colspan="12">
+          <div class="layer-summary">
+            <strong>馬丁層數 ${layerNum} Summary</strong><br>
+            MAX PIP: ${maxPips.toFixed(1)} | MAX PROFIT: <span class="pos">${maxProfit.toFixed(2)}</span> | MIN PROFIT: <span class="${minProfit >= 0 ? 'pos' : 'neg'}">${minProfit.toFixed(2)}</span><br>
+            MAX LOSS PIP: ${minPips.toFixed(1)} | MAX LOSS: <span class="neg">${minProfit.toFixed(2)}</span>
+          </div>
+          ${detailTableHtml}
+        </td>
+      </tr>`;
+  });
+
+  html += `</tbody></table></div>
+    <div class="small text-muted mt-2">
+      顏色說明：紅色 = ≤0% | 淺黃 = 1%~79% | 綠色 = >80% | 藍色 = >90% | 亮藍 = >95%
+    </div>
+  </div>`;
+  return html;
+}
+
+// 生成詳細單據表格 + 過濾 + Sorting
+function generateDetailTable(trades, tableId, allMagics, allComments) {
+  const magicOptions = allMagics.map(m => `<option value="${m}">${m}</option>`).join('');
+  const commentOptions = allComments.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  let html = `
+    <div class="mb-2 d-flex flex-wrap gap-3 align-items-center" style="font-size:0.85rem;">
+      <div>
+        <label class="me-1">Magic:</label>
+        <select id="filter-magic-${tableId}" onchange="filterDetailTable('${tableId}')" class="form-select form-select-sm" style="width:auto;display:inline-block;">
+          <option value="ALL">SHOW ALL</option>
+          ${magicOptions}
+        </select>
+      </div>
+      <div>
+        <label class="me-1">Comment:</label>
+        <select id="filter-comment-${tableId}" onchange="filterDetailTable('${tableId}')" class="form-select form-select-sm" style="width:auto;display:inline-block;">
+          <option value="ALL">SHOW ALL</option>
+          ${commentOptions}
+        </select>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered" id="${tableId}" style="font-size:0.78rem;">
+        <thead>
+          <tr>
+            <th onclick="sortDetailTable('${tableId}', 0)" style="cursor:pointer;">Open Time</th>
+            <th onclick="sortDetailTable('${tableId}', 1)" style="cursor:pointer;">Type</th>
+            <th onclick="sortDetailTable('${tableId}', 2)" style="cursor:pointer;">Volume</th>
+            <th onclick="sortDetailTable('${tableId}', 3)" style="cursor:pointer;">Symbol</th>
+            <th onclick="sortDetailTable('${tableId}', 4)" style="cursor:pointer;">Open Price</th>
+            <th onclick="sortDetailTable('${tableId}', 5)" style="cursor:pointer;">Close Time</th>
+            <th onclick="sortDetailTable('${tableId}', 6)" style="cursor:pointer;">Close Price</th>
+            <th onclick="sortDetailTable('${tableId}', 7)" style="cursor:pointer;">Commission</th>
+            <th onclick="sortDetailTable('${tableId}', 8)" style="cursor:pointer;">Swap</th>
+            <th onclick="sortDetailTable('${tableId}', 9)" style="cursor:pointer;">Pips</th>
+            <th onclick="sortDetailTable('${tableId}', 10)" style="cursor:pointer;">Net Profit</th>
+            <th onclick="sortDetailTable('${tableId}', 11)" style="cursor:pointer;">Holding Time</th>
+            <th onclick="sortDetailTable('${tableId}', 12)" style="cursor:pointer;">Max Profit</th>
+            <th onclick="sortDetailTable('${tableId}', 13)" style="cursor:pointer;">Max Pips</th>
+            <th onclick="sortDetailTable('${tableId}', 14)" style="cursor:pointer;">Max Loss</th>
+            <th onclick="sortDetailTable('${tableId}', 15)" style="cursor:pointer;">Max Loss Pips</th>
+            <th onclick="sortDetailTable('${tableId}', 16)" style="cursor:pointer;">Magic No.</th>
+            <th onclick="sortDetailTable('${tableId}', 17)" style="cursor:pointer;">Comment</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+  trades.forEach(t => {
+    const swapClass = t.swap >= 0 ? 'pos' : 'neg';
+    const pipsClass = t.pips >= 0 ? 'pos' : 'neg';
+    const profitClass = t.profit >= 0 ? 'pos' : 'neg';
+
+    html += `
+      <tr data-magic="${t.magic || ''}" data-comment="${t.comment || ''}">
+        <td>${t.openTimeStr || ''}</td>
+        <td>${t.type}</td>
+        <td>${t.lots.toFixed(2)}</td>
+        <td>${t.symbol}</td>
+        <td>${t.openPrice ? t.openPrice.toFixed(5) : ''}</td>
+        <td>${t.closeTimeStr || ''}</td>
+        <td>${t.closePrice ? t.closePrice.toFixed(5) : ''}</td>
+        <td>${t.commission.toFixed(2)}</td>
+        <td class="${swapClass}">${t.swap.toFixed(2)}</td>
+        <td class="${pipsClass}">${t.pips.toFixed(1)}</td>
+        <td class="${profitClass}">${t.profit.toFixed(2)}</td>
+        <td>${t.holdingStr || (t.holdingHours ? t.holdingHours.toFixed(2) + 'hrs' : '')}</td>
+        <td class="pos">${t.maxProfit.toFixed(2)}</td>
+        <td class="pos">${t.maxPips.toFixed(1)}</td>
+        <td class="neg">${t.maxLoss.toFixed(2)}</td>
+        <td class="neg">${t.maxLossPips.toFixed(1)}</td>
+        <td>${t.magic || ''}</td>
+        <td>${t.comment || ''}</td>
+      </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+// 過濾詳細表格
+function filterDetailTable(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const magicFilter = document.getElementById('filter-magic-' + tableId)?.value || 'ALL';
+  const commentFilter = document.getElementById('filter-comment-' + tableId)?.value || 'ALL';
+
+  table.querySelectorAll('tbody tr').forEach(row => {
+    const magic = row.getAttribute('data-magic') || '';
+    const comment = row.getAttribute('data-comment') || '';
+    const showMagic = magicFilter === 'ALL' || magic === magicFilter;
+    const showComment = commentFilter === 'ALL' || comment === commentFilter;
+    row.style.display = (showMagic && showComment) ? '' : 'none';
+  });
+}
+
+// 簡單 Sorting
+function sortDetailTable(tableId, colIndex) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const isAsc = table.getAttribute('data-sort-dir') !== 'asc';
+
+  rows.sort((a, b) => {
+    let aVal = a.cells[colIndex]?.textContent.trim() || '';
+    let bVal = b.cells[colIndex]?.textContent.trim() || '';
+
+    // 嘗試轉數字
+    const aNum = parseFloat(aVal.replace(/[^0-9.-]/g, ''));
+    const bNum = parseFloat(bVal.replace(/[^0-9.-]/g, ''));
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return isAsc ? aNum - bNum : bNum - aNum;
+    }
+    return isAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+  });
+
+  rows.forEach(r => tbody.appendChild(r));
+  table.setAttribute('data-sort-dir', isAsc ? 'asc' : 'desc');
+}
   function toggleLayer(id, btn) {
     const row = document.getElementById(id);
     if (!row) return;
