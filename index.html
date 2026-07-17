@@ -9,10 +9,87 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* 之前所有 CSS 保持不變 */
-    .dist-fill { transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f5f5f5; color: #111827; }
+    .top-header {
+      background: linear-gradient(90deg, #0ea5e9, #22c55e);
+      color: white; height: 58px; padding: 0 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .sidebar {
+      width: 250px; background: white; border-right: 1px solid #e5e7eb;
+      min-height: calc(100vh - 58px); padding: 1rem 0.8rem; overflow-y: auto;
+    }
+    .nav-link {
+      font-size: 0.9rem; padding: 0.55rem 0.9rem; border-radius: 8px;
+      color: #111827; cursor: pointer; display: block; text-decoration: none;
+    }
+    .nav-link:hover, .nav-link.active { background: #e0f2fe; color: #0369a1; font-weight: 600; }
+    .nav-section { font-size: 0.72rem; color: #6b7280; margin: 1.1rem 0 0.35rem 0.9rem; text-transform: uppercase; }
+    .panel {
+      width: 100%; margin: 14px 0; padding: 18px 20px;
+      background: #ffffff; border-radius: 16px;
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+    }
+    .panel-title { margin: 0 0 14px 0; font-size: 1.1rem; font-weight: 600; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .btn-primary-a2 {
+      background: radial-gradient(circle at 20% 0, #22d3ee, #0284c7);
+      border: none; color: #0b1120; font-weight: 600; border-radius: 999px; padding: 8px 22px;
+    }
+    .btn-secondary-a2 {
+      background: #f9fafb; border: 1px solid #d1d5db; color: #111827; border-radius: 999px; padding: 7px 18px;
+    }
+    .btn-save { background: #16a34a; border: none; color: white; font-weight: 600; border-radius: 999px; padding: 8px 20px; }
+    .user-menu {
+      position: absolute; top: 62px; right: 16px; background: white;
+      border: 1px solid #e5e7eb; border-radius: 12px; padding: 8px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12); z-index: 200; min-width: 230px; display: none;
+    }
+    .user-menu.show { display: block; }
+    .user-menu li { padding: 0.55rem 1.2rem; cursor: pointer; list-style: none; font-size: 0.9rem; }
+    .user-menu li:hover { background: #f3f4f6; }
+    .analysis-menu { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .analysis-menu button {
+      border: 1px solid #d1d5db; background: white; border-radius: 999px;
+      padding: 6px 16px; font-size: 0.88rem; cursor: pointer;
+    }
+    .analysis-menu button.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+    .analysis-block { display: none; }
+    .analysis-block.active { display: block; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .summary-card { background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb; padding: 14px; }
+    .pos { color: #16a34a; }
+    .neg { color: #dc2626; }
+    .stats-2col {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 40px; font-size: 0.9rem;
+    }
+    .stats-item {
+      display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f1f5f9;
+    }
+    .stats-item .label { color: #6b7280; }
+    .stats-item .value { font-weight: 500; }
+    .dist-row {
+      display: grid; grid-template-columns: 130px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 10px; font-size: 0.85rem;
+    }
+    .dist-label { font-weight: 600; }
+    .dist-side { background: #f1f5f9; border-radius: 6px; height: 26px; overflow: hidden; display: flex; }
+    .dist-fill {
+      height: 100%; display: flex; align-items: center; padding: 0 8px; font-size: 0.78rem; white-space: nowrap;
+      transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
     .dist-fill:hover { filter: brightness(1.15); }
+    .fill-blue { background: #93c5fd; }
+    .fill-green { background: #86efac; }
+    .fill-red { background: #fca5a5; }
+    .fill-orange { background: #fdba74; }
+    .dist-split { display: flex; gap: 4px; flex: 1; }
+    .heatmap-table { border-collapse: collapse; font-size: 0.75rem; }
     .heatmap-table td, .heatmap-table th { border: 1px solid #e5e7eb; padding: 6px; text-align: center; min-width: 32px; }
+    .martingale-table { font-size: 0.85rem; }
     .martingale-table th { background: #f8fafc; }
     .expand-btn { cursor: pointer; font-size: 1.1rem; }
     .layer-detail { display: none; background: #f8fafc; padding: 10px; border-radius: 6px; margin-top: 6px; }
@@ -20,7 +97,6 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
   <header class="top-header">
     <div class="d-flex align-items-center gap-3">
       <div style="width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#fff,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🌳</div>
@@ -43,26 +119,34 @@
   </div>
 
   <div class="d-flex">
-    <!-- Sidebar -->
     <nav class="sidebar">
       <div class="nav-section">P1 - Core</div>
       <a href="#" class="nav-link active" data-page="dashboard">📊 Dashboard</a>
-      <a href="#" class="nav-link" data-page="tha">📈 Trade History Analyzer</a>
-      <a href="#" class="nav-link" data-page="library">📚 Signal History Library</a>
+      <a href="#" class="nav-link" data-page="live">📡 Live Signals</a>
+      <a href="#" class="nav-link" data-page="mysignals">📋 My Signals</a>
+      <a href="#" class="nav-link" data-page="register">➕ Register Signal</a>
+      <a href="#" class="nav-link" data-page="group">👥 Signal Group</a>
+      <a href="#" class="nav-link" data-page="portfolio">💼 User Portfolio</a>
+      <a href="#" class="nav-link" data-page="news">📰 Market News</a>
+      <a href="#" class="nav-link" data-page="world">🌍 World Monitor</a>
       <div class="nav-section">P2 - Advanced</div>
       <a href="#" class="nav-link" data-page="crosspower">⚡ Cross Power Center</a>
+      <a href="#" class="nav-link" data-page="tha">📈 Trade History Analyzer</a>
+      <a href="#" class="nav-link" data-page="library">📚 Signal History Library</a>
       <div class="nav-section">P3</div>
-      <a href="#" class="nav-link" data-page="admin">🛠️ Admin Console</a>
+      <a href="#" class="nav-link" data-page="fxtools">🔧 FX Tools</a>
+      <a href="#" class="nav-link" data-page="forest">🌲 豐盛森林</a>
+      <a href="#" class="nav-link" data-page="earules">📜 EA Rules</a>
+      <a href="#" class="nav-link" data-page="directory">📖 Signal Directory</a>
+      <a href="#" class="nav-link" data-page="export">📤 Export History</a>
     </nav>
 
     <main class="flex-grow-1 p-3">
-      <!-- Dashboard -->
       <div id="page-dashboard" class="page active">
         <h2>Dashboard</h2>
         <p class="text-muted">歡迎使用 Signal Helper（開發版）</p>
       </div>
 
-      <!-- THA -->
       <div id="page-tha" class="page">
         <section class="panel">
           <h2 class="panel-title">Trade History Analyzer</h2>
@@ -82,6 +166,7 @@
             <div class="d-flex gap-2">
               <button id="analyzeBtn" class="btn btn-primary-a2">🚀 開始分析</button>
               <button id="saveBtn" class="btn btn-save">💾 SAVE</button>
+              <button id="exportPdfBtn" class="btn btn-secondary-a2">📄 EXPORT PDF</button>
               <button id="resetBtn" class="btn btn-secondary-a2">Reset</button>
             </div>
           </div>
@@ -94,6 +179,8 @@
             <button data-block="symbol-martingale">Symbol + 馬丁</button>
             <button data-block="mfe-mae">MFE + MAE</button>
             <button data-block="heatmap">Heat Map</button>
+            <button data-block="drawdown">Drawdown</button>
+            <button data-block="swot">SWOT</button>
           </div>
 
           <!-- 總覽 -->
@@ -148,11 +235,11 @@
               <h2 class="panel-title">MFE + MAE 散點圖</h2>
               <div class="row">
                 <div class="col-md-6">
-                  <h6>MFE vs Net Profit</h6>
+                  <h6>MFE (Max Profit) vs Net Profit</h6>
                   <div style="height: 280px;"><canvas id="mfeChart"></canvas></div>
                 </div>
                 <div class="col-md-6">
-                  <h6>MAE vs Net Profit</h6>
+                  <h6>MAE (Max Loss) vs Net Profit</h6>
                   <div style="height: 280px;"><canvas id="maeChart"></canvas></div>
                 </div>
               </div>
@@ -163,30 +250,84 @@
           <!-- Heat Map -->
           <div class="analysis-block" id="block-heatmap">
             <section class="panel">
-              <h2 class="panel-title">交易時間 Heat Map</h2>
+              <h2 class="panel-title">交易時間 Heat Map（星期 × 小時）</h2>
               <div id="heatmapContainer"></div>
+              <div class="small text-muted mt-2">顏色越綠 = 平均利潤越高，數字為該時段交易數</div>
+            </section>
+          </div>
+
+          <!-- Drawdown & SWOT -->
+          <div class="analysis-block" id="block-drawdown">
+            <section class="panel">
+              <h2 class="panel-title">Drawdown 分析</h2>
+              <div style="height: 260px;"><canvas id="ddChart"></canvas></div>
+            </section>
+          </div>
+
+          <div class="analysis-block" id="block-swot">
+            <section class="panel">
+              <h2 class="panel-title">SWOT 分析（9格）</h2>
+              <div class="swot-9" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                <div class="swot-cell" style="background:#dbeafe;border-radius:10px;padding:14px;"><div class="swot-title">S-T 策略</div><ul class="small mb-0"><li>加入不同 TF</li><li>加 RSI/BB Filter</li></ul></div>
+                <div class="swot-cell" style="background:#fef9c3;border-radius:10px;padding:14px;"><div class="swot-title">STRENGTH</div><ul class="small mb-0"><li>捕捉多週期趨勢</li><li>有 PLAN B 馬丁</li></ul></div>
+                <div class="swot-cell" style="background:#dbeafe;border-radius:10px;padding:14px;"><div class="swot-title">S-O 策略</div><ul class="small mb-0"><li>精選貨幣對</li><li>可作 Copy Trade</li></ul></div>
+                <div class="swot-cell" style="background:#fef9c3;border-radius:10px;padding:14px;"><div class="swot-title">THREATS</div><ul class="small mb-0"><li>地緣政治波動</li><li>無 Cooldown</li></ul></div>
+                <div class="swot-cell" style="background:#e0f2fe;border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:center;"><strong>SWOT</strong></div>
+                <div class="swot-cell" style="background:#fef9c3;border-radius:10px;padding:14px;"><div class="swot-title">OPPORTUNITIES</div><ul class="small mb-0"><li>已運作多週</li><li>有 Risk Free 紀錄</li></ul></div>
+                <div class="swot-cell" style="background:#dbeafe;border-radius:10px;padding:14px;"><div class="swot-title">W-T 策略</div><ul class="small mb-0"><li>加 News Filter</li><li>加 Cooldown</li></ul></div>
+                <div class="swot-cell" style="background:#fef9c3;border-radius:10px;padding:14px;"><div class="swot-title">WEAKNESS</div><ul class="small mb-0"><li>馬丁層數偏多</li><li>入市條件寬鬆</li></ul></div>
+                <div class="swot-cell" style="background:#dbeafe;border-radius:10px;padding:14px;"><div class="swot-title">W-O 策略</div><ul class="small mb-0"><li>增加 Filter</li><li>加大 Pips Step</li></ul></div>
+              </div>
             </section>
           </div>
         </div>
       </div>
+
+      <!-- 其他頁面 -->
+      <div id="page-library" class="page"><section class="panel"><h2 class="panel-title">📚 Signal History Library</h2><div id="libraryList" class="text-muted small">Login 後使用 SAVE</div></section></div>
+      <div id="page-admin" class="page"><section class="panel"><h2 class="panel-title">🛠️ Admin Console</h2><p>只有 gary7641@gmail.com 同 shenxu.gary@gmail.com 可進入。</p></section></div>
+      <div id="page-live" class="page"><div class="panel"><h2>📡 Live Signals</h2><p>開發中...</p></div></div>
+      <div id="page-mysignals" class="page"><div class="panel"><h2>📋 My Signals</h2><p>開發中...</p></div></div>
+      <div id="page-register" class="page"><div class="panel"><h2>➕ Register Signal</h2><p>開發中...</p></div></div>
+      <div id="page-group" class="page"><div class="panel"><h2>👥 Signal Group</h2><p>開發中...</p></div></div>
+      <div id="page-portfolio" class="page"><div class="panel"><h2>💼 User Portfolio</h2><p>開發中...</p></div></div>
+      <div id="page-news" class="page"><div class="panel"><h2>📰 Market News</h2><p>開發中...</p></div></div>
+      <div id="page-world" class="page"><div class="panel"><h2>🌍 World Monitor</h2><p>開發中...</p></div></div>
+      <div id="page-crosspower" class="page"><div class="panel"><h2>⚡ Cross Power Center</h2><p>開發中...</p></div></div>
+      <div id="page-fxtools" class="page"><div class="panel"><h2>🔧 FX Tools</h2><p>開發中...</p></div></div>
+      <div id="page-forest" class="page"><div class="panel"><h2>🌲 豐盛森林</h2><p>開發中...</p></div></div>
+      <div id="page-earules" class="page"><div class="panel"><h2>📜 EA Rules</h2><p>開發中...</p></div></div>
+      <div id="page-directory" class="page"><div class="panel"><h2>📖 Signal Directory</h2><p>開發中...</p></div></div>
+      <div id="page-export" class="page"><div class="panel"><h2>📤 Export History</h2><p>開發中...</p></div></div>
     </main>
   </div>
 
   <script>
-    // ==================== 安全初始化（解決 null addEventListener） ====================
+    // ==================== Firebase 安全初始化 ====================
+    const firebaseConfig = {
+      apiKey: "AIzaSyDprZtAn7CdeRoeoyO7uel59936xxWIo1g",
+      authDomain: "ai-signal-portal.firebaseapp.com",
+      projectId: "ai-signal-portal",
+      storageBucket: "ai-signal-portal.firebasestorage.app",
+      messagingSenderId: "708453018931",
+      appId: "1:708453018931:web:201c1649e4da9d62e56246",
+      measurementId: "G-1BBZXCCNL2"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const ADMIN_EMAILS = ['gary7641@gmail.com', 'shenxu.gary@gmail.com'];
+    let currentUser = null;
+    let lastResult = null; // 保存最新解析結果
+
+    // ==================== DOM 安全初始化 ====================
     document.addEventListener('DOMContentLoaded', () => {
-      initApp();
+      initAll();
     });
 
-    function initApp() {
-      // Firebase 初始化
-      const firebaseConfig = { /* 你的 config */ };
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-      const ADMIN_EMAILS = ['gary7641@gmail.com', 'shenxu.gary@gmail.com'];
-      let currentUser = null;
-
-      // Auth 狀態監聽
+    function initAll() {
       auth.onAuthStateChanged(user => {
         currentUser = user;
         const isAdmin = user && ADMIN_EMAILS.includes(user.email.toLowerCase());
@@ -198,7 +339,8 @@
           if (loginBtn) loginBtn.style.display = 'none';
           if (userInfo) {
             userInfo.style.display = 'block';
-            document.getElementById('userName').textContent = user.displayName || user.email;
+            const nameEl = document.getElementById('userName');
+            if (nameEl) nameEl.textContent = user.displayName || user.email;
           }
           if (menuAdmin) menuAdmin.style.display = isAdmin ? 'block' : 'none';
         } else {
@@ -207,16 +349,14 @@
         }
       });
 
-      // Login 按鈕
       const loginBtn = document.getElementById('loginBtn');
       if (loginBtn) {
         loginBtn.addEventListener('click', () => {
           const provider = new firebase.auth.GoogleAuthProvider();
-          auth.signInWithPopup(provider).catch(err => alert(err.message));
+          auth.signInWithPopup(provider).catch(err => alert('Login 失敗：' + err.message));
         });
       }
 
-      // User Menu
       const userInfo = document.getElementById('userInfo');
       const userMenu = document.getElementById('userMenu');
       if (userInfo && userMenu) {
@@ -229,13 +369,11 @@
         if (userMenu) userMenu.classList.remove('show');
       });
 
-      // Menu actions
       const menuLogout = document.getElementById('menuLogout');
       const menuAdmin = document.getElementById('menuAdmin');
       if (menuLogout) menuLogout.addEventListener('click', () => auth.signOut());
       if (menuAdmin) menuAdmin.addEventListener('click', () => switchPage('admin'));
 
-      // Sidebar navigation
       document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', e => {
           e.preventDefault();
@@ -243,7 +381,6 @@
         });
       });
 
-      // Analysis menu
       document.querySelectorAll('#analysisMenu button').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
@@ -254,25 +391,30 @@
         });
       });
 
-      // THA 按鈕（安全綁定）
       const analyzeBtn = document.getElementById('analyzeBtn');
-      if (analyzeBtn) {
-        analyzeBtn.addEventListener('click', handleAnalyze);
-      }
+      if (analyzeBtn) analyzeBtn.addEventListener('click', handleAnalyze);
 
       const saveBtn = document.getElementById('saveBtn');
       if (saveBtn) {
         saveBtn.addEventListener('click', () => {
+          if (!currentUser) return alert('請先 Login 才能 SAVE');
+          alert('SAVE 功能開發中（會接 Firestore）');
+        });
+      }
+
+      const exportPdfBtn = document.getElementById('exportPdfBtn');
+      if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', () => {
           if (!currentUser) return alert('請先 Login');
-          alert('SAVE 功能開發中');
+          window.print();
         });
       }
 
       const resetBtn = document.getElementById('resetBtn');
       if (resetBtn) {
         resetBtn.addEventListener('click', () => {
-          const csvFile = document.getElementById('csvFile');
-          if (csvFile) csvFile.value = '';
+          const csv = document.getElementById('csvFile');
+          if (csv) csv.value = '';
           const status = document.getElementById('tha-status');
           if (status) status.innerHTML = '';
           const area = document.getElementById('analysisArea');
@@ -280,7 +422,6 @@
         });
       }
 
-      // 初始頁面
       switchPage('dashboard');
     }
 
@@ -293,21 +434,610 @@
       if (page) page.classList.add('active');
     }
 
-    // ==================== 分析功能（保留之前完整版） ====================
+    // ==================== 真實 CSV 解析（針對你嘅格式） ====================
+    function parseYourCSV(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) return null;
+
+      let headerIndex = 0;
+      for (let i = 0; i < Math.min(15, lines.length); i++) {
+        const lower = lines[i].toLowerCase();
+        if (lower.includes('open time') && lower.includes('net profit')) {
+          headerIndex = i;
+          break;
+        }
+      }
+
+      const headers = lines[headerIndex].split(',').map(h => h.trim().toLowerCase());
+      const openTimeIdx = headers.indexOf('open time');
+      const typeIdx = headers.indexOf('type');
+      const symbolIdx = headers.indexOf('symbol');
+      const netProfitIdx = headers.indexOf('net profit');
+      const lotsIdx = headers.indexOf('lots');
+      const netPipsIdx = headers.indexOf('net pips');
+      const swapIdx = headers.indexOf('swap');
+      const magicIdx = headers.indexOf('magic number');
+      const maxProfitIdx = headers.indexOf('max profit');
+      const maxLossIdx = headers.indexOf('max loss');
+      const holdingIdx = headers.indexOf('holding time (hours)');
+
+      if (netProfitIdx === -1) return null;
+
+      // 搵最早 positive balance
+      let initial_balance = 0;
+      let initial_time = null;
+      for (let i = headerIndex + 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map(c => c.trim());
+        if (cols.length < 10) continue;
+        const type = (cols[typeIdx] || '').toLowerCase();
+        if (type === 'balance') {
+          const bal = parseFloat(cols[netProfitIdx] || 0);
+          const timeStr = cols[openTimeIdx] || '';
+          let balDate = null;
+          if (timeStr) {
+            const parts = timeStr.split(' ');
+            if (parts[0]) {
+              const dmy = parts[0].split('/');
+              if (dmy.length === 3) balDate = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}`);
+            }
+          }
+          if (bal > 0 && (initial_balance === 0 || (balDate && (!initial_time || balDate < initial_time)))) {
+            initial_balance = bal;
+            initial_time = balDate;
+          }
+        }
+      }
+      if (initial_balance === 0) initial_balance = 10000;
+
+      const trades = [];
+      for (let i = headerIndex + 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map(c => c.trim());
+        if (cols.length < 10) continue;
+        const type = (cols[typeIdx] || '').toLowerCase();
+        if (type === 'balance') continue;
+
+        const profit = parseFloat(cols[netProfitIdx] || 0);
+        if (isNaN(profit)) continue;
+
+        const timeStr = cols[openTimeIdx] || '';
+        let dateObj = null;
+        if (timeStr) {
+          const parts = timeStr.split(' ');
+          if (parts[0]) {
+            const dmy = parts[0].split('/');
+            if (dmy.length === 3) {
+              dateObj = new Date(`${dmy[2]}-${dmy[1]}-${dmy[0]}T${parts[1] || '00:00:00'}`);
+            }
+          }
+        }
+
+        trades.push({
+          profit,
+          symbol: cols[symbolIdx] || 'UNKNOWN',
+          openTime: dateObj,
+          openTimeStr: timeStr,
+          type,
+          lots: parseFloat(cols[lotsIdx] || 0),
+          pips: parseFloat(cols[netPipsIdx] || 0),
+          swap: parseFloat(cols[swapIdx] || 0),
+          magic: cols[magicIdx] || '',
+          maxProfit: parseFloat(cols[maxProfitIdx] || 0),
+          maxLoss: parseFloat(cols[maxLossIdx] || 0),
+          holdingHours: parseFloat(cols[holdingIdx] || 0)
+        });
+      }
+
+      if (trades.length === 0) return null;
+
+      // 由舊到新排序
+      trades.sort((a, b) => {
+        if (!a.openTime) return 1;
+        if (!b.openTime) return -1;
+        return a.openTime - b.openTime;
+      });
+
+      // 聚合 bySymbol + overall
+      const bySymbol = {};
+      const overall = {
+        deals: 0, buy_deals: 0, sell_deals: 0,
+        total_profit: 0, gross_profit: 0, gross_loss: 0,
+        total_pips: 0, gross_pips_profit: 0, gross_pips_loss: 0,
+        total_swap: 0, buy_swap: 0, sell_swap: 0
+      };
+
+      trades.forEach(t => {
+        if (!bySymbol[t.symbol]) {
+          bySymbol[t.symbol] = {
+            deals: 0, buy_deals: 0, sell_deals: 0,
+            total_profit: 0, gross_profit: 0, gross_loss: 0,
+            total_pips: 0, gross_pips_profit: 0, gross_pips_loss: 0,
+            total_swap: 0, buy_swap: 0, sell_swap: 0
+          };
+        }
+        const s = bySymbol[t.symbol];
+        s.deals++; overall.deals++;
+        if (t.type === 'buy') {
+          s.buy_deals++; overall.buy_deals++;
+          s.buy_swap += t.swap; overall.buy_swap += t.swap;
+        } else if (t.type === 'sell') {
+          s.sell_deals++; overall.sell_deals++;
+          s.sell_swap += t.swap; overall.sell_swap += t.swap;
+        }
+        s.total_profit += t.profit; overall.total_profit += t.profit;
+        if (t.profit > 0) { s.gross_profit += t.profit; overall.gross_profit += t.profit; }
+        else if (t.profit < 0) { s.gross_loss += t.profit; overall.gross_loss += t.profit; }
+
+        s.total_pips += t.pips; overall.total_pips += t.pips;
+        if (t.pips > 0) { s.gross_pips_profit += t.pips; overall.gross_pips_profit += t.pips; }
+        else if (t.pips < 0) { s.gross_pips_loss += t.pips; overall.gross_pips_loss += t.pips; }
+
+        s.total_swap += t.swap; overall.total_swap += t.swap;
+      });
+
+      // Equity + Max DD
+      let equity = initial_balance;
+      let peak = initial_balance;
+      let max_dd_money = 0;
+      let max_dd_pct = 0;
+      const equityCurve = [];
+      const equityLabels = [];
+
+      trades.forEach((t, idx) => {
+        equity += t.profit;
+        if (equity > peak) peak = equity;
+        const dd_money = peak - equity;
+        if (dd_money > max_dd_money) max_dd_money = dd_money;
+        const dd_pct = peak !== 0 ? (dd_money / peak) * 100 : 0;
+        if (dd_pct > max_dd_pct) max_dd_pct = dd_pct;
+        equityCurve.push(equity - initial_balance);
+        equityLabels.push(idx + 1);
+      });
+
+      const totalTrades = trades.length;
+      const winTrades = trades.filter(t => t.profit > 0).length;
+      const lossTrades = totalTrades - winTrades;
+      const winRate = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
+      const avgWin = winTrades > 0 ? trades.filter(t => t.profit > 0).reduce((a, b) => a + b.profit, 0) / winTrades : 0;
+      const avgLoss = lossTrades > 0 ? trades.filter(t => t.profit < 0).reduce((a, b) => a + b.profit, 0) / lossTrades : 0;
+      const maxWin = Math.max(...trades.map(t => t.profit), 0);
+      const maxLoss = Math.min(...trades.map(t => t.profit), 0);
+
+      return {
+        trades,
+        totalTrades, winTrades, lossTrades, winRate,
+        totalProfit: overall.total_profit,
+        avgWin, avgLoss, maxWin, maxLoss,
+        max_dd_pct, max_dd_money,
+        equityCurve, equityLabels,
+        bySymbol,
+        overallStats: {
+          deals: overall.deals, buy_deals: overall.buy_deals, sell_deals: overall.sell_deals,
+          total_profit: overall.total_profit, gross_profit: overall.gross_profit, gross_loss: overall.gross_loss,
+          total_pips: overall.total_pips, gross_pips_profit: overall.gross_pips_profit, gross_pips_loss: overall.gross_pips_loss,
+          total_swap: overall.total_swap, buy_swap: overall.buy_swap, sell_swap: overall.sell_swap,
+          initial_balance
+        },
+        initial_balance
+      };
+    }
+
+    // ==================== 分析主函數 ====================
     function handleAnalyze() {
       const fileInput = document.getElementById('csvFile');
-      const file = fileInput.files[0];
+      const file = fileInput ? fileInput.files[0] : null;
       if (!file) {
         const status = document.getElementById('tha-status');
         if (status) status.innerHTML = '<span class="text-danger">請先選擇檔案</span>';
         return;
       }
-      // ... 之前完整的 parse + render 邏輯（已包含 Martingale、MFE/MAE、Heat Map）
-      // 這裡省略重複部分，直接用你上次成功的版本
-      alert('分析中...（請使用你上次成功的完整版本替換此函數）');
+
+      const status = document.getElementById('tha-status');
+      if (status) status.innerHTML = `<span class="text-primary">正在解析：${file.name} ...</span>`;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const result = parseYourCSV(e.target.result);
+          if (!result || result.trades.length === 0) {
+            if (status) status.innerHTML = '<span class="text-danger">未能解析到有效交易</span>';
+            return;
+          }
+
+          lastResult = result;
+          const area = document.getElementById('analysisArea');
+          if (area) area.style.display = 'block';
+          if (status) status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易（由舊到新）</span>`;
+
+          // Summary
+          document.getElementById('stat-trades').textContent = result.totalTrades;
+          document.getElementById('stat-winrate').textContent = result.winRate.toFixed(1) + '%';
+          document.getElementById('stat-profit').textContent = (result.totalProfit >= 0 ? '+' : '') + result.totalProfit.toFixed(2);
+          document.getElementById('stat-profit').className = 'fs-3 fw-bold ' + (result.totalProfit >= 0 ? 'pos' : 'neg');
+          
+          const profitPct = result.initial_balance > 0 ? (result.totalProfit / result.initial_balance * 100).toFixed(2) : 'N/A';
+          document.getElementById('stat-profit-pct').textContent = `${profitPct}% of Balance`;
+
+          document.getElementById('stat-dd-pct').textContent = result.max_dd_pct.toFixed(2) + '%';
+          document.getElementById('stat-dd-money').textContent = '$' + result.max_dd_money.toFixed(2);
+
+          // 詳細 Statistics
+          document.getElementById('detailStats').innerHTML = `
+            <div>
+              <div class="stats-item"><span class="label">📈 Trades</span><span class="value">${result.totalTrades}</span></div>
+              <div class="stats-item"><span class="label">✅ Profit Trades</span><span class="value pos">${result.winTrades}</span></div>
+              <div class="stats-item"><span class="label">❌ Loss Trades</span><span class="value neg">${result.lossTrades}</span></div>
+              <div class="stats-item"><span class="label">🎯 Win Rate</span><span class="value">${result.winRate.toFixed(1)}%</span></div>
+              <div class="stats-item"><span class="label">💰 Total Profit</span><span class="value ${result.totalProfit>=0?'pos':'neg'}">${result.totalProfit.toFixed(2)}</span></div>
+            </div>
+            <div>
+              <div class="stats-item"><span class="label">📊 Avg Profit</span><span class="value pos">${result.avgWin.toFixed(2)}</span></div>
+              <div class="stats-item"><span class="label">📉 Avg Loss</span><span class="value neg">${result.avgLoss.toFixed(2)}</span></div>
+              <div class="stats-item"><span class="label">🏆 Max Win</span><span class="value pos">${result.maxWin.toFixed(2)}</span></div>
+              <div class="stats-item"><span class="label">💥 Max Loss</span><span class="value neg">${result.maxLoss.toFixed(2)}</span></div>
+              <div class="stats-item"><span class="label">📉 Max DD</span><span class="value neg">${result.max_dd_pct.toFixed(2)}%</span></div>
+            </div>
+          `;
+
+          // Equity Curve
+          const ctx = document.getElementById('thaEquityChart').getContext('2d');
+          if (window.thaChart) window.thaChart.destroy();
+          window.thaChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: result.equityLabels,
+              datasets: [{
+                label: 'Equity',
+                data: result.equityCurve,
+                borderColor: '#16a34a',
+                borderWidth: 2,
+                tension: 0.2,
+                fill: true,
+                backgroundColor: 'rgba(22,163,74,0.08)',
+                pointRadius: 0
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false } }
+            }
+          });
+
+          // Distribution
+          renderDistribution(result.bySymbol, result.overallStats);
+
+          // 其他區塊
+          renderSymbolMartingale(result);
+          renderMfeMae(result);
+          renderHeatMap(result);
+
+        } catch (err) {
+          console.error(err);
+          if (status) status.innerHTML = '<span class="text-danger">解析出錯：' + err.message + '</span>';
+        }
+      };
+      reader.readAsText(file);
     }
 
-    // renderSymbolMartingale, renderMfeMae, renderHeatMap 等函數保留你上次提供的完整實作
+    // ==================== Distribution By Symbol（雙 BAR） ====================
+    function renderDistribution(bySymbol, overallStats) {
+      const container = document.getElementById('distributionArea');
+      if (!bySymbol || Object.keys(bySymbol).length === 0) {
+        container.innerHTML = '<div class="text-muted small">No symbol data</div>';
+        return;
+      }
+
+      let maxDeals = 1, maxProfitAbs = 1, maxPipsAbs = 1, maxSwapAbs = 1;
+      Object.values(bySymbol).forEach(s => {
+        if (s.deals > maxDeals) maxDeals = s.deals;
+        if (Math.abs(s.total_profit) > maxProfitAbs) maxProfitAbs = Math.abs(s.total_profit);
+        if (Math.abs(s.total_pips) > maxPipsAbs) maxPipsAbs = Math.abs(s.total_pips);
+        if (Math.abs(s.total_swap) > maxSwapAbs) maxSwapAbs = Math.abs(s.total_swap);
+      });
+
+      let html = '';
+
+      // Deals
+      html += '<h6 class="mb-2">Deals Distribution By Symbol</h6>';
+      const oBuyPct = overallStats.deals > 0 ? (overallStats.buy_deals / overallStats.deals * 100).toFixed(0) : 0;
+      const oSellPct = overallStats.deals > 0 ? (overallStats.sell_deals / overallStats.deals * 100).toFixed(0) : 0;
+      html += `
+        <div class="dist-row">
+          <div class="dist-label">Overall</div>
+          <div class="dist-side"><div class="dist-fill fill-blue" style="width:100%">${overallStats.deals}</div></div>
+          <div class="dist-side dist-split">
+            <div class="dist-fill fill-orange" style="width:${oSellPct}%">Sell ${overallStats.sell_deals}</div>
+            <div class="dist-fill fill-green" style="width:${oBuyPct}%">Buy ${overallStats.buy_deals}</div>
+          </div>
+        </div>`;
+      Object.entries(bySymbol).sort((a,b) => b[1].deals - a[1].deals).slice(0,8).forEach(([sym, s]) => {
+        const pct = (s.deals / maxDeals * 100).toFixed(0);
+        const buyPct = s.deals > 0 ? (s.buy_deals / s.deals * 100).toFixed(0) : 0;
+        const sellPct = s.deals > 0 ? (s.sell_deals / s.deals * 100).toFixed(0) : 0;
+        html += `
+          <div class="dist-row">
+            <div class="dist-label">${sym}</div>
+            <div class="dist-side"><div class="dist-fill fill-blue" style="width:${pct}%">${s.deals}</div></div>
+            <div class="dist-side dist-split">
+              <div class="dist-fill fill-orange" style="width:${sellPct}%">Sell ${s.sell_deals}</div>
+              <div class="dist-fill fill-green" style="width:${buyPct}%">Buy ${s.buy_deals}</div>
+            </div>
+          </div>`;
+      });
+
+      // Net Profit USD
+      html += '<h6 class="mb-2 mt-3">Net Profit USD Distribution By Symbol</h6>';
+      const oProfit = overallStats.total_profit;
+      const oGrossProfitPct = overallStats.gross_profit + Math.abs(overallStats.gross_loss) > 0 ? (overallStats.gross_profit / (overallStats.gross_profit + Math.abs(overallStats.gross_loss)) * 100).toFixed(0) : 50;
+      const oGrossLossPct = 100 - oGrossProfitPct;
+      html += `
+        <div class="dist-row">
+          <div class="dist-label">Overall</div>
+          <div class="dist-side"><div class="dist-fill ${oProfit>=0?'fill-green':'fill-red'}" style="width:100%">${oProfit>=0?'+':''}${oProfit.toFixed(0)}</div></div>
+          <div class="dist-side dist-split">
+            <div class="dist-fill fill-red" style="width:${oGrossLossPct}%">Loss ${Math.abs(overallStats.gross_loss).toFixed(0)}</div>
+            <div class="dist-fill fill-green" style="width:${oGrossProfitPct}%">Profit ${overallStats.gross_profit.toFixed(0)}</div>
+          </div>
+        </div>`;
+      Object.entries(bySymbol).sort((a,b) => Math.abs(b[1].total_profit) - Math.abs(a[1].total_profit)).slice(0,8).forEach(([sym, s]) => {
+        const pct = (Math.abs(s.total_profit) / maxProfitAbs * 100).toFixed(0);
+        const color = s.total_profit >= 0 ? 'fill-green' : 'fill-red';
+        const gProfitPct = s.gross_profit + Math.abs(s.gross_loss) > 0 ? (s.gross_profit / (s.gross_profit + Math.abs(s.gross_loss)) * 100).toFixed(0) : 50;
+        const gLossPct = 100 - gProfitPct;
+        html += `
+          <div class="dist-row">
+            <div class="dist-label">${sym}</div>
+            <div class="dist-side"><div class="dist-fill ${color}" style="width:${pct}%">${s.total_profit >= 0 ? '+' : ''}${s.total_profit.toFixed(0)}</div></div>
+            <div class="dist-side dist-split">
+              <div class="dist-fill fill-red" style="width:${gLossPct}%">Loss ${Math.abs(s.gross_loss).toFixed(0)}</div>
+              <div class="dist-fill fill-green" style="width:${gProfitPct}%">Profit ${s.gross_profit.toFixed(0)}</div>
+            </div>
+          </div>`;
+      });
+
+      // Net Profit Pips
+      html += '<h6 class="mb-2 mt-3">Net Profit Pips Distribution By Symbol</h6>';
+      const oPips = overallStats.total_pips;
+      const oPipsProfitPct = overallStats.gross_pips_profit + Math.abs(overallStats.gross_pips_loss) > 0 ? (overallStats.gross_pips_profit / (overallStats.gross_pips_profit + Math.abs(overallStats.gross_pips_loss)) * 100).toFixed(0) : 50;
+      const oPipsLossPct = 100 - oPipsProfitPct;
+      html += `
+        <div class="dist-row">
+          <div class="dist-label">Overall</div>
+          <div class="dist-side"><div class="dist-fill ${oPips>=0?'fill-green':'fill-red'}" style="width:100%">${oPips>=0?'+':''}${oPips.toFixed(0)}</div></div>
+          <div class="dist-side dist-split">
+            <div class="dist-fill fill-red" style="width:${oPipsLossPct}%">Loss ${Math.abs(overallStats.gross_pips_loss).toFixed(0)}</div>
+            <div class="dist-fill fill-green" style="width:${oPipsProfitPct}%">Profit ${overallStats.gross_pips_profit.toFixed(0)}</div>
+          </div>
+        </div>`;
+      Object.entries(bySymbol).sort((a,b) => Math.abs(b[1].total_pips) - Math.abs(a[1].total_pips)).slice(0,8).forEach(([sym, s]) => {
+        const pct = (Math.abs(s.total_pips) / maxPipsAbs * 100).toFixed(0);
+        const color = s.total_pips >= 0 ? 'fill-green' : 'fill-red';
+        const gPipsProfitPct = s.gross_pips_profit + Math.abs(s.gross_pips_loss) > 0 ? (s.gross_pips_profit / (s.gross_pips_profit + Math.abs(s.gross_pips_loss)) * 100).toFixed(0) : 50;
+        const gPipsLossPct = 100 - gPipsProfitPct;
+        html += `
+          <div class="dist-row">
+            <div class="dist-label">${sym}</div>
+            <div class="dist-side"><div class="dist-fill ${color}" style="width:${pct}%">${s.total_pips >= 0 ? '+' : ''}${s.total_pips.toFixed(0)}</div></div>
+            <div class="dist-side dist-split">
+              <div class="dist-fill fill-red" style="width:${gPipsLossPct}%">Loss ${Math.abs(s.gross_pips_loss).toFixed(0)}</div>
+              <div class="dist-fill fill-green" style="width:${gPipsProfitPct}%">Profit ${s.gross_pips_profit.toFixed(0)}</div>
+            </div>
+          </div>`;
+      });
+
+      // Net Swap
+      html += '<h6 class="mb-2 mt-3">Net Swap USD Distribution By Symbol</h6>';
+      const oSwap = overallStats.total_swap;
+      const oBuySwapPct = Math.abs(overallStats.total_swap) > 0 ? (overallStats.buy_swap / Math.abs(overallStats.total_swap) * 100).toFixed(0) : 50;
+      const oSellSwapPct = 100 - oBuySwapPct;
+      html += `
+        <div class="dist-row">
+          <div class="dist-label">Overall</div>
+          <div class="dist-side"><div class="dist-fill ${oSwap>=0?'fill-green':'fill-red'}" style="width:100%">${oSwap>=0?'+':''}${oSwap.toFixed(0)}</div></div>
+          <div class="dist-side dist-split">
+            <div class="dist-fill fill-orange" style="width:${oSellSwapPct}%">Sell ${overallStats.sell_swap.toFixed(0)}</div>
+            <div class="dist-fill fill-green" style="width:${oBuySwapPct}%">Buy ${overallStats.buy_swap.toFixed(0)}</div>
+          </div>
+        </div>`;
+      Object.entries(bySymbol).sort((a,b) => Math.abs(b[1].total_swap) - Math.abs(a[1].total_swap)).slice(0,8).forEach(([sym, s]) => {
+        const pct = (Math.abs(s.total_swap) / maxSwapAbs * 100).toFixed(0);
+        const color = s.total_swap >= 0 ? 'fill-green' : 'fill-red';
+        const buyPct = Math.abs(s.total_swap) > 0 ? (s.buy_swap / Math.abs(s.total_swap) * 100).toFixed(0) : 50;
+        const sellPct = 100 - buyPct;
+        html += `
+          <div class="dist-row">
+            <div class="dist-label">${sym}</div>
+            <div class="dist-side"><div class="dist-fill ${color}" style="width:${pct}%">${s.total_swap >= 0 ? '+' : ''}${s.total_swap.toFixed(0)}</div></div>
+            <div class="dist-side dist-split">
+              <div class="dist-fill fill-orange" style="width:${sellPct}%">Sell ${s.sell_swap.toFixed(0)}</div>
+              <div class="dist-fill fill-green" style="width:${buyPct}%">Buy ${s.buy_swap.toFixed(0)}</div>
+            </div>
+          </div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // ==================== Symbol + 馬丁層數 ====================
+    function renderSymbolMartingale(result) {
+      const container = document.getElementById('symbolButtons');
+      const content = document.getElementById('martingaleContent');
+      if (!container || !content) return;
+      container.innerHTML = '';
+      content.innerHTML = '';
+
+      if (!result.bySymbol || Object.keys(result.bySymbol).length === 0) return;
+
+      const sortedSymbols = Object.entries(result.bySymbol)
+        .sort((a, b) => b[1].deals - a[1].deals)
+        .slice(0, 12);
+
+      sortedSymbols.forEach(([sym, stats]) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-outline-primary btn-sm symbol-btn';
+        btn.textContent = `${sym} (${stats.deals})`;
+        btn.onclick = () => showMartingaleDetail(sym, result);
+        container.appendChild(btn);
+      });
+
+      if (sortedSymbols.length > 0) {
+        showMartingaleDetail(sortedSymbols[0][0], result);
+      }
+    }
+
+    function showMartingaleDetail(symbol, result) {
+      const content = document.getElementById('martingaleContent');
+      if (!content) return;
+      const symbolTrades = result.trades.filter(t => t.symbol === symbol);
+      if (symbolTrades.length === 0) return;
+
+      // 按 Magic + Type 分組，簡單偵測層數（lot 遞增）
+      const groups = {};
+      symbolTrades.forEach(t => {
+        const key = `${t.magic || 'default'}_${t.type}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(t);
+      });
+
+      let html = `<h5 class="mb-2">${symbol} 馬丁分析（共 ${symbolTrades.length} 筆）</h5>`;
+      const totalProfit = symbolTrades.reduce((a,b) => a + b.profit, 0);
+      html += `<div class="mb-3">總利潤: <span class="${totalProfit>=0?'pos':'neg'}">$${totalProfit.toFixed(2)}</span></div>`;
+
+      html += `<table class="table table-sm martingale-table"><thead><tr>
+        <th>層數</th><th>交易數</th><th>總利潤</th><th>最大單筆虧損</th><th>平均持倉(小時)</th><th>操作</th>
+      </tr></thead><tbody>`;
+
+      let layerNum = 0;
+      Object.values(groups).forEach(group => {
+        group.sort((a,b) => (a.openTime || 0) - (b.openTime || 0));
+        let currentLayer = 1;
+        let layerTrades = [group[0]];
+        for (let i = 1; i < group.length; i++) {
+          if (group[i].lots > group[i-1].lots * 1.3) currentLayer++;
+          layerTrades.push(group[i]);
+        }
+
+        const layerProfit = layerTrades.reduce((a,b) => a + b.profit, 0);
+        const maxLoss = Math.min(...layerTrades.map(t => t.profit));
+        const avgHold = layerTrades.reduce((a,b) => a + (b.holdingHours || 0), 0) / layerTrades.length;
+
+        html += `<tr>
+          <td>Layer ${currentLayer}</td>
+          <td>${layerTrades.length}</td>
+          <td class="${layerProfit>=0?'pos':'neg'}">$${layerProfit.toFixed(2)}</td>
+          <td class="neg">$${maxLoss.toFixed(2)}</td>
+          <td>${avgHold.toFixed(1)}</td>
+          <td><span class="expand-btn" onclick="toggleLayerDetail(this, 'layer-${layerNum}')">➕</span></td>
+        </tr>
+        <tr id="layer-${layerNum}" class="layer-detail" style="display:none;"><td colspan="6">
+          <table class="table table-sm"><thead><tr>
+            <th>Open Time</th><th>Type</th><th>Lots</th><th>Profit</th><th>Pips</th><th>Swap</th>
+          </tr></thead><tbody>`;
+        
+        layerTrades.forEach(t => {
+          html += `<tr>
+            <td>${t.openTimeStr || ''}</td>
+            <td>${t.type}</td>
+            <td>${t.lots}</td>
+            <td class="${t.profit>=0?'pos':'neg'}">$${t.profit.toFixed(2)}</td>
+            <td>${t.pips.toFixed(1)}</td>
+            <td>$${t.swap.toFixed(2)}</td>
+          </tr>`;
+        });
+        html += `</tbody></table></td></tr>`;
+        layerNum++;
+      });
+
+      html += `</tbody></table>`;
+      content.innerHTML = html;
+    }
+
+    function toggleLayerDetail(btn, id) {
+      const detail = document.getElementById(id);
+      if (!detail) return;
+      if (detail.style.display === 'table-row') {
+        detail.style.display = 'none';
+        btn.textContent = '➕';
+      } else {
+        detail.style.display = 'table-row';
+        btn.textContent = '➖';
+      }
+    }
+
+    // ==================== MFE + MAE ====================
+    function renderMfeMae(result) {
+      const mfeCanvas = document.getElementById('mfeChart');
+      const maeCanvas = document.getElementById('maeChart');
+      if (!mfeCanvas || !maeCanvas) return;
+
+      if (window.mfeChartInstance) window.mfeChartInstance.destroy();
+      if (window.maeChartInstance) window.maeChartInstance.destroy();
+
+      const mfeData = result.trades.map(t => ({ x: t.maxProfit || 0, y: t.profit }));
+      const maeData = result.trades.map(t => ({ x: Math.abs(t.maxLoss || 0), y: t.profit }));
+
+      window.mfeChartInstance = new Chart(mfeCanvas.getContext('2d'), {
+        type: 'scatter',
+        data: { datasets: [{ label: 'MFE vs Profit', data: mfeData, backgroundColor: '#16a34a', pointRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { title: { display: true, text: 'MFE (Max Profit)' } }, y: { title: { display: true, text: 'Net Profit' } } }
+        }
+      });
+
+      window.maeChartInstance = new Chart(maeCanvas.getContext('2d'), {
+        type: 'scatter',
+        data: { datasets: [{ label: 'MAE vs Profit', data: maeData, backgroundColor: '#dc2626', pointRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { title: { display: true, text: 'MAE (Max Loss)' } }, y: { title: { display: true, text: 'Net Profit' } } }
+        }
+      });
+
+      const avgMFE = mfeData.reduce((a,b) => a + b.x, 0) / (mfeData.length || 1);
+      const avgMAE = maeData.reduce((a,b) => a + b.x, 0) / (maeData.length || 1);
+      const summary = document.getElementById('mfeMaeSummary');
+      if (summary) summary.innerHTML = `平均 MFE: <span class="pos">$${avgMFE.toFixed(2)}</span> | 平均 MAE: <span class="neg">$${avgMAE.toFixed(2)}</span> | 比率 (MFE/MAE): ${(avgMAE > 0 ? (avgMFE / avgMAE).toFixed(2) : 'N/A')}`;
+    }
+
+    // ==================== Heat Map ====================
+    function renderHeatMap(result) {
+      const container = document.getElementById('heatmapContainer');
+      if (!container || !result.trades) return;
+
+      const heatmap = Array.from({length: 7}, () => Array(24).fill(null).map(() => ({profit:0, count:0, win:0})));
+
+      result.trades.forEach(t => {
+        if (!t.openTime) return;
+        const day = t.openTime.getDay();
+        const hour = t.openTime.getHours();
+        heatmap[day][hour].profit += t.profit;
+        heatmap[day][hour].count += 1;
+        if (t.profit > 0) heatmap[day][hour].win += 1;
+      });
+
+      let html = `<table class="heatmap-table"><thead><tr><th></th>`;
+      for (let h = 0; h < 24; h++) html += `<th>${h}</th>`;
+      html += `</tr></thead><tbody>`;
+
+      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      for (let d = 0; d < 7; d++) {
+        html += `<tr><th>${days[d]}</th>`;
+        for (let h = 0; h < 24; h++) {
+          const cell = heatmap[d][h];
+          const avg = cell.count > 0 ? cell.profit / cell.count : 0;
+          const winrate = cell.count > 0 ? (cell.win / cell.count * 100).toFixed(0) : 0;
+          let color = '#f3f4f6';
+          if (avg > 5) color = '#86efac';
+          else if (avg > 0) color = '#fef08a';
+          else if (avg < -5) color = '#fecaca';
+          else if (avg < 0) color = '#fee2e2';
+          html += `<td style="background:${color}" title="Avg: $${avg.toFixed(1)} | Win: ${winrate}%">${cell.count || ''}</td>`;
+        }
+        html += `</tr>`;
+      }
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
   </script>
 </body>
 </html>
