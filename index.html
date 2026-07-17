@@ -641,6 +641,64 @@ renderDistribution(result.bySymbol, result);
     reader.readAsText(file);
   }
 
+function renderDistribution(bySymbol, result) {
+  const container = document.getElementById('distributionArea');
+  if (!container || !bySymbol) {
+    if (container) container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
+    return;
+  }
+
+  const symbols = Object.entries(bySymbol).sort((a, b) => b[1].deals - a[1].deals);
+  if (symbols.length === 0) {
+    container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
+    return;
+  }
+
+  // 計算最大值用嚟做比例
+  let maxDeals = 1;
+  symbols.forEach(([_, s]) => { if (s.deals > maxDeals) maxDeals = s.deals; });
+
+  let html = '';
+
+  // Deals
+  html += `<h6 class="mb-2">Deals Distribution By Symbol</h6>`;
+  symbols.slice(0, 12).forEach(([sym, s]) => {
+    const pct = (s.deals / maxDeals * 100).toFixed(0);
+    html += `
+      <div class="dist-row mb-2">
+        <div style="width:110px;font-weight:600;">${sym}</div>
+        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:24px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:#93c5fd;display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
+            ${s.deals}
+          </div>
+        </div>
+        <div style="width:120px;font-size:0.8rem;text-align:right;">
+          Buy: ${s.buy_deals || 0} | Sell: ${s.sell_deals || 0}
+        </div>
+      </div>`;
+  });
+
+  // Net Profit
+  html += `<h6 class="mb-2 mt-4">Net Profit Distribution By Symbol</h6>`;
+  symbols.slice(0, 12).forEach(([sym, s]) => {
+    const profit = s.total_profit || 0;
+    const color = profit >= 0 ? '#86efac' : '#fca5a5';
+    const absMax = Math.max(...symbols.map(([_, ss]) => Math.abs(ss.total_profit || 0)), 1);
+    const pct = (Math.abs(profit) / absMax * 100).toFixed(0);
+    html += `
+      <div class="dist-row mb-2">
+        <div style="width:110px;font-weight:600;">${sym}</div>
+        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:24px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
+            ${profit >= 0 ? '+' : ''}${profit.toFixed(0)}
+          </div>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+  
   // ==================== 正確馬丁層數（Lot Size 排序） ====================
   function renderSymbolMartingale(result) {
     const btnContainer = document.getElementById('symbolButtons');
