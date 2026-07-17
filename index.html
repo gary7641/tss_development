@@ -103,6 +103,41 @@
       font-size: 0.85rem;
     }
     .layer-detail-row { display: none; }
+
+    /* ===== 馬丁表格顏色 ===== */
+.martingale-table .layer-red { background-color: #fee2e2 !important; }
+.martingale-table .layer-green { background-color: #dcfce7 !important; }
+.martingale-table .layer-blue { background-color: #dbeafe !important; }
+.martingale-table .layer-bright-blue { background-color: #bfdbfe !important; }
+
+.expand-btn { cursor: pointer; font-size: 1.2rem; user-select: none; }
+.layer-summary {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+}
+
+/* Mini Equity */
+.mini-equity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+.mini-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.mini-card:hover {
+  border-color: #0ea5e9;
+  box-shadow: 0 4px 12px rgba(14,165,233,0.15);
+}
   </style>
 </head>
 <body>
@@ -549,67 +584,258 @@
       reader.readAsText(file);
     }
 
-    // ==================== Symbol Mini Grid + 馬丁深入分析 ====================
-    function renderSymbolMartingale(result) {
-      const btnContainer = document.getElementById('symbolButtons');
-      const grid = document.getElementById('miniEquityGrid');
-      const content = document.getElementById('martingaleContent');
-      if (!btnContainer || !grid) return;
+// ==================== Symbol Mini Grid + 馬丁（正確版） ====================
+function renderSymbolMartingale(result) {
+  const btnContainer = document.getElementById('symbolButtons');
+  const grid = document.getElementById('miniEquityGrid');
+  const content = document.getElementById('martingaleContent');
+  if (!btnContainer || !grid) return;
 
-      miniCharts.forEach(c => c.destroy());
-      miniCharts = [];
-      btnContainer.innerHTML = '';
-      grid.innerHTML = '';
-      content.innerHTML = '<p class="text-muted">點擊上方 Symbol 或小卡查看深入分析 + 馬丁層數</p>';
+  // 清除舊圖
+  if (window.miniCharts) window.miniCharts.forEach(c => c.destroy());
+  window.miniCharts = [];
+  btnContainer.innerHTML = '';
+  grid.innerHTML = '';
+  if (content) content.innerHTML = '<p class="text-muted">點擊上方或小卡查看馬丁層數分析</p>';
 
-      const sorted = Object.entries(result.bySymbol)
-        .sort((a, b) => b[1].deals - a[1].deals)
-        .slice(0, 30); // 最多 30 個
+  const sorted = Object.entries(result.bySymbol)
+    .sort((a, b) => b[1].deals - a[1].deals)
+    .slice(0, 30);
 
-      sorted.forEach(([sym, stats]) => {
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-outline-primary btn-sm me-1 mb-1';
-        btn.textContent = `${sym} ${stats.deals}`;
-        btn.onclick = () => showMartingaleDetail(sym, result);
-        btnContainer.appendChild(btn);
+  // 按鈕
+  sorted.forEach(([sym, stats]) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-outline-primary btn-sm me-1 mb-1';
+    btn.textContent = `${sym} ${stats.deals}`;
+    btn.onclick = () => showMartingaleDetail(sym, result);
+    btnContainer.appendChild(btn);
+  });
+
+  // ===== All Symbols 放最前 =====
+  const allCard = document.createElement('div');
+  allCard.className = 'mini-card';
+  allCard.innerHTML = `
+    <div class="symbol-name">All Symbols</div>
+    <div class="mini-canvas-wrap"><canvas id="mini-all"></canvas></div>
+    <div class="profit-value ${result.totalProfit >= 0 ? 'pos' : 'neg'}">${result.totalProfit >= 0 ? '+' : ''}${result.totalProfit.toFixed(0)}</div>
+    <div class="mdd-value">MDD: ${result.max_dd_pct.toFixed(1)}%</div>
+  `;
+  allCard.onclick = () => showMartingaleDetail('ALL', result);
+  grid.appendChild(allCard);
+
+  // 畫 All Symbols 迷你圖
+  setTimeout(() => {
+    const canvas = document.getElementById('mini-all');
+    if (canvas) {
+      const chart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: { labels: result.equityLabels, datasets: [{ data: result.equityCurve, borderColor: '#0ea5e9', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
       });
-
-      sorted.forEach(([sym, stats]) => {
-        const symbolTrades = result.trades.filter(t => t.symbol === sym);
-        let equity = 0, peak = 0, maxDD = 0;
-        const curve = [];
-        symbolTrades.forEach(t => {
-          equity += t.profit;
-          if (equity > peak) peak = equity;
-          maxDD = Math.max(maxDD, peak - equity);
-          curve.push(equity);
-        });
-        const totalProfit = stats.total_profit;
-        const mddPct = peak > 0 ? (maxDD / peak * 100).toFixed(1) : '0.0';
-
-        const card = document.createElement('div');
-        card.className = 'mini-card';
-        card.onclick = () => showMartingaleDetail(sym, result);
-        card.innerHTML = `
-          <div class="symbol-name">${sym}</div>
-          <div class="mini-canvas-wrap"><canvas id="mini-${sym.replace(/[^a-zA-Z0-9]/g,'_')}"></canvas></div>
-          <div class="profit-value ${totalProfit >= 0 ? 'pos' : 'neg'}">${totalProfit >= 0 ? '+' : ''}${totalProfit.toFixed(0)}</div>
-          <div class="mdd-value">MDD: ${mddPct}% ($${maxDD.toFixed(0)})</div>
-        `;
-        grid.appendChild(card);
-
-        setTimeout(() => {
-          const canvas = document.getElementById('mini-' + sym.replace(/[^a-zA-Z0-9]/g,'_'));
-          if (!canvas) return;
-          const chart = new Chart(canvas.getContext('2d'), {
-            type: 'line',
-            data: { labels: curve.map((_,i)=>i), datasets: [{ data: curve, borderColor: '#16a34a', borderWidth: 1.5, tension: 0.2, pointRadius: 0, fill: false }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
-          });
-          miniCharts.push(chart);
-        }, 30);
-      });
+      window.miniCharts.push(chart);
     }
+  }, 50);
+
+  // 個別 Symbol 小卡
+  sorted.forEach(([sym, stats]) => {
+    const symbolTrades = result.trades.filter(t => t.symbol === sym);
+    let equity = 0, peak = 0, maxDD = 0;
+    const curve = [];
+    symbolTrades.forEach(t => {
+      equity += t.profit;
+      if (equity > peak) peak = equity;
+      maxDD = Math.max(maxDD, peak - equity);
+      curve.push(equity);
+    });
+    const mddPct = peak > 0 ? (maxDD / peak * 100).toFixed(1) : '0.0';
+
+    const card = document.createElement('div');
+    card.className = 'mini-card';
+    card.onclick = () => showMartingaleDetail(sym, result);
+    const safeId = 'mini-' + sym.replace(/[^a-zA-Z0-9]/g, '_');
+    card.innerHTML = `
+      <div class="symbol-name">${sym}</div>
+      <div class="mini-canvas-wrap"><canvas id="${safeId}"></canvas></div>
+      <div class="profit-value ${stats.total_profit >= 0 ? 'pos' : 'neg'}">${stats.total_profit >= 0 ? '+' : ''}${stats.total_profit.toFixed(0)}</div>
+      <div class="mdd-value">MDD: ${mddPct}% ($${maxDD.toFixed(0)})</div>
+    `;
+    grid.appendChild(card);
+
+    setTimeout(() => {
+      const canvas = document.getElementById(safeId);
+      if (!canvas) return;
+      const chart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: { labels: curve.map((_,i)=>i), datasets: [{ data: curve, borderColor: '#16a34a', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+      });
+      window.miniCharts.push(chart);
+    }, 60);
+  });
+}
+
+function showMartingaleDetail(symbol, result) {
+  const content = document.getElementById('martingaleContent');
+  if (!content) return;
+
+  const isAll = symbol === 'ALL';
+  const symbolTrades = isAll ? result.trades : result.trades.filter(t => t.symbol === symbol);
+
+  if (!symbolTrades.length) {
+    content.innerHTML = '<p class="text-muted">無交易資料</p>';
+    return;
+  }
+
+  const buyTrades = symbolTrades.filter(t => t.type === 'buy');
+  const sellTrades = symbolTrades.filter(t => t.type === 'sell');
+
+  let html = `<h5 class="mb-3">馬丁層數分析 – ${isAll ? 'All Symbols' : symbol}</h5>`;
+  html += buildMartingaleTable(isAll ? 'ALL' : symbol, 'BUY', buyTrades);
+  html += buildMartingaleTable(isAll ? 'ALL' : symbol, 'SELL', sellTrades);
+
+  content.innerHTML = html;
+}
+
+function buildMartingaleTable(symbol, side, trades) {
+  if (!trades.length) {
+    return `<div class="mb-4 text-muted">${side === 'BUY' ? '📈' : '📉'} ${side} 無交易</div>`;
+  }
+
+  // ===== 正確邏輯：用 Lot Size 由細到大排序作為層數 =====
+  const lotMap = {};
+  trades.forEach(t => {
+    const lotKey = t.lots.toFixed(2);
+    if (!lotMap[lotKey]) lotMap[lotKey] = [];
+    lotMap[lotKey].push(t);
+  });
+
+  const sortedLots = Object.keys(lotMap).map(Number).sort((a, b) => a - b);
+
+  const totalProfit = trades.reduce((a, b) => a + b.profit, 0);
+  const totalTrades = trades.length;
+
+  let html = `
+    <div class="mb-4">
+      <h6>${side === 'BUY' ? '📈' : '📉'} ${symbol} - ${side} &nbsp; TOTAL Profit: <span class="${totalProfit >= 0 ? 'pos' : 'neg'}">${totalProfit.toFixed(2)}</span>, Trades: ${totalTrades}</h6>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered martingale-table">
+          <thead>
+            <tr>
+              <th style="width:40px"></th>
+              <th>馬丁層數</th>
+              <th>Lots</th>
+              <th>Trades</th>
+              <th>SUM Profit</th>
+              <th>SUM Pips</th>
+              <th>Cum Profit</th>
+              <th>Win Rate %</th>
+              <th>意義</th>
+              <th>Min Win Profit</th>
+              <th>Symbol/Side TOTAL</th>
+              <th>Total Trades</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+  let cumProfit = 0;
+  let cumTrades = 0;
+
+  sortedLots.forEach((lot, idx) => {
+    const layerNum = idx + 1;
+    const layerTrades = lotMap[lot.toFixed(2)];
+    const sumProfit = layerTrades.reduce((a, b) => a + b.profit, 0);
+    const sumPips = layerTrades.reduce((a, b) => a + b.pips, 0);
+    const wins = layerTrades.filter(t => t.profit > 0).length;
+    const winRate = layerTrades.length ? (wins / layerTrades.length * 100) : 0;
+    cumProfit += sumProfit;
+    cumTrades += layerTrades.length;
+
+    const minWinProfitArr = layerTrades.filter(t => t.profit > 0).map(t => t.profit);
+    const minWinProfit = minWinProfitArr.length ? Math.min(...minWinProfitArr) : 0;
+
+    // 顏色規則
+    let rowClass = '';
+    if (winRate <= 0) rowClass = 'layer-red';
+    else if (winRate > 95) rowClass = 'layer-bright-blue';
+    else if (winRate > 90) rowClass = 'layer-blue';
+    else if (winRate > 80) rowClass = 'layer-green';
+
+    const rowId = `layer-${side}-${layerNum}`;
+
+    // 該層 Summary 數據
+    const profits = layerTrades.map(t => t.profit);
+    const pipsArr = layerTrades.map(t => t.pips);
+    const maxProfit = Math.max(...profits);
+    const minProfit = Math.min(...profits);
+    const maxPips = Math.max(...pipsArr);
+    const minPips = Math.min(...pipsArr);
+
+    html += `
+      <tr class="${rowClass}">
+        <td><span class="expand-btn" onclick="toggleLayer('${rowId}', this)">➕</span></td>
+        <td>${layerNum}</td>
+        <td>${lot.toFixed(2)}</td>
+        <td>${layerTrades.length}</td>
+        <td class="${sumProfit >= 0 ? 'pos' : 'neg'}">${sumProfit.toFixed(2)}</td>
+        <td>${sumPips.toFixed(1)}</td>
+        <td class="${cumProfit >= 0 ? 'pos' : 'neg'}">${cumProfit.toFixed(2)}</td>
+        <td>${winRate.toFixed(1)}%</td>
+        <td>此層勝率</td>
+        <td>${minWinProfit ? minWinProfit.toFixed(2) : '-'}</td>
+        <td class="${totalProfit >= 0 ? 'pos' : 'neg'}">${totalProfit.toFixed(2)}</td>
+        <td>${cumTrades}</td>
+      </tr>
+      <tr id="${rowId}" style="display:none;">
+        <td colspan="12">
+          <div class="layer-summary">
+            <strong>馬丁層數 ${layerNum} Summary</strong><br>
+            MAX PIP: ${maxPips.toFixed(1)} &nbsp;|&nbsp;
+            MAX PROFIT: <span class="pos">${maxProfit.toFixed(2)}</span> &nbsp;|&nbsp;
+            MIN PROFIT: <span class="${minProfit >= 0 ? 'pos' : 'neg'}">${minProfit.toFixed(2)}</span><br>
+            MAX LOSS PIP: ${minPips.toFixed(1)} &nbsp;|&nbsp;
+            MAX LOSS: <span class="neg">${minProfit.toFixed(2)}</span>
+          </div>
+          <table class="table table-sm">
+            <thead><tr>
+              <th>Open Time</th><th>Close Time</th><th>Lots</th><th>Profit</th><th>Pips</th><th>Max Profit</th><th>Max Loss</th>
+            </tr></thead>
+            <tbody>
+              ${layerTrades.map(t => `
+                <tr>
+                  <td>${t.openTimeStr || ''}</td>
+                  <td>${t.closeTimeStr || ''}</td>
+                  <td>${t.lots.toFixed(2)}</td>
+                  <td class="${t.profit >= 0 ? 'pos' : 'neg'}">${t.profit.toFixed(2)}</td>
+                  <td>${t.pips.toFixed(1)}</td>
+                  <td class="pos">${(t.maxProfit || 0).toFixed(2)}</td>
+                  <td class="neg">${(t.maxLoss || 0).toFixed(2)}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </td>
+      </tr>`;
+  });
+
+  html += `</tbody></table></div>
+    <div class="small text-muted mt-2">
+      顏色說明：紅色 = Win Rate ≤ 0% &nbsp;|&nbsp; 綠色 = >80% &nbsp;|&nbsp; 藍色 = >90% &nbsp;|&nbsp; 亮藍 = >95%
+    </div>
+  </div>`;
+
+  return html;
+}
+
+function toggleLayer(id, btn) {
+  const row = document.getElementById(id);
+  if (!row) return;
+  if (row.style.display === 'table-row') {
+    row.style.display = 'none';
+    btn.textContent = '➕';
+  } else {
+    row.style.display = 'table-row';
+    btn.textContent = '➖';
+  }
+}
 
     // ==================== 核心：一揪馬丁層數分析（BUY / SELL 分開） ====================
     function showMartingaleDetail(symbol, result) {
