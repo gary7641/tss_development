@@ -110,10 +110,10 @@
 .layer-bright-blue { background-color: #bfdbfe !important; }
     
     /* ===== 馬丁表格顏色 ===== */
-.martingale-table .layer-red { background-color: #fee2e2 !important; }
-.martingale-table .layer-green { background-color: #dcfce7 !important; }
-.martingale-table .layer-blue { background-color: #dbeafe !important; }
-.martingale-table .layer-bright-blue { background-color: #bfdbfe !important; }
+.martingale-table tr.layer-red td { background-color: #fee2e2 !important; }
+.martingale-table tr.layer-green td { background-color: #dcfce7 !important; }
+.martingale-table tr.layer-blue td { background-color: #dbeafe !important; }
+.martingale-table tr.layer-bright-blue td { background-color: #bfdbfe !important; }
 
 .expand-btn { cursor: pointer; font-size: 1.2rem; user-select: none; }
 .layer-summary {
@@ -638,59 +638,64 @@
 
   // ==================== Distribution ====================
   function renderDistribution(bySymbol, result) {
-    const container = document.getElementById('distributionArea');
-    if (!container || !bySymbol) {
-      if (container) container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
-      return;
-    }
-
-    const symbols = Object.entries(bySymbol).sort((a, b) => b[1].deals - a[1].deals);
-    if (symbols.length === 0) {
-      container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
-      return;
-    }
-
-    let maxDeals = 1;
-    symbols.forEach(([_, s]) => { if (s.deals > maxDeals) maxDeals = s.deals; });
-
-    let html = '';
-
-    html += `<h6 class="mb-2">Deals Distribution By Symbol</h6>`;
-    symbols.slice(0, 12).forEach(([sym, s]) => {
-      const pct = (s.deals / maxDeals * 100).toFixed(0);
-      html += `
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.85rem;">
-          <div style="width:100px;font-weight:600;">${sym}</div>
-          <div style="flex:1;background:#f1f5f9;border-radius:6px;height:22px;overflow:hidden;">
-            <div style="width:${pct}%;height:100%;background:#93c5fd;display:flex;align-items:center;padding-left:8px;font-size:0.78rem;">
-              ${s.deals}
-            </div>
-          </div>
-          <div style="width:110px;text-align:right;font-size:0.78rem;">
-            Buy: ${s.buy_deals||0} | Sell: ${s.sell_deals||0}
-          </div>
-        </div>`;
-    });
-
-    html += `<h6 class="mb-2 mt-4">Net Profit Distribution By Symbol</h6>`;
-    const absMax = Math.max(...symbols.map(([_, ss]) => Math.abs(ss.total_profit || 0)), 1);
-    symbols.slice(0, 12).forEach(([sym, s]) => {
-      const profit = s.total_profit || 0;
-      const color = profit >= 0 ? '#86efac' : '#fca5a5';
-      const pct = (Math.abs(profit) / absMax * 100).toFixed(0);
-      html += `
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.85rem;">
-          <div style="width:100px;font-weight:600;">${sym}</div>
-          <div style="flex:1;background:#f1f5f9;border-radius:6px;height:22px;overflow:hidden;">
-            <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:8px;font-size:0.78rem;">
-              ${profit >= 0 ? '+' : ''}${profit.toFixed(0)}
-            </div>
-          </div>
-        </div>`;
-    });
-
-    container.innerHTML = html;
+  const container = document.getElementById('distributionArea');
+  if (!container || !bySymbol) {
+    if (container) container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
+    return;
   }
+
+  const symbols = Object.entries(bySymbol).sort((a, b) => b[1].deals - a[1].deals);
+  if (symbols.length === 0) {
+    container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
+    return;
+  }
+
+  let maxDeals = 1;
+  let maxProfitAbs = 1;
+  symbols.forEach(([_, s]) => {
+    if (s.deals > maxDeals) maxDeals = s.deals;
+    if (Math.abs(s.total_profit || 0) > maxProfitAbs) maxProfitAbs = Math.abs(s.total_profit || 0);
+  });
+
+  let html = '';
+
+  // ===== Deals =====
+  html += `<h6 class="mb-3">Deals Distribution By Symbol</h6>`;
+  symbols.slice(0, 15).forEach(([sym, s]) => {
+    const pct = Math.max(8, (s.deals / maxDeals * 100)).toFixed(0);
+    html += `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:0.88rem;">
+        <div style="width:105px;font-weight:600;">${sym}</div>
+        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:26px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:#93c5fd;display:flex;align-items:center;padding-left:10px;font-size:0.8rem;font-weight:500;">
+            ${s.deals}
+          </div>
+        </div>
+        <div style="width:130px;text-align:right;font-size:0.8rem;color:#64748b;">
+          Buy ${s.buy_deals || 0} | Sell ${s.sell_deals || 0}
+        </div>
+      </div>`;
+  });
+
+  // ===== Net Profit =====
+  html += `<h6 class="mb-3 mt-4">Net Profit Distribution By Symbol</h6>`;
+  symbols.slice(0, 15).forEach(([sym, s]) => {
+    const profit = s.total_profit || 0;
+    const color = profit >= 0 ? '#86efac' : '#fca5a5';
+    const pct = Math.max(8, (Math.abs(profit) / maxProfitAbs * 100)).toFixed(0);
+    html += `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:0.88rem;">
+        <div style="width:105px;font-weight:600;">${sym}</div>
+        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:26px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:10px;font-size:0.8rem;font-weight:500;">
+            ${profit >= 0 ? '+' : ''}${profit.toFixed(0)}
+          </div>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
 
   // ==================== Symbol + 馬丁 ====================
   function renderSymbolMartingale(result) {
