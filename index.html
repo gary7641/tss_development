@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8">
@@ -697,9 +697,12 @@ function parseYourCSV(text) {
 
         // Symbol + 馬丁
         renderSymbolMartingale(result);
-       
-        // MFE / MAE
+
+        // MFE + MAE（確保區塊已顯示）
+        document.getElementById('block-mfe-mae').classList.add('active');
+        setTimeout(() => {
         renderMfeMae(result);
+        }, 100);
 
       } catch (err) {
         console.error(err);
