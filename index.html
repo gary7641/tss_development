@@ -111,12 +111,20 @@
     
     /* ===== 馬丁表格顏色 ===== */
 .martingale-table tr.layer-red td { background-color: #fecaca !important; }
-.martingale-table tr.layer-yellow td { background-color: #fef9c3 !important; } /* 較淺黃 */
+.martingale-table tr.layer-yellow td { background-color: #fef9c3 !important; }
 .martingale-table tr.layer-green td { background-color: #bbf7d0 !important; }
 .martingale-table tr.layer-blue td { background-color: #bfdbfe !important; }
-.martingale-table tr.layer-bright-blue td { 
-  background-color: #93c5fd !important; 
+
+.martingale-table tr.layer-bright-blue td {
+  background-color: #60a5fa !important;
   font-weight: 600;
+  animation: pulse-blue 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-blue {
+  0%   { background-color: #60a5fa; }
+  50%  { background-color: #93c5fd; }
+  100% { background-color: #60a5fa; }
 }
 }
 
