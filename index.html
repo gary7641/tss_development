@@ -660,7 +660,7 @@ function parseYourCSV(text) {
   }
 
   // ==================== Distribution ====================
-  function renderDistribution(bySymbol, result) {
+function renderDistribution(bySymbol, result) {
   const container = document.getElementById('distributionArea');
   if (!container || !bySymbol) {
     if (container) container.innerHTML = '<div class="text-muted">無 Symbol 資料</div>';
@@ -673,46 +673,127 @@ function parseYourCSV(text) {
     return;
   }
 
+  // 計算各指標最大值（用嚟做比例）
   let maxDeals = 1;
   let maxProfitAbs = 1;
-  symbols.forEach(([_, s]) => {
-    if (s.deals > maxDeals) maxDeals = s.deals;
-    if (Math.abs(s.total_profit || 0) > maxProfitAbs) maxProfitAbs = Math.abs(s.total_profit || 0);
+  let maxPipsAbs = 1;
+  let maxSwapAbs = 1;
+
+  // 先由 trades 計算更詳細的 BUY / SELL 數據
+  const detailed = {};
+  result.trades.forEach(t => {
+    if (!detailed[t.symbol]) {
+      detailed[t.symbol] = {
+        deals: 0, buy_deals: 0, sell_deals: 0,
+        profit: 0, buy_profit: 0, sell_profit: 0,
+        pips: 0, buy_pips: 0, sell_pips: 0,
+        swap: 0, buy_swap: 0, sell_swap: 0
+      };
+    }
+    const d = detailed[t.symbol];
+    d.deals++;
+    d.profit += t.profit;
+    d.pips += t.pips;
+    d.swap += t.swap;
+
+    if (t.type === 'buy') {
+      d.buy_deals++;
+      d.buy_profit += t.profit;
+      d.buy_pips += t.pips;
+      d.buy_swap += t.swap;
+    } else if (t.type === 'sell') {
+      d.sell_deals++;
+      d.sell_profit += t.profit;
+      d.sell_pips += t.pips;
+      d.sell_swap += t.swap;
+    }
   });
+
+  Object.values(detailed).forEach(d => {
+    if (d.deals > maxDeals) maxDeals = d.deals;
+    if (Math.abs(d.profit) > maxProfitAbs) maxProfitAbs = Math.abs(d.profit);
+    if (Math.abs(d.pips) > maxPipsAbs) maxPipsAbs = Math.abs(d.pips);
+    if (Math.abs(d.swap) > maxSwapAbs) maxSwapAbs = Math.abs(d.swap);
+  });
+
+  const sorted = Object.entries(detailed).sort((a, b) => b[1].deals - a[1].deals).slice(0, 15);
 
   let html = '';
 
-  // ===== Deals =====
-  html += `<h6 class="mb-3">Deals Distribution By Symbol</h6>`;
-  symbols.slice(0, 15).forEach(([sym, s]) => {
-    const pct = Math.max(8, (s.deals / maxDeals * 100)).toFixed(0);
+  // ===== 1. Deals =====
+  html += `<h6 class="mb-3">1. Deals Distribution By Symbol</h6>`;
+  sorted.forEach(([sym, d]) => {
+    const pct = Math.max(6, (d.deals / maxDeals * 100)).toFixed(0);
     html += `
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:0.88rem;">
-        <div style="width:105px;font-weight:600;">${sym}</div>
-        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:26px;overflow:hidden;">
-          <div style="width:${pct}%;height:100%;background:#93c5fd;display:flex;align-items:center;padding-left:10px;font-size:0.8rem;font-weight:500;">
-            ${s.deals}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:0.88rem;">
+        <div style="width:100px;font-weight:600;">${sym}</div>
+        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:26px;overflow:hidden;position:relative;">
+          <div style="width:${pct}%;height:100%;background:#93c5fd;display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
+            ${d.deals}
           </div>
         </div>
-        <div style="width:130px;text-align:right;font-size:0.8rem;color:#64748b;">
-          Buy ${s.buy_deals || 0} | Sell ${s.sell_deals || 0}
+        <div style="width:140px;text-align:right;font-size:0.8rem;color:#64748b;">
+          Buy ${d.buy_deals} | Sell ${d.sell_deals}
         </div>
       </div>`;
   });
 
-  // ===== Net Profit =====
-  html += `<h6 class="mb-3 mt-4">Net Profit Distribution By Symbol</h6>`;
-  symbols.slice(0, 15).forEach(([sym, s]) => {
-    const profit = s.total_profit || 0;
-    const color = profit >= 0 ? '#86efac' : '#fca5a5';
-    const pct = Math.max(8, (Math.abs(profit) / maxProfitAbs * 100)).toFixed(0);
+  // ===== 2. Net Profit USD =====
+  html += `<h6 class="mb-3 mt-4">2. Net Profit (USD) Distribution By Symbol</h6>`;
+  sorted.forEach(([sym, d]) => {
+    const pct = Math.max(6, (Math.abs(d.profit) / maxProfitAbs * 100)).toFixed(0);
+    const color = d.profit >= 0 ? '#86efac' : '#fca5a5';
     html += `
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:0.88rem;">
-        <div style="width:105px;font-weight:600;">${sym}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:0.88rem;">
+        <div style="width:100px;font-weight:600;">${sym}</div>
         <div style="flex:1;background:#f1f5f9;border-radius:6px;height:26px;overflow:hidden;">
-          <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:10px;font-size:0.8rem;font-weight:500;">
-            ${profit >= 0 ? '+' : ''}${profit.toFixed(0)}
+          <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
+            ${d.profit >= 0 ? '+' : ''}${d.profit.toFixed(0)}
           </div>
+        </div>
+        <div style="width:160px;text-align:right;font-size:0.78rem;">
+          <span class="pos">B ${d.buy_profit.toFixed(0)}</span> | 
+          <span class="neg">S ${d.sell_profit.toFixed(0)}</span>
+        </div>
+      </div>`;
+  });
+
+  // ===== 3. Net Profit Pips =====
+  html += `<h6 class="mb-3 mt-4">3. Net Profit (Pips) Distribution By Symbol</h6>`;
+  sorted.forEach(([sym, d]) => {
+    const pct = Math.max(6, (Math.abs(d.pips) / maxPipsAbs * 100)).toFixed(0);
+    const color = d.pips >= 0 ? '#86efac' : '#fca5a5';
+    html += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:0.88rem;">
+        <div style="width:100px;font-weight:600;">${sym}</div>
+        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:26px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
+            ${d.pips >= 0 ? '+' : ''}${d.pips.toFixed(0)}
+          </div>
+        </div>
+        <div style="width:160px;text-align:right;font-size:0.78rem;">
+          <span class="pos">B ${d.buy_pips.toFixed(0)}</span> | 
+          <span class="neg">S ${d.sell_pips.toFixed(0)}</span>
+        </div>
+      </div>`;
+  });
+
+  // ===== 4. Net Swap USD =====
+  html += `<h6 class="mb-3 mt-4">4. Net Swap (USD) Distribution By Symbol</h6>`;
+  sorted.forEach(([sym, d]) => {
+    const pct = Math.max(6, (Math.abs(d.swap) / maxSwapAbs * 100)).toFixed(0);
+    const color = d.swap >= 0 ? '#93c5fd' : '#fca5a5';
+    html += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:0.88rem;">
+        <div style="width:100px;font-weight:600;">${sym}</div>
+        <div style="flex:1;background:#f1f5f9;border-radius:6px;height:26px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${color};display:flex;align-items:center;padding-left:8px;font-size:0.8rem;">
+            ${d.swap >= 0 ? '+' : ''}${d.swap.toFixed(1)}
+          </div>
+        </div>
+        <div style="width:160px;text-align:right;font-size:0.78rem;">
+          <span class="pos">B ${d.buy_swap.toFixed(1)}</span> | 
+          <span class="neg">S ${d.sell_swap.toFixed(1)}</span>
         </div>
       </div>`;
   });
