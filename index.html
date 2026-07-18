@@ -1276,62 +1276,55 @@ function sortDetailTable(tableId, colIndex) {
   // ==================== MFE + MAE ====================
 function renderMfeMae(result) {
   const trades = result.trades || [];
-  if (!trades.length) {
-    console.log('No trades for MFE/MAE');
-    return;
-  }
+  if (!trades.length) return;
 
   const dataPoints = trades.map((t, i) => ({
-    mfe: t.maxProfit || 0,
-    mae: t.maxLoss || 0,
+    x: t.maxLoss || 0,          // MAE (X軸)
+    y: t.maxProfit || 0,        // MFE (Y軸)
     profit: t.profit,
-    hours: t.holdingHours || 0,
+    symbol: t.symbol,
     label: `Trade ${i+1} (${t.symbol})`
   }));
 
-  // MFE Chart
-  const mfeCanvas = document.getElementById('mfeChart');
-  if (mfeCanvas) {
-    if (window.mfeChart && typeof window.mfeChart.destroy === 'function') {
-      window.mfeChart.destroy();
-    }
-    window.mfeChart = new Chart(mfeCanvas.getContext('2d'), {
-      type: 'bar',
+  // MFE vs MAE Scatter Plot
+  const ctx = document.getElementById('mfeMaeChart');
+  if (ctx) {
+    if (window.mfeMaeChart) window.mfeMaeChart.destroy();
+    window.mfeMaeChart = new Chart(ctx.getContext('2d'), {
+      type: 'scatter',
       data: {
-        labels: dataPoints.map((_, i) => i+1),
         datasets: [{
-          label: 'MFE',
-          data: dataPoints.map(p => p.mfe),
-          backgroundColor: '#4ade80'
+          label: 'Trades',
+          data: dataPoints,
+          backgroundColor: dataPoints.map(p => p.profit >= 0 ? '#4ade80' : '#f87171'),
+          borderColor: '#1e2937',
+          borderWidth: 1,
+          pointRadius: 6,
+          pointHoverRadius: 9
         }]
       },
-      options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
-  }
-
-  // MAE Chart
-  const maeCanvas = document.getElementById('maeChart');
-  if (maeCanvas) {
-    if (window.maeChart && typeof window.maeChart.destroy === 'function') {
-      window.maeChart.destroy();
-    }
-    window.maeChart = new Chart(maeCanvas.getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: dataPoints.map((_, i) => i+1),
-        datasets: [{
-          label: 'MAE',
-          data: dataPoints.map(p => p.mae),
-          backgroundColor: '#f87171'
-        }]
-      },
-      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.raw.label} | Profit: ${ctx.raw.profit.toFixed(2)} | MFE: ${ctx.raw.y} | MAE: ${ctx.raw.x}`
+            }
+          }
+        },
+        scales: {
+          x: { title: { display: true, text: 'MAE (Max Adverse Excursion)' }, grid: { color: '#e2e8f0' } },
+          y: { title: { display: true, text: 'MFE (Max Favorable Excursion)' }, grid: { color: '#e2e8f0' } }
+        }
+      }
     });
   }
 
   // Summary
-  const avgMFE = dataPoints.reduce((a, b) => a + b.mfe, 0) / dataPoints.length;
-  const avgMAE = dataPoints.reduce((a, b) => a + b.mae, 0) / dataPoints.length;
+  const avgMFE = dataPoints.reduce((a, b) => a + b.y, 0) / dataPoints.length;
+  const avgMAE = dataPoints.reduce((a, b) => a + b.x, 0) / dataPoints.length;
   const summaryEl = document.getElementById('mfeMaeSummary');
   if (summaryEl) {
     summaryEl.innerHTML = `
@@ -1344,9 +1337,9 @@ function renderMfeMae(result) {
   // Top Trades
   const topEl = document.getElementById('topMfeMae');
   if (topEl) {
-    const top = [...dataPoints].sort((a,b) => b.mfe - a.mfe).slice(0,5);
+    const top = [...dataPoints].sort((a,b) => b.y - a.y).slice(0,5);
     topEl.innerHTML = top.map(p => 
-      `${p.label} : MFE ${p.mfe.toFixed(1)} | MAE ${p.mae.toFixed(1)}`
+      `${p.label} : MFE ${p.y.toFixed(1)} | MAE ${p.x.toFixed(1)}`
     ).join('<br>');
   }
 }
