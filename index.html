@@ -296,27 +296,42 @@
             </section>
           </div>
 
-          <!-- MFE + MAE -->
+<!-- MFE + MAE -->
 <div class="analysis-block" id="block-mfe-mae">
   <section class="panel">
     <h2 class="panel-title">MFE + MAE Analysis</h2>
+    
     <div class="mb-3">
-      <canvas id="mfeMaeChart" height="320"></canvas>
+      <label class="form-label small">View By:</label>
+      <select id="mfeTimeFilter" class="form-select w-auto d-inline-block" style="width:140px;">
+        <option value="all">All Trades</option>
+        <option value="hours">By Holding Hours</option>
+      </select>
     </div>
+
     <div class="row">
       <div class="col-md-6">
-        <h6>MFE / MAE Summary</h6>
+        <h6>MFE (Max Favorable Excursion)</h6>
+        <canvas id="mfeChart" height="240"></canvas>
+      </div>
+      <div class="col-md-6">
+        <h6>MAE (Max Adverse Excursion)</h6>
+        <canvas id="maeChart" height="240"></canvas>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <h6>Summary</h6>
         <div id="mfeMaeSummary" class="stats-2col"></div>
       </div>
       <div class="col-md-6">
-        <h6>Top MFE / MAE Trades</h6>
+        <h6>Top Trades</h6>
         <div id="topMfeMae" class="small"></div>
       </div>
     </div>
   </section>
 </div>
-          
-          <!-- 其他區塊 -->
 
 
       <!-- 其他頁面 -->
@@ -1258,61 +1273,63 @@ function sortDetailTable(tableId, colIndex) {
 
   // ==================== MFE + MAE ====================
 function renderMfeMae(result) {
-  const trades = result.trades;
-  if (!trades || trades.length === 0) return;
+  const trades = result.trades || [];
+  if (!trades.length) return;
 
   const dataPoints = trades.map((t, i) => ({
-    x: t.maxLoss || 0,        // MAE
-    y: t.maxProfit || 0,      // MFE
+    mfe: t.maxProfit || 0,
+    mae: t.maxLoss || 0,
     profit: t.profit,
-    symbol: t.symbol,
-    label: `Trade ${i+1}`
+    hours: t.holdingHours || 0,
+    label: `Trade ${i+1} (${t.symbol})`
   }));
 
-  // Scatter Plot
-  const ctx = document.getElementById('mfeMaeChart').getContext('2d');
+  // MFE Chart (Histogram)
+  const mfeCtx = document.getElementById('mfeChart').getContext('2d');
   if (window.mfeChart) window.mfeChart.destroy();
-
-  window.mfeChart = new Chart(ctx, {
-    type: 'scatter',
+  window.mfeChart = new Chart(mfeCtx, {
+    type: 'bar',
     data: {
+      labels: dataPoints.map((_, i) => i+1),
       datasets: [{
-        label: 'Trades',
-        data: dataPoints,
-        backgroundColor: dataPoints.map(p => p.profit >= 0 ? '#4ade80' : '#f87171'),
-        borderColor: '#1e2937',
-        borderWidth: 1,
-        pointRadius: 5,
-        pointHoverRadius: 8
+        label: 'MFE',
+        data: dataPoints.map(p => p.mfe),
+        backgroundColor: '#4ade80'
       }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `${ctx.raw.label} | Profit: ${ctx.raw.profit.toFixed(2)} | MFE: ${ctx.raw.y} | MAE: ${ctx.raw.x}`
-          }
-        }
-      },
-      scales: {
-        x: { title: { display: true, text: 'MAE (Max Adverse)' } },
-        y: { title: { display: true, text: 'MFE (Max Favorable)' } }
-      }
-    }
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+
+  // MAE Chart (Histogram)
+  const maeCtx = document.getElementById('maeChart').getContext('2d');
+  if (window.maeChart) window.maeChart.destroy();
+  window.maeChart = new Chart(maeCtx, {
+    type: 'bar',
+    data: {
+      labels: dataPoints.map((_, i) => i+1),
+      datasets: [{
+        label: 'MAE',
+        data: dataPoints.map(p => p.mae),
+        backgroundColor: '#f87171'
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
   });
 
   // Summary
-  const avgMFE = dataPoints.reduce((a, b) => a + b.y, 0) / dataPoints.length;
-  const avgMAE = dataPoints.reduce((a, b) => a + b.x, 0) / dataPoints.length;
-
+  const avgMFE = dataPoints.reduce((a, b) => a + b.mfe, 0) / dataPoints.length;
+  const avgMAE = dataPoints.reduce((a, b) => a + b.mae, 0) / dataPoints.length;
   document.getElementById('mfeMaeSummary').innerHTML = `
     <div><span class="label">Avg MFE</span><span class="value pos">${avgMFE.toFixed(1)}</span></div>
     <div><span class="label">Avg MAE</span><span class="value neg">${avgMAE.toFixed(1)}</span></div>
     <div><span class="label">Ratio</span><span class="value">${(avgMFE / Math.abs(avgMAE)).toFixed(2)}</span></div>
   `;
+
+  // Top 5 MFE
+  const top = [...dataPoints].sort((a,b) => b.mfe - a.mfe).slice(0,5);
+  document.getElementById('topMfeMae').innerHTML = top.map(p => 
+    `${p.label} : MFE ${p.mfe.toFixed(1)} | MAE ${p.mae.toFixed(1)}`
+  ).join('<br>');
 }
   
 </script>
