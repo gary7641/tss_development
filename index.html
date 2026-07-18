@@ -1276,7 +1276,10 @@ function sortDetailTable(tableId, colIndex) {
   // ==================== MFE + MAE ====================
 function renderMfeMae(result) {
   const trades = result.trades || [];
-  if (!trades.length) return;
+  if (!trades.length) {
+    console.log('No trades for MFE/MAE');
+    return;
+  }
 
   const dataPoints = trades.map((t, i) => ({
     mfe: t.maxProfit || 0,
@@ -1286,52 +1289,62 @@ function renderMfeMae(result) {
     label: `Trade ${i+1} (${t.symbol})`
   }));
 
-  // MFE Chart (Histogram)
-  const mfeCtx = document.getElementById('mfeChart').getContext('2d');
-  if (window.mfeChart) window.mfeChart.destroy();
-  window.mfeChart = new Chart(mfeCtx, {
-    type: 'bar',
-    data: {
-      labels: dataPoints.map((_, i) => i+1),
-      datasets: [{
-        label: 'MFE',
-        data: dataPoints.map(p => p.mfe),
-        backgroundColor: '#4ade80'
-      }]
-    },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
-  });
+  // MFE Chart
+  const mfeCtx = document.getElementById('mfeChart');
+  if (mfeCtx) {
+    if (window.mfeChart) window.mfeChart.destroy();
+    window.mfeChart = new Chart(mfeCtx.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: dataPoints.map((_, i) => i+1),
+        datasets: [{
+          label: 'MFE',
+          data: dataPoints.map(p => p.mfe),
+          backgroundColor: '#4ade80'
+        }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+  }
 
-  // MAE Chart (Histogram)
-  const maeCtx = document.getElementById('maeChart').getContext('2d');
-  if (window.maeChart) window.maeChart.destroy();
-  window.maeChart = new Chart(maeCtx, {
-    type: 'bar',
-    data: {
-      labels: dataPoints.map((_, i) => i+1),
-      datasets: [{
-        label: 'MAE',
-        data: dataPoints.map(p => p.mae),
-        backgroundColor: '#f87171'
-      }]
-    },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
-  });
+  // MAE Chart
+  const maeCtx = document.getElementById('maeChart');
+  if (maeCtx) {
+    if (window.maeChart) window.maeChart.destroy();
+    window.maeChart = new Chart(maeCtx.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: dataPoints.map((_, i) => i+1),
+        datasets: [{
+          label: 'MAE',
+          data: dataPoints.map(p => p.mae),
+          backgroundColor: '#f87171'
+        }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+  }
 
   // Summary
   const avgMFE = dataPoints.reduce((a, b) => a + b.mfe, 0) / dataPoints.length;
   const avgMAE = dataPoints.reduce((a, b) => a + b.mae, 0) / dataPoints.length;
-  document.getElementById('mfeMaeSummary').innerHTML = `
-    <div><span class="label">Avg MFE</span><span class="value pos">${avgMFE.toFixed(1)}</span></div>
-    <div><span class="label">Avg MAE</span><span class="value neg">${avgMAE.toFixed(1)}</span></div>
-    <div><span class="label">Ratio</span><span class="value">${(avgMFE / Math.abs(avgMAE)).toFixed(2)}</span></div>
-  `;
+  const summaryEl = document.getElementById('mfeMaeSummary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div><span class="label">Avg MFE</span><span class="value pos">${avgMFE.toFixed(1)}</span></div>
+      <div><span class="label">Avg MAE</span><span class="value neg">${avgMAE.toFixed(1)}</span></div>
+      <div><span class="label">Ratio</span><span class="value">${(avgMFE / Math.abs(avgMAE)).toFixed(2)}</span></div>
+    `;
+  }
 
-  // Top 5 MFE
-  const top = [...dataPoints].sort((a,b) => b.mfe - a.mfe).slice(0,5);
-  document.getElementById('topMfeMae').innerHTML = top.map(p => 
-    `${p.label} : MFE ${p.mfe.toFixed(1)} | MAE ${p.mae.toFixed(1)}`
-  ).join('<br>');
+  // Top Trades
+  const topEl = document.getElementById('topMfeMae');
+  if (topEl) {
+    const top = [...dataPoints].sort((a,b) => b.mfe - a.mfe).slice(0,5);
+    topEl.innerHTML = top.map(p => 
+      `${p.label} : MFE ${p.mfe.toFixed(1)} | MAE ${p.mae.toFixed(1)}`
+    ).join('<br>');
+  }
 }
   
 </script>
