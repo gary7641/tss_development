@@ -669,6 +669,7 @@ renderSymbolMartingale(result);
 
 // MFE + MAE
 setTimeout(() => {
+  // 切換 tab
   document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
   const mfeBtn = document.querySelector('#analysisMenu button[data-block="mfe-mae"]');
   if (mfeBtn) mfeBtn.classList.add('active');
@@ -677,8 +678,9 @@ setTimeout(() => {
   const mfeBlock = document.getElementById('block-mfe-mae');
   if (mfeBlock) mfeBlock.classList.add('active');
 
+  // 渲染
   renderMfeMae(result);
-}, 200);
+}, 300);
         
       } catch (err) {
         console.error(err);
