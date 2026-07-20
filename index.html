@@ -1273,66 +1273,63 @@ function sortDetailTable(tableId, colIndex) {
     }
   }
 
-  // ==================== MFE + MAE ====================
+// ==================== MFE + MAE SCATTER (點陣圖) ====================
 function renderMfeMae(result) {
   const trades = result.trades || [];
-  if (!trades.length) return;
+  if (!trades.length) {
+    document.getElementById('mfeMaeSummary').innerHTML = '<span class="text-danger">無交易資料</span>';
+    return;
+  }
 
-  const dataPoints = trades.map((t, i) => ({
-    x: t.maxLoss || 0,          // MAE (X軸)
-    y: t.maxProfit || 0,        // MFE (Y軸)
-    profit: t.profit,
-    symbol: t.symbol,
-    label: `Trade ${i+1} (${t.symbol})`
+  const scatterData = trades.map(t => ({
+    x: t.maxLoss || 0,           // MAE (X軸)
+    y: t.maxProfit || 0,         // MFE (Y軸)
+    label: t.symbol || 'Trade'
   }));
 
-  // MFE vs MAE Scatter Plot
-  const ctx = document.getElementById('mfeMaeChart');
-  if (ctx) {
-    if (window.mfeMaeChart) window.mfeMaeChart.destroy();
-    window.mfeMaeChart = new Chart(ctx.getContext('2d'), {
-      type: 'scatter',
-      data: {
-        datasets: [{
-          label: 'Trades',
-          data: dataPoints,
-          backgroundColor: dataPoints.map(p => p.profit >= 0 ? '#4ade80' : '#f87171'),
-          borderColor: '#1e2937',
-          borderWidth: 1,
-          pointRadius: 6,
-          pointHoverRadius: 9
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => `${ctx.raw.label} | Profit: ${ctx.raw.profit.toFixed(2)} | MFE: ${ctx.raw.y} | MAE: ${ctx.raw.x}`
-            }
+  // 清空舊 Chart
+  if (window.mfeMaeChartInstance) window.mfeMaeChartInstance.destroy();
+
+  window.mfeMaeChartInstance = new Chart(document.getElementById('mfeMaeScatter'), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Trades',
+        data: scatterData,
+        backgroundColor: scatterData.map(p => p.y >= 0 ? '#4ade80' : '#f87171'),
+        borderColor: '#1e2937',
+        borderWidth: 1,
+        pointRadius: 7,
+        pointHoverRadius: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.raw.label} | MFE: ${ctx.raw.y.toFixed(1)} | MAE: ${ctx.raw.x.toFixed(1)}`
           }
-        },
-        scales: {
-          x: { title: { display: true, text: 'MAE (Max Adverse Excursion)' }, grid: { color: '#e2e8f0' } },
-          y: { title: { display: true, text: 'MFE (Max Favorable Excursion)' }, grid: { color: '#e2e8f0' } }
         }
+      },
+      scales: {
+        x: { title: { display: true, text: 'MAE (Max Adverse Excursion)' }, grid: { color: '#e2e8f0' } },
+        y: { title: { display: true, text: 'MFE (Max Favorable Excursion)' }, grid: { color: '#e2e8f0' } }
       }
-    });
-  }
+    }
+  });
 
   // Summary
-  const avgMFE = dataPoints.reduce((a, b) => a + b.y, 0) / dataPoints.length;
-  const avgMAE = dataPoints.reduce((a, b) => a + b.x, 0) / dataPoints.length;
-  const summaryEl = document.getElementById('mfeMaeSummary');
-  if (summaryEl) {
-    summaryEl.innerHTML = `
-      <div><span class="label">Avg MFE</span><span class="value pos">${avgMFE.toFixed(1)}</span></div>
-      <div><span class="label">Avg MAE</span><span class="value neg">${avgMAE.toFixed(1)}</span></div>
-      <div><span class="label">Ratio</span><span class="value">${(avgMFE / Math.abs(avgMAE)).toFixed(2)}</span></div>
-    `;
-  }
+  const avgMFE = scatterData.reduce((a, p) => a + p.y, 0) / scatterData.length;
+  const avgMAE = scatterData.reduce((a, p) => a + p.x, 0) / scatterData.length;
+  document.getElementById('mfeMaeSummary').innerHTML = `
+    <strong>Summary:</strong> ${trades.length} trades | 
+    Avg MFE: <span class="pos">${avgMFE.toFixed(1)}</span> | 
+    Avg MAE: <span class="neg">${avgMAE.toFixed(1)}</span>
+  `;
+}
 
   // Top Trades
   const topEl = document.getElementById('topMfeMae');
