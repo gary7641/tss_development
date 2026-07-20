@@ -670,6 +670,8 @@ function parseYourCSV(text) {
 
         lastResult = result;
         renderMfeMae(result);
+        renderOverviewCharts(result);
+        
         document.getElementById('analysisArea').style.display = 'block';
         status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
 
