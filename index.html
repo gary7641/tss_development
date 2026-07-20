@@ -301,35 +301,14 @@
   <section class="panel">
     <h2 class="panel-title">MFE + MAE Analysis</h2>
     
-    <div class="mb-3">
-      <label class="form-label small">View By:</label>
-      <select id="mfeTimeFilter" class="form-select w-auto d-inline-block" style="width:140px;">
-        <option value="all">All Trades</option>
-        <option value="hours">By Holding Hours</option>
-      </select>
-    </div>
-
     <div class="row">
-      <div class="col-md-6">
-        <h6>MFE (Max Favorable Excursion)</h6>
-        <canvas id="mfeChart" height="240"></canvas>
-      </div>
-      <div class="col-md-6">
-        <h6>MAE (Max Adverse Excursion)</h6>
-        <canvas id="maeChart" height="240"></canvas>
+      <div class="col-12">
+        <h6>MFE vs MAE Scatter Plot (點陣圖)</h6>
+        <canvas id="mfeMaeScatter" height="320"></canvas>
       </div>
     </div>
 
-    <div class="row mt-4">
-      <div class="col-md-6">
-        <h6>Summary</h6>
-        <div id="mfeMaeSummary" class="stats-2col"></div>
-      </div>
-      <div class="col-md-6">
-        <h6>Top Trades</h6>
-        <div id="topMfeMae" class="small"></div>
-      </div>
-    </div>
+    <div id="mfeMaeSummary" class="mt-3"></div>
   </section>
 </div>
 
@@ -1273,30 +1252,23 @@ function sortDetailTable(tableId, colIndex) {
     }
   }
 
-// ==================== MFE + MAE SCATTER (點陣圖) ====================
+// ==================== MFE + MAE SCATTER ====================
 function renderMfeMae(result) {
   const trades = result.trades || [];
   if (!trades.length) {
-    const summaryEl = document.getElementById('mfeMaeSummary');
-    if (summaryEl) summaryEl.innerHTML = '<span class="text-danger">無交易資料</span>';
+    document.getElementById('mfeMaeSummary').innerHTML = '<span class="text-danger">無交易資料</span>';
     return;
   }
 
   const scatterData = trades.map(t => ({
-    x: t.maxLoss || 0,           // MAE (X軸)
-    y: t.maxProfit || 0,         // MFE (Y軸)
+    x: t.maxLoss || 0,
+    y: t.maxProfit || 0,
     label: t.symbol || 'Trade'
   }));
 
-  // 清空舊 Chart
-  if (window.mfeMaeChartInstance) {
-    window.mfeMaeChartInstance.destroy();
-  }
+  if (window.mfeMaeChartInstance) window.mfeMaeChartInstance.destroy();
 
-  const ctx = document.getElementById('mfeMaeScatter');
-  if (!ctx) return;
-
-  window.mfeMaeChartInstance = new Chart(ctx.getContext('2d'), {
+  window.mfeMaeChartInstance = new Chart(document.getElementById('mfeMaeScatter').getContext('2d'), {
     type: 'scatter',
     data: {
       datasets: [{
@@ -1313,7 +1285,6 @@ function renderMfeMae(result) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
         tooltip: {
           callbacks: {
             label: (ctx) => `${ctx.raw.label} | MFE: ${ctx.raw.y.toFixed(1)} | MAE: ${ctx.raw.x.toFixed(1)}`
@@ -1321,17 +1292,18 @@ function renderMfeMae(result) {
         }
       },
       scales: {
-        x: { 
-          title: { display: true, text: 'MAE (Max Adverse Excursion)' }, 
-          grid: { color: '#e2e8f0' } 
-        },
-        y: { 
-          title: { display: true, text: 'MFE (Max Favorable Excursion)' }, 
-          grid: { color: '#e2e8f0' } 
-        }
+        x: { title: { display: true, text: 'MAE (Max Adverse Excursion)' } },
+        y: { title: { display: true, text: 'MFE (Max Favorable Excursion)' } }
       }
     }
   });
+
+  document.getElementById('mfeMaeSummary').innerHTML = `
+    <strong>Summary:</strong> ${trades.length} trades | 
+    Avg MFE: <span class="pos">${(scatterData.reduce((a,p)=>a+p.y,0)/scatterData.length).toFixed(1)}</span> | 
+    Avg MAE: <span class="neg">${(scatterData.reduce((a,p)=>a+p.x,0)/scatterData.length).toFixed(1)}</span>
+  `;
+}
 
   // Summary
   const avgMFE = scatterData.reduce((a, p) => a + p.y, 0) / scatterData.length || 0;
