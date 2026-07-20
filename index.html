@@ -480,15 +480,19 @@
       </div>
     </div>
 
-    <!-- Symbol 選擇（Single 模式先顯示） -->
-    <div id="ddSymbolSelect" class="mb-3" style="display:none;">
-      <select id="ddSymbol" class="form-select form-select-sm w-auto"></select>
-    </div>
+<!-- Symbol 多選按鈕（Single 模式先顯示） -->
+<div id="ddSymbolSelect" class="mb-3" style="display:none;">
+  <label class="form-label small fw-bold">選擇 Symbol（可多選）</label>
+  <div id="ddSymbolButtons" class="d-flex flex-wrap gap-2"></div>
+</div>
 
     <!-- 上面圖 (Equity) -->
     <h6 class="mb-2">Equity Drawdown</h6>
     <div style="height: 300px; position: relative; margin-bottom: 24px;">
-      <canvas id="ddEquityChart"></canvas>
+      <canvas id="ddEquityChart"></canvas>    <!-- Symbol 選擇（Single 模式先顯示） -->
+    <div id="ddSymbolSelect" class="mb-3" style="display:none;">
+      <select id="ddSymbol" class="form-select form-select-sm w-auto"></select>
+    </div>
     </div>
 
     <!-- 下面圖 (Balance) -->
@@ -535,8 +539,12 @@
   const auth = firebase.auth();
   const ADMIN_EMAILS = ['gary7641@gmail.com', 'shenxu.gary@gmail.com'];
   let currentUser = null;
-  let lastResult = null;
-  let miniCharts = [];
+let lastResult = null;
+let currentMfeMaeMode = 'MFE';
+let currentHoldingMode = 'hours';
+let selectedSymbols = new Set();
+let selectedDdSymbols = new Set();   // ← 加呢句
+let cumMode = 'all';
 
   document.addEventListener('DOMContentLoaded', initAll);
 
@@ -1993,15 +2001,37 @@ function renderDrawdown(result) {
     drawDrawdownCharts(result); 
   };
 
-  // 填入 Symbol 選項
-  const symbols = [...new Set(trades.map(t => t.symbol))].sort();
-  const sel = document.getElementById('ddSymbol');
-  sel.innerHTML = symbols.map(s => `<option value="${s}">${s}</option>`).join('');
-  sel.onchange = () => drawDrawdownCharts(result);
+// 填入 Symbol 按鈕
+const symbols = [...new Set(trades.map(t => t.symbol))].sort();
+const container = document.getElementById('ddSymbolButtons');
+container.innerHTML = '';
+let selectedDdSymbols = new Set(symbols); // 預設全選
 
-  updateDdButtons();
-  drawDrawdownCharts(result);
-}
+symbols.forEach((sym, idx) => {
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-sm btn-primary';
+  btn.textContent = sym;
+  btn.dataset.symbol = sym;
+  btn.onclick = () => {
+    if (selectedDdSymbols.has(sym)) {
+      selectedDdSymbols.delete(sym);
+      btn.className = 'btn btn-sm btn-outline-secondary';
+    } else {
+      selectedDdSymbols.add(sym);
+      btn.className = 'btn btn-sm btn-primary';
+    }
+    drawDrawdownCharts(result);
+  };
+  container.appendChild(btn);
+});
+
+// 更新 Single 按鈕邏輯
+document.getElementById('btnDdSingle').onclick = () => { 
+  ddMode.view = 'single'; 
+  document.getElementById('ddSymbolSelect').style.display = 'block';
+  updateDdButtons(); 
+  drawDrawdownCharts(result); 
+};
 
 function updateDdButtons() {
   // Equity / Balance
@@ -2022,7 +2052,6 @@ function drawDrawdownCharts(result) {
   const trades = result.trades || [];
   if (!trades.length) return;
 
-  // 清舊圖
   if (window.ddEquityChartInstance) window.ddEquityChartInstance.destroy();
   if (window.ddBalanceChartInstance) window.ddBalanceChartInstance.destroy();
 
@@ -2030,9 +2059,9 @@ function drawDrawdownCharts(result) {
     drawStackedDrawdown(result, 'equity');
     drawStackedDrawdown(result, 'balance');
   } else {
-    const sym = document.getElementById('ddSymbol').value;
-    drawSingleDrawdown(result, sym, 'equity');
-    drawSingleDrawdown(result, sym, 'balance');
+    // Single 模式 = 多選線圖
+    drawMultiLineDrawdown(result, 'equity');
+    drawMultiLineDrawdown(result, 'balance');
   }
 }
 
@@ -2170,7 +2199,80 @@ function drawSingleDrawdown(result, symbol, type) {
   if (type === 'equity') window.ddEquityChartInstance = chartInstance;
   else window.ddBalanceChartInstance = chartInstance;
 }
-  
+
+function drawMultiLineDrawdown(result, type) {
+  const trades = result.trades.filter(t => selectedDdSymbols.has(t.symbol));
+  if (!trades.length) return;
+
+  const symbols = [...selectedDdSymbols];
+  const initial = result.initial_balance || 10000;
+
+  const bySymbol = {};
+  symbols.forEach(s => {
+    bySymbol[s] = { equity: initial, peak: initial, dd: [] };
+  });
+
+  const sorted = [...trades].sort((a, b) => (a.openTime || 0) - (b.openTime || 0));
+  const labels = [];
+
+  sorted.forEach((t, i) => {
+    labels.push(i + 1);
+    const s = t.symbol;
+    if (!bySymbol[s]) return;
+
+    bySymbol[s].equity += t.profit;
+    if (bySymbol[s].equity > bySymbol[s].peak) bySymbol[s].peak = bySymbol[s].equity;
+
+    let ddValue = 0;
+    if (ddMode.calc === 'absolute') {
+      ddValue = bySymbol[s].peak - bySymbol[s].equity;
+    } else {
+      ddValue = bySymbol[s].peak > 0 ? ((bySymbol[s].peak - bySymbol[s].equity) / bySymbol[s].peak) * 100 : 0;
+    }
+    bySymbol[s].dd.push(-ddValue);
+  });
+
+  // 對齊長度
+  const maxLen = Math.max(...symbols.map(s => bySymbol[s].dd.length), 1);
+  symbols.forEach(s => {
+    while (bySymbol[s].dd.length < maxLen) bySymbol[s].dd.push(null);
+  });
+
+  const datasets = symbols.map((s, idx) => ({
+    label: s,
+    data: bySymbol[s].dd,
+    borderColor: DD_COLORS[idx % DD_COLORS.length],
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    pointRadius: 0,
+    fill: false,
+    tension: 0.1
+  }));
+
+  const canvasId = type === 'equity' ? 'ddEquityChart' : 'ddBalanceChart';
+  const ctx = document.getElementById(canvasId).getContext('2d');
+
+  const chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: Array.from({length: maxLen}, (_, i) => i + 1),
+      datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { display: false },
+        y: { title: { display: true, text: ddMode.unit === 'ratio' ? 'Drawdown %' : 'Drawdown $' } }
+      }
+    }
+  });
+
+  if (type === 'equity') window.ddEquityChartInstance = chartInstance;
+  else window.ddBalanceChartInstance = chartInstance;
+}
+
 </script>
 </body>
 </html>
