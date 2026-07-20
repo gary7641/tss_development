@@ -544,7 +544,8 @@ let currentMfeMaeMode = 'MFE';
 let currentHoldingMode = 'hours';
 let selectedSymbols = new Set();
 let selectedDdSymbols = new Set(); 
-let cumMode = 'all';
+let cumMode = 'all'; 
+let selectedCumSymbols = new Set();
 
   document.addEventListener('DOMContentLoaded', initAll);
 
@@ -1647,8 +1648,6 @@ function drawMfeMaeCharts(trades) {
 }
 
 // ==================== Cumulative Profit + 四個圖 (聯動) ====================
-let cumMode = 'all'; // all | separate
-let selectedCumSymbols = new Set();
 
 const CUM_COLORS = [
   '#0ea5e9', '#f97316', '#22c55e', '#a855f7', '#ef4444',
