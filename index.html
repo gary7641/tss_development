@@ -547,6 +547,23 @@ let selectedDdSymbols = new Set();
 let cumMode = 'all'; 
 let selectedCumSymbols = new Set();
 
+function getProfitColor(value) {
+  if (value === 0 || value === null || value === undefined) return '';
+  const abs = Math.abs(value);
+  let level = 1;
+  if (abs > 100) level = 4;
+  else if (abs > 50) level = 3;
+  else if (abs > 20) level = 2;
+
+  if (value > 0) {
+    const blues = ['#dbeafe', '#93c5fd', '#3b82f6', '#1d4ed8'];
+    return `background-color:${blues[level-1]};color:#111;`;
+  } else {
+    const reds = ['#fee2e2', '#fca5a5', '#ef4444', '#b91c1c'];
+    return `background-color:${reds[level-1]};color:#111;`;
+  }
+}
+
   document.addEventListener('DOMContentLoaded', initAll);
 
   function initAll() {
@@ -1252,7 +1269,6 @@ function buildMartingaleTable(symbol, side, trades) {
               <th>SUM Pips</th>
               <th>Cum Profit</th>
               <th>Win Rate %</th>
-              <th>意義</th>
               <th>Min Win Profit</th>
               <th>Symbol/Side TOTAL</th>
               <th>Total Trades</th>
@@ -1410,14 +1426,14 @@ function generateDetailTable(trades, tableId, allMagics, allComments) {
         <td>${t.closeTimeStr || ''}</td>
         <td>${t.closePrice ? t.closePrice.toFixed(5) : ''}</td>
         <td>${t.commission.toFixed(2)}</td>
-        <td class="${swapClass}">${t.swap.toFixed(2)}</td>
-        <td class="${pipsClass}">${t.pips.toFixed(1)}</td>
-        <td class="${profitClass}">${t.profit.toFixed(2)}</td>
+        <td style="${getProfitColor(t.swap)}">${(t.swap || 0).toFixed(2)}</td>
+        <td style="${getProfitColor(t.pips)}">${(t.pips || 0).toFixed(1)}</td>
+        <td style="${getProfitColor(t.profit)}">${(t.profit || 0).toFixed(2)}</td>
         <td>${t.holdingStr || (t.holdingHours ? t.holdingHours.toFixed(2) + 'hrs' : '')}</td>
-        <td class="pos">${t.maxProfit.toFixed(2)}</td>
-        <td class="pos">${t.maxPips.toFixed(1)}</td>
-        <td class="neg">${t.maxLoss.toFixed(2)}</td>
-        <td class="neg">${t.maxLossPips.toFixed(1)}</td>
+        <td style="${getProfitColor(t.maxProfit)}">${(t.maxProfit || 0).toFixed(2)}</td>
+        <td style="${getProfitColor(t.maxPips)}">${(t.maxPips || 0).toFixed(1)}</td>
+        <td style="${getProfitColor(t.maxLoss)}">${(t.maxLoss || 0).toFixed(2)}</td>
+        <td style="${getProfitColor(t.maxLossPips)}">${(t.maxLossPips || 0).toFixed(1)}</td>
         <td>${t.magic || ''}</td>
         <td>${t.comment || ''}</td>
       </tr>`;
