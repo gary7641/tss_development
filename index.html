@@ -1252,11 +1252,12 @@ function sortDetailTable(tableId, colIndex) {
     }
   }
 
-// ==================== MFE + MAE SCATTER ====================
+// ==================== MFE + MAE SCATTER (點陣圖) ====================
 function renderMfeMae(result) {
   const trades = result.trades || [];
   if (!trades.length) {
-    document.getElementById('mfeMaeSummary').innerHTML = '<span class="text-danger">無交易資料</span>';
+    const el = document.getElementById('mfeMaeSummary');
+    if (el) el.innerHTML = '<span class="text-danger">無交易資料</span>';
     return;
   }
 
@@ -1266,9 +1267,14 @@ function renderMfeMae(result) {
     label: t.symbol || 'Trade'
   }));
 
-  if (window.mfeMaeChartInstance) window.mfeMaeChartInstance.destroy();
+  if (window.mfeMaeChartInstance) {
+    window.mfeMaeChartInstance.destroy();
+  }
 
-  window.mfeMaeChartInstance = new Chart(document.getElementById('mfeMaeScatter').getContext('2d'), {
+  const canvas = document.getElementById('mfeMaeScatter');
+  if (!canvas) return;
+
+  window.mfeMaeChartInstance = new Chart(canvas.getContext('2d'), {
     type: 'scatter',
     data: {
       datasets: [{
@@ -1285,6 +1291,7 @@ function renderMfeMae(result) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
+        legend: { display: false },
         tooltip: {
           callbacks: {
             label: (ctx) => `${ctx.raw.label} | MFE: ${ctx.raw.y.toFixed(1)} | MAE: ${ctx.raw.x.toFixed(1)}`
@@ -1298,11 +1305,16 @@ function renderMfeMae(result) {
     }
   });
 
-  document.getElementById('mfeMaeSummary').innerHTML = `
-    <strong>Summary:</strong> ${trades.length} trades | 
-    Avg MFE: <span class="pos">${(scatterData.reduce((a,p)=>a+p.y,0)/scatterData.length).toFixed(1)}</span> | 
-    Avg MAE: <span class="neg">${(scatterData.reduce((a,p)=>a+p.x,0)/scatterData.length).toFixed(1)}</span>
-  `;
+  const avgMFE = scatterData.reduce((a, p) => a + p.y, 0) / scatterData.length || 0;
+  const avgMAE = scatterData.reduce((a, p) => a + p.x, 0) / scatterData.length || 0;
+  const summaryEl = document.getElementById('mfeMaeSummary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <strong>Summary:</strong> ${trades.length} trades | 
+      Avg MFE: <span class="pos">${avgMFE.toFixed(1)}</span> | 
+      Avg MAE: <span class="neg">${avgMAE.toFixed(1)}</span>
+    `;
+  }
 }
 
   // Summary
