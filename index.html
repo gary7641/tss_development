@@ -1253,7 +1253,7 @@ function sortDetailTable(tableId, colIndex) {
     }
   }
 
-// ==================== MFE + MAE SCATTER (點陣圖) ====================
+// ==================== MFE + MAE SCATTER ====================
 function renderMfeMae(result) {
   const trades = result.trades || [];
   if (!trades.length) {
@@ -1338,8 +1338,7 @@ function renderMfeMae(result) {
     topEl.innerHTML = top.map(p => 
       `${p.label} : MFE ${p.y.toFixed(1)} | MAE ${p.x.toFixed(1)}`
     ).join('<br>');
-  }
-}
+  }}
   
 </script>
 </body>
