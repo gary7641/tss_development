@@ -1278,12 +1278,6 @@ let currentMfeMaeMode = 'MFE';
 let currentHoldingMode = 'hours';
 let selectedSymbols = new Set();   // 儲存已選中的 Symbol
 
-const SYMBOL_COLORS = [
-  '#4ade80', '#f87171', '#60a5fa', '#fbbf24', '#a78bfa',
-  '#34d399', '#fb7185', '#38bdf8', '#facc15', '#c084fc',
-  '#2dd4bf', '#f472b6', '#818cf8', '#fb923c', '#e879f9'
-];
-
 function renderMfeMae(result) {
   const trades = result.trades || [];
   if (!trades.length) {
@@ -1303,8 +1297,6 @@ function renderMfeMae(result) {
     btn.className = 'btn btn-sm btn-primary';
     btn.textContent = sym;
     btn.dataset.symbol = sym;
-    btn.style.backgroundColor = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
-    btn.style.borderColor = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
     btn.onclick = () => {
       if (selectedSymbols.has(sym)) {
         selectedSymbols.delete(sym);
@@ -1367,10 +1359,6 @@ function drawMfeMaeCharts(trades) {
 
   // 建立顏色對應
   const allSymbols = [...new Set(trades.map(t => t.symbol))].sort();
-  const colorMap = {};
-  allSymbols.forEach((sym, idx) => {
-    colorMap[sym] = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
-  });
 
   // ===== 上面主圖 =====
   const mainData = filtered.map(t => ({
@@ -1386,7 +1374,7 @@ function drawMfeMaeCharts(trades) {
       datasets: [{
         label: currentMfeMaeMode,
         data: mainData,
-        backgroundColor: mainData.map(p => colorMap[p.symbol] || '#94a3b8'),
+        backgroundColor: mainData.map(p => p.profit >= 0 ? '#4ade80' : '#f87171'),
         borderWidth: 0,          // 唔要黑邊
         pointRadius: 5,
         pointHoverRadius: 8
@@ -1424,7 +1412,7 @@ function drawMfeMaeCharts(trades) {
       datasets: [{
         label: 'Holding Time',
         data: holdingData,
-        backgroundColor: holdingData.map(p => colorMap[p.symbol] || '#94a3b8'),
+        backgroundColor: holdingData.map(p => p.profit >= 0 ? '#4ade80' : '#f87171'),
         borderWidth: 0,          // 唔要黑邊
         pointRadius: 5,
         pointHoverRadius: 8
