@@ -246,6 +246,26 @@
           </div>
 
           <!-- 總覽 -->
+<!-- 基本資料 -->
+<div class="mb-4 p-3 bg-light rounded">
+  <div class="row g-2 small">
+    <div class="col-md-6">
+      <strong>CSV File:</strong> <span id="info-csv">-</span>
+    </div>
+    <div class="col-md-6">
+      <strong>Start Date:</strong> <span id="info-startdate">-</span>
+    </div>
+    <div class="col-md-6">
+      <strong>Initial Deposit:</strong> <span id="info-initial">-</span>
+    </div>
+    <div class="col-md-6">
+      <strong>Sub Deposits / Withdrawals:</strong> <span id="info-deposit">-</span>
+    </div>
+    <div class="col-12">
+      <strong>Signal Page:</strong> <span id="info-signalurl">-</span>
+    </div>
+  </div>
+</div>
           <div class="analysis-block active" id="block-overview">
             <section class="panel">
               <h2 class="panel-title">總覽 Summary + 資金曲線</h2>
@@ -618,6 +638,31 @@ function parseYourCSV(text) {
         document.getElementById('stat-dd-pct').textContent = result.max_dd_pct.toFixed(2) + '%';
         document.getElementById('stat-dd-money').textContent = '$' + result.max_dd_money.toFixed(2);
 
+// ===== 基本資料 =====
+const fileName = document.getElementById('csvFile').files[0]?.name || '-';
+document.getElementById('info-csv').textContent = fileName;
+
+// Start Date（第一筆 trade）
+const firstTrade = result.trades[0];
+document.getElementById('info-startdate').textContent = firstTrade?.openTimeStr || firstTrade?.openTime?.toLocaleDateString() || '-';
+
+// Initial Deposit（由 balance 記錄推算，簡化版）
+document.getElementById('info-initial').textContent = '$' + (result.initial_balance || 10000).toFixed(2);
+
+// Sub Deposits / Withdrawals（暫時顯示 -，之後可加強解析 balance 記錄）
+document.getElementById('info-deposit').textContent = '-';
+
+// Signal URL（檔名匹配）
+const match = fileName.match(/forex-forest-signals-page-(\d+)/i);
+if (match) {
+  const signalId = match[1];
+  const url = `https://algoforest.com/signals/${signalId}`;
+  document.getElementById('info-signalurl').innerHTML = 
+    `<a href="${url}" target="_blank">${url}</a>`;
+} else {
+  document.getElementById('info-signalurl').textContent = '-';
+}
+        
         // 詳細 Statistics
         document.getElementById('detailStats').innerHTML = `
           <div>
