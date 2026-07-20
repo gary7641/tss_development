@@ -543,7 +543,7 @@ let lastResult = null;
 let currentMfeMaeMode = 'MFE';
 let currentHoldingMode = 'hours';
 let selectedSymbols = new Set();
-let selectedDdSymbols = new Set();   // ← 加呢句
+let selectedDdSymbols = new Set(); 
 let cumMode = 'all';
 
   document.addEventListener('DOMContentLoaded', initAll);
@@ -2005,7 +2005,7 @@ function renderDrawdown(result) {
 const symbols = [...new Set(trades.map(t => t.symbol))].sort();
 const container = document.getElementById('ddSymbolButtons');
 container.innerHTML = '';
-let selectedDdSymbols = new Set(symbols); // 預設全選
+selectedDdSymbols = new Set(symbols); // ← 唔好加 let，直接賦值
 
 symbols.forEach((sym, idx) => {
   const btn = document.createElement('button');
