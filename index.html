@@ -294,6 +294,49 @@
                 </div>
               </div>
               <div style="height: 250px; margin-bottom: 24px;"><canvas id="thaEquityChart"></canvas></div>
+
+<!-- ===== Cumulative Profit (線圖 + All/Separate) ===== -->
+<div class="mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="mb-0">Cumulative Profit</h6>
+    <div class="btn-group btn-group-sm">
+      <button type="button" class="btn btn-primary" id="btnCumAll">All</button>
+      <button type="button" class="btn btn-outline-primary" id="btnCumSeparate">Separate</button>
+    </div>
+  </div>
+  <div style="height: 320px; position: relative;">
+    <canvas id="cumProfitChart"></canvas>
+  </div>
+</div>
+
+<!-- ===== 四個柱狀圖 ===== -->
+<div class="row g-3 mt-3">
+  <div class="col-md-6">
+    <h6 class="mb-2">Weekday Profit</h6>
+    <div style="height: 220px; position: relative;">
+      <canvas id="weekdayProfitChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <h6 class="mb-2">Weekday Trades</h6>
+    <div style="height: 220px; position: relative;">
+      <canvas id="weekdayTradesChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <h6 class="mb-2">Hourly Profit</h6>
+    <div style="height: 220px; position: relative;">
+      <canvas id="hourlyProfitChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <h6 class="mb-2">Hourly Trades</h6>
+    <div style="height: 220px; position: relative;">
+      <canvas id="hourlyTradesChart"></canvas>
+    </div>
+  </div>
+</div>
+              
               <h6 class="mb-3">詳細 Statistics</h6>
               <div class="stats-2col mb-4" id="detailStats"></div>
               <h6 class="mb-2">Distribution By Symbol</h6>
@@ -1489,6 +1532,254 @@ function drawMfeMaeCharts(trades) {
     Avg MFE: <span class="pos">${avgMFE.toFixed(1)}</span> | 
     Avg MAE: <span class="neg">${avgMAE.toFixed(1)}</span>
   `;
+}
+
+// ==================== Cumulative Profit + 四個圖 (聯動) ====================
+let cumMode = 'all'; // all | separate
+let selectedCumSymbols = new Set();
+
+const CUM_COLORS = [
+  '#0ea5e9', '#f97316', '#22c55e', '#a855f7', '#ef4444',
+  '#eab308', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'
+];
+
+function renderOverviewCharts(result) {
+  const trades = result.trades || [];
+  if (!trades.length) return;
+
+  // 預設全選
+  const allSymbols = [...new Set(trades.map(t => t.symbol))].sort();
+  selectedCumSymbols = new Set(allSymbols);
+
+  // 綁定 All / Separate 按鈕
+  document.getElementById('btnCumAll').onclick = () => {
+    cumMode = 'all';
+    document.getElementById('btnCumAll').className = 'btn btn-primary btn-sm';
+    document.getElementById('btnCumSeparate').className = 'btn btn-outline-primary btn-sm';
+    drawAllOverviewCharts(trades);
+  };
+  document.getElementById('btnCumSeparate').onclick = () => {
+    cumMode = 'separate';
+    document.getElementById('btnCumSeparate').className = 'btn btn-primary btn-sm';
+    document.getElementById('btnCumAll').className = 'btn btn-outline-primary btn-sm';
+    drawAllOverviewCharts(trades);
+  };
+
+  drawAllOverviewCharts(trades);
+}
+
+function drawAllOverviewCharts(trades) {
+  const filtered = trades.filter(t => selectedCumSymbols.has(t.symbol));
+
+  // 1. Cumulative Profit 線圖
+  drawCumProfitChart(filtered);
+
+  // 2~5. 四個柱狀圖
+  drawWeekdayProfitChart(filtered);
+  drawWeekdayTradesChart(filtered);
+  drawHourlyProfitChart(filtered);
+  drawHourlyTradesChart(filtered);
+}
+
+function drawCumProfitChart(trades) {
+  if (window.cumProfitChartInstance) {
+    window.cumProfitChartInstance.destroy();
+  }
+
+  const ctx = document.getElementById('cumProfitChart').getContext('2d');
+
+  if (cumMode === 'all') {
+    // All = 一條線
+    let cum = 0;
+    const data = trades.map(t => {
+      cum += t.profit;
+      return cum;
+    });
+    const colors = data.map(v => v >= 0 ? '#0ea5e9' : '#ef4444');
+
+    window.cumProfitChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: trades.map((_, i) => i + 1),
+        datasets: [{
+          label: 'Cumulative Profit',
+          data,
+          borderColor: '#0ea5e9',
+          backgroundColor: 'rgba(14,165,233,0.1)',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: true,
+          segment: {
+            borderColor: ctx => ctx.p0.parsed.y >= 0 ? '#0ea5e9' : '#ef4444'
+          }
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { display: false },
+          y: { title: { display: true, text: 'Cumulative Profit' } }
+        }
+      }
+    });
+  } else {
+    // Separate = 每個 Symbol 一條線
+    const bySymbol = {};
+    trades.forEach(t => {
+      if (!bySymbol[t.symbol]) bySymbol[t.symbol] = [];
+      bySymbol[t.symbol].push(t);
+    });
+
+    const datasets = Object.keys(bySymbol).map((sym, idx) => {
+      let cum = 0;
+      const data = bySymbol[sym].map(t => {
+        cum += t.profit;
+        return cum;
+      });
+      return {
+        label: sym,
+        data,
+        borderColor: CUM_COLORS[idx % CUM_COLORS.length],
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false
+      };
+    });
+
+    // 對齊長度
+    const maxLen = Math.max(...datasets.map(d => d.data.length));
+    datasets.forEach(d => {
+      while (d.data.length < maxLen) d.data.push(null);
+    });
+
+    window.cumProfitChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array.from({length: maxLen}, (_, i) => i + 1),
+        datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'top' } },
+        scales: {
+          x: { display: false },
+          y: { title: { display: true, text: 'Cumulative Profit' } }
+        }
+      }
+    });
+  }
+}
+
+function drawWeekdayProfitChart(trades) {
+  const profit = Array(7).fill(0);
+  trades.forEach(t => {
+    if (t.openTime) profit[t.openTime.getDay()] += t.profit;
+  });
+  const labels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const data = profit;
+
+  if (window.weekdayProfitChartInstance) window.weekdayProfitChartInstance.destroy();
+  window.weekdayProfitChartInstance = new Chart(document.getElementById('weekdayProfitChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: data.map(v => v >= 0 ? '#3b82f6' : '#ef4444'),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { title: { display: true, text: 'Profit' } } }
+    }
+  });
+}
+
+function drawWeekdayTradesChart(trades) {
+  const count = Array(7).fill(0);
+  trades.forEach(t => {
+    if (t.openTime) count[t.openTime.getDay()]++;
+  });
+  const labels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  if (window.weekdayTradesChartInstance) window.weekdayTradesChartInstance.destroy();
+  window.weekdayTradesChartInstance = new Chart(document.getElementById('weekdayTradesChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: count,
+        backgroundColor: '#8b5cf6',
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { title: { display: true, text: 'Trades' } } }
+    }
+  });
+}
+
+function drawHourlyProfitChart(trades) {
+  const profit = Array(24).fill(0);
+  trades.forEach(t => {
+    if (t.openTime) profit[t.openTime.getHours()] += t.profit;
+  });
+  const labels = Array.from({length: 24}, (_, i) => i);
+
+  if (window.hourlyProfitChartInstance) window.hourlyProfitChartInstance.destroy();
+  window.hourlyProfitChartInstance = new Chart(document.getElementById('hourlyProfitChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: profit,
+        backgroundColor: profit.map(v => v >= 0 ? '#06b6d4' : '#ef4444'),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { title: { display: true, text: 'Profit' } } }
+    }
+  });
+}
+
+function drawHourlyTradesChart(trades) {
+  const count = Array(24).fill(0);
+  trades.forEach(t => {
+    if (t.openTime) count[t.openTime.getHours()]++;
+  });
+  const labels = Array.from({length: 24}, (_, i) => i);
+
+  if (window.hourlyTradesChartInstance) window.hourlyTradesChartInstance.destroy();
+  window.hourlyTradesChartInstance = new Chart(document.getElementById('hourlyTradesChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: count,
+        backgroundColor: '#a855f7',
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { title: { display: true, text: 'Trades' } } }
+    }
+  });
 }
   
 </script>
