@@ -312,12 +312,18 @@
       </div>
     </div>
 
+    <!-- Symbol Filter -->
+    <div class="mb-3">
+      <label class="form-label small fw-bold">Symbol Filter（可多選）</label>
+      <div id="symbolFilterContainer" class="d-flex flex-wrap gap-2"></div>
+    </div>
+
     <!-- 上面圖 -->
     <div style="height: 320px; position: relative; margin-bottom: 24px;">
       <canvas id="mfeMaeMainChart"></canvas>
     </div>
 
-    <!-- 下面圖 (Holding Time) -->
+    <!-- 下面圖 -->
     <div style="height: 220px; position: relative;">
       <canvas id="mfeMaeHoldingChart"></canvas>
     </div>
@@ -1267,9 +1273,16 @@ function sortDetailTable(tableId, colIndex) {
     }
   }
 
-// ==================== MFE + MAE (雙圖版) ====================
-let currentMfeMaeMode = 'MFE';   // MFE or MAE
-let currentHoldingMode = 'hours'; // hours or days
+// ==================== MFE + MAE (雙圖 + Symbol 多選) ====================
+let currentMfeMaeMode = 'MFE';
+let currentHoldingMode = 'hours';
+let selectedSymbols = new Set();   // 儲存已選中的 Symbol
+
+const SYMBOL_COLORS = [
+  '#4ade80', '#f87171', '#60a5fa', '#fbbf24', '#a78bfa',
+  '#34d399', '#fb7185', '#38bdf8', '#facc15', '#c084fc',
+  '#2dd4bf', '#f472b6', '#818cf8', '#fb923c', '#e879f9'
+];
 
 function renderMfeMae(result) {
   const trades = result.trades || [];
@@ -1278,7 +1291,38 @@ function renderMfeMae(result) {
     return;
   }
 
-  // 綁定按鈕
+  // 建立 Symbol 清單
+  const allSymbols = [...new Set(trades.map(t => t.symbol))].sort();
+  selectedSymbols = new Set(allSymbols); // 預設全選
+
+  // 渲染 Filter 按鈕
+  const container = document.getElementById('symbolFilterContainer');
+  container.innerHTML = '';
+  allSymbols.forEach((sym, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-sm btn-primary';
+    btn.textContent = sym;
+    btn.dataset.symbol = sym;
+    btn.style.backgroundColor = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
+    btn.style.borderColor = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
+    btn.onclick = () => {
+      if (selectedSymbols.has(sym)) {
+        selectedSymbols.delete(sym);
+        btn.className = 'btn btn-sm btn-outline-secondary';
+        btn.style.backgroundColor = '';
+        btn.style.borderColor = '';
+      } else {
+        selectedSymbols.add(sym);
+        btn.className = 'btn btn-sm btn-primary';
+        btn.style.backgroundColor = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
+        btn.style.borderColor = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
+      }
+      drawMfeMaeCharts(trades);
+    };
+    container.appendChild(btn);
+  });
+
+  // 綁定 MFE / MAE / Hours / Days 按鈕
   document.getElementById('btnMfe').onclick = () => {
     currentMfeMaeMode = 'MFE';
     document.getElementById('btnMfe').className = 'btn btn-sm btn-primary';
@@ -1308,19 +1352,29 @@ function renderMfeMae(result) {
 }
 
 function drawMfeMaeCharts(trades) {
-// 安全清舊圖
-if (window.mfeMaeMainChart && typeof window.mfeMaeMainChart.destroy === 'function') {
-  window.mfeMaeMainChart.destroy();
-}
-if (window.mfeMaeHoldingChart && typeof window.mfeMaeHoldingChart.destroy === 'function') {
-  window.mfeMaeHoldingChart.destroy();
-}
-window.mfeMaeMainChart = null;
-window.mfeMaeHoldingChart = null;
+  // 安全清舊圖
+  if (window.mfeMaeMainChart && typeof window.mfeMaeMainChart.destroy === 'function') {
+    window.mfeMaeMainChart.destroy();
+  }
+  if (window.mfeMaeHoldingChart && typeof window.mfeMaeHoldingChart.destroy === 'function') {
+    window.mfeMaeHoldingChart.destroy();
+  }
+  window.mfeMaeMainChart = null;
+  window.mfeMaeHoldingChart = null;
+
+  // 只顯示已選中的 Symbol
+  const filtered = trades.filter(t => selectedSymbols.has(t.symbol));
+
+  // 建立顏色對應
+  const allSymbols = [...new Set(trades.map(t => t.symbol))].sort();
+  const colorMap = {};
+  allSymbols.forEach((sym, idx) => {
+    colorMap[sym] = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
+  });
 
   // ===== 上面主圖 =====
-  const mainData = trades.map(t => ({
-    x: t.pips || 0,                                      // Net Pips
+  const mainData = filtered.map(t => ({
+    x: t.pips || 0,
     y: currentMfeMaeMode === 'MFE' ? (t.maxPips || 0) : (t.maxLossPips || 0),
     profit: t.profit,
     symbol: t.symbol
@@ -1332,9 +1386,8 @@ window.mfeMaeHoldingChart = null;
       datasets: [{
         label: currentMfeMaeMode,
         data: mainData,
-        backgroundColor: mainData.map(p => p.profit >= 0 ? '#4ade80' : '#f87171'),
-        borderColor: '#1e2937',
-        borderWidth: 1,
+        backgroundColor: mainData.map(p => colorMap[p.symbol] || '#94a3b8'),
+        borderWidth: 0,          // 唔要黑邊
         pointRadius: 5,
         pointHoverRadius: 8
       }]
@@ -1358,7 +1411,7 @@ window.mfeMaeHoldingChart = null;
   });
 
   // ===== 下面 Holding Time 圖 =====
-  const holdingData = trades.map(t => ({
+  const holdingData = filtered.map(t => ({
     x: t.pips || 0,
     y: currentHoldingMode === 'hours' ? (t.holdingHours || 0) : ((t.holdingHours || 0) / 24),
     profit: t.profit,
@@ -1371,9 +1424,8 @@ window.mfeMaeHoldingChart = null;
       datasets: [{
         label: 'Holding Time',
         data: holdingData,
-        backgroundColor: holdingData.map(p => p.profit >= 0 ? '#4ade80' : '#f87171'),
-        borderColor: '#1e2937',
-        borderWidth: 1,
+        backgroundColor: holdingData.map(p => colorMap[p.symbol] || '#94a3b8'),
+        borderWidth: 0,          // 唔要黑邊
         pointRadius: 5,
         pointHoverRadius: 8
       }]
@@ -1397,10 +1449,10 @@ window.mfeMaeHoldingChart = null;
   });
 
   // Summary
-  const avgMFE = trades.reduce((a, t) => a + (t.maxProfit || 0), 0) / trades.length || 0;
-  const avgMAE = trades.reduce((a, t) => a + (t.maxLoss || 0), 0) / trades.length || 0;
+  const avgMFE = filtered.reduce((a, t) => a + (t.maxProfit || 0), 0) / (filtered.length || 1);
+  const avgMAE = filtered.reduce((a, t) => a + (t.maxLoss || 0), 0) / (filtered.length || 1);
   document.getElementById('mfeMaeSummary').innerHTML = `
-    <strong>Summary:</strong> ${trades.length} trades | 
+    <strong>Summary:</strong> ${filtered.length} trades (filtered) | 
     Avg MFE: <span class="pos">${avgMFE.toFixed(1)}</span> | 
     Avg MAE: <span class="neg">${avgMAE.toFixed(1)}</span>
   `;
