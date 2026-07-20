@@ -397,7 +397,40 @@
   </section>
 </div>
 
+<div class="analysis-block" id="block-heatmap">
+  <section class="panel">
+    <h2 class="panel-title">Heat Map</h2>
+    
+    <div class="mb-3">
+      <label class="form-label small">View By:</label>
+      <select id="heatmapType" class="form-select w-auto d-inline-block">
+        <option value="hour">By Hour of Day</option>
+        <option value="weekday">By Weekday</option>
+        <option value="symbol">By Symbol</option>
+      </select>
+    </div>
 
+    <div style="height: 380px; position: relative;">
+      <canvas id="heatmapChart"></canvas>
+    </div>
+
+    <div id="heatmapSummary" class="mt-3 small text-muted"></div>
+  </section>
+</div>          
+
+<div class="analysis-block" id="block-drawdown">
+  <section class="panel">
+    <h2 class="panel-title">Drawdown Analysis</h2>
+    
+    <div style="height: 360px; position: relative;">
+      <canvas id="ddChart"></canvas>
+    </div>
+
+    <div id="ddSummary" class="mt-3"></div>
+  </section>
+</div>
+
+          
       <!-- 其他頁面 -->
       <div id="page-library" class="page"><section class="panel"><h2 class="panel-title">📚 Signal History Library</h2></section></div>
       <div id="page-admin" class="page"><section class="panel"><h2 class="panel-title">🛠️ Admin Console</h2></section></div>
@@ -671,6 +704,8 @@ function parseYourCSV(text) {
         lastResult = result;
         renderMfeMae(result);
         renderOverviewCharts(result);
+        renderHeatmap(result);
+        renderDrawdown(result);
         
         document.getElementById('analysisArea').style.display = 'block';
         status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
@@ -1783,6 +1818,131 @@ function drawHourlyTradesChart(trades) {
     }
   });
 }
+
+// ==================== HEAT MAP ====================
+function renderHeatmap(result) {
+  const trades = result.trades || [];
+  if (!trades.length) return;
+
+  const type = document.getElementById('heatmapType')?.value || 'hour';
+  let labels = [];
+  let data = [];
+
+  if (type === 'hour') {
+    labels = Array.from({length: 24}, (_, i) => i + ':00');
+    data = Array(24).fill(0);
+    trades.forEach(t => {
+      if (t.openTime) data[t.openTime.getHours()] += t.profit;
+    });
+  } else if (type === 'weekday') {
+    labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    data = Array(7).fill(0);
+    trades.forEach(t => {
+      if (t.openTime) data[t.openTime.getDay()] += t.profit;
+    });
+  } else {
+    // By Symbol
+    const bySym = {};
+    trades.forEach(t => {
+      bySym[t.symbol] = (bySym[t.symbol] || 0) + t.profit;
+    });
+    const sorted = Object.entries(bySym).sort((a, b) => b[1] - a[1]).slice(0, 15);
+    labels = sorted.map(s => s[0]);
+    data = sorted.map(s => s[1]);
+  }
+
+  if (window.heatmapChartInstance) {
+    window.heatmapChartInstance.destroy();
+  }
+
+  window.heatmapChartInstance = new Chart(document.getElementById('heatmapChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Profit',
+        data,
+        backgroundColor: data.map(v => v >= 0 ? '#4ade80' : '#f87171'),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { title: { display: true, text: 'Profit' } }
+      }
+    }
+  });
+
+  document.getElementById('heatmapSummary').textContent = 
+    `Total Profit shown: ${data.reduce((a, b) => a + b, 0).toFixed(2)}`;
+}
+
+// 綁定 select 改變
+document.getElementById('heatmapType')?.addEventListener('change', () => {
+  if (lastResult) renderHeatmap(lastResult);
+});
+
+// ==================== DRAWDOWN ====================
+function renderDrawdown(result) {
+  const trades = result.trades || [];
+  if (!trades.length) return;
+
+  let equity = result.initial_balance || 10000;
+  let peak = equity;
+  const ddCurve = [];
+  const labels = [];
+
+  trades.forEach((t, i) => {
+    equity += t.profit;
+    if (equity > peak) peak = equity;
+    const dd = peak - equity;
+    ddCurve.push(-dd); // 用負數顯示向下
+    labels.push(i + 1);
+  });
+
+  if (window.ddChartInstance) {
+    window.ddChartInstance.destroy();
+  }
+
+  window.ddChartInstance = new Chart(document.getElementById('ddChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Drawdown',
+        data: ddCurve,
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239,68,68,0.15)',
+        fill: true,
+        tension: 0.2,
+        pointRadius: 0,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { 
+          title: { display: true, text: 'Drawdown ($)' },
+          ticks: { callback: v => v.toFixed(0) }
+        },
+        x: { display: false }
+      }
+    }
+  });
+
+  document.getElementById('ddSummary').innerHTML = `
+    <strong>Max DD:</strong> 
+    <span class="neg">${result.max_dd_pct.toFixed(2)}%</span> 
+    ($${result.max_dd_money.toFixed(2)})
+  `;
+}
+
   
 </script>
 </body>
