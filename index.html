@@ -1277,7 +1277,8 @@ function sortDetailTable(tableId, colIndex) {
 function renderMfeMae(result) {
   const trades = result.trades || [];
   if (!trades.length) {
-    document.getElementById('mfeMaeSummary').innerHTML = '<span class="text-danger">無交易資料</span>';
+    const summaryEl = document.getElementById('mfeMaeSummary');
+    if (summaryEl) summaryEl.innerHTML = '<span class="text-danger">無交易資料</span>';
     return;
   }
 
@@ -1288,9 +1289,14 @@ function renderMfeMae(result) {
   }));
 
   // 清空舊 Chart
-  if (window.mfeMaeChartInstance) window.mfeMaeChartInstance.destroy();
+  if (window.mfeMaeChartInstance) {
+    window.mfeMaeChartInstance.destroy();
+  }
 
-  window.mfeMaeChartInstance = new Chart(document.getElementById('mfeMaeScatter'), {
+  const ctx = document.getElementById('mfeMaeScatter');
+  if (!ctx) return;
+
+  window.mfeMaeChartInstance = new Chart(ctx.getContext('2d'), {
     type: 'scatter',
     data: {
       datasets: [{
@@ -1315,20 +1321,29 @@ function renderMfeMae(result) {
         }
       },
       scales: {
-        x: { title: { display: true, text: 'MAE (Max Adverse Excursion)' }, grid: { color: '#e2e8f0' } },
-        y: { title: { display: true, text: 'MFE (Max Favorable Excursion)' }, grid: { color: '#e2e8f0' } }
+        x: { 
+          title: { display: true, text: 'MAE (Max Adverse Excursion)' }, 
+          grid: { color: '#e2e8f0' } 
+        },
+        y: { 
+          title: { display: true, text: 'MFE (Max Favorable Excursion)' }, 
+          grid: { color: '#e2e8f0' } 
+        }
       }
     }
   });
 
   // Summary
-  const avgMFE = scatterData.reduce((a, p) => a + p.y, 0) / scatterData.length;
-  const avgMAE = scatterData.reduce((a, p) => a + p.x, 0) / scatterData.length;
-  document.getElementById('mfeMaeSummary').innerHTML = `
-    <strong>Summary:</strong> ${trades.length} trades | 
-    Avg MFE: <span class="pos">${avgMFE.toFixed(1)}</span> | 
-    Avg MAE: <span class="neg">${avgMAE.toFixed(1)}</span>
-  `;
+  const avgMFE = scatterData.reduce((a, p) => a + p.y, 0) / scatterData.length || 0;
+  const avgMAE = scatterData.reduce((a, p) => a + p.x, 0) / scatterData.length || 0;
+  const summaryEl = document.getElementById('mfeMaeSummary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <strong>Summary:</strong> ${trades.length} trades | 
+      Avg MFE: <span class="pos">${avgMFE.toFixed(1)}</span> | 
+      Avg MAE: <span class="neg">${avgMAE.toFixed(1)}</span>
+    `;
+  }
 }
 
   // Top Trades
