@@ -1318,26 +1318,16 @@ function renderMfeMae(result) {
   }
 }
 
-  // Summary
-  const avgMFE = scatterData.reduce((a, p) => a + p.y, 0) / scatterData.length || 0;
-  const avgMAE = scatterData.reduce((a, p) => a + p.x, 0) / scatterData.length || 0;
-  const summaryEl = document.getElementById('mfeMaeSummary');
-  if (summaryEl) {
-    summaryEl.innerHTML = `
-      <strong>Summary:</strong> ${trades.length} trades | 
-      Avg MFE: <span class="pos">${avgMFE.toFixed(1)}</span> | 
-      Avg MAE: <span class="neg">${avgMAE.toFixed(1)}</span>
-    `;
-  }
+      if (summaryEl) {
+      summaryEl.innerHTML = `
+        <strong>Summary:</strong> ${trades.length} trades | 
+        Avg MFE: <span class="pos">${avgMFE.toFixed(1)}</span> | 
+        Avg MAE: <span class="neg">${avgMAE.toFixed(1)}</span>
+      `;
+    }
 
-  // Top Trades
-  const topEl = document.getElementById('topMfeMae');
-  if (topEl) {
-    const top = [...dataPoints].sort((a,b) => b.y - a.y).slice(0,5);
-    topEl.innerHTML = top.map(p => 
-      `${p.label} : MFE ${p.y.toFixed(1)} | MAE ${p.x.toFixed(1)}`
-    ).join('<br>');
-  }
+
+</script>
   
 </script>
 </body>
