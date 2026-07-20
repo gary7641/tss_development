@@ -1292,27 +1292,25 @@ function renderMfeMae(result) {
   // 渲染 Filter 按鈕
   const container = document.getElementById('symbolFilterContainer');
   container.innerHTML = '';
-  allSymbols.forEach((sym, idx) => {
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-sm btn-primary';
-    btn.textContent = sym;
-    btn.dataset.symbol = sym;
-    btn.onclick = () => {
-      if (selectedSymbols.has(sym)) {
-        selectedSymbols.delete(sym);
-        btn.className = 'btn btn-sm btn-outline-secondary';
-        btn.style.backgroundColor = '';
-        btn.style.borderColor = '';
-      } else {
-        selectedSymbols.add(sym);
-        btn.className = 'btn btn-sm btn-primary';
-        btn.style.backgroundColor = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
-        btn.style.borderColor = SYMBOL_COLORS[idx % SYMBOL_COLORS.length];
-      }
-      drawMfeMaeCharts(trades);
-    };
-    container.appendChild(btn);
-  });
+allSymbols.forEach((sym) => {
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-sm btn-primary';
+  btn.textContent = sym;
+  btn.dataset.symbol = sym;
+
+  btn.onclick = () => {
+    if (selectedSymbols.has(sym)) {
+      selectedSymbols.delete(sym);
+      btn.className = 'btn btn-sm btn-outline-secondary';
+    } else {
+      selectedSymbols.add(sym);
+      btn.className = 'btn btn-sm btn-primary';
+    }
+    drawMfeMaeCharts(trades);
+  };
+
+  container.appendChild(btn);
+});
 
   // 綁定 MFE / MAE / Hours / Days 按鈕
   document.getElementById('btnMfe').onclick = () => {
