@@ -287,7 +287,8 @@
 <!-- 基本資料 -->
 <section class="panel mb-3">
   <h2 class="panel-title" style="font-size:1rem; margin-bottom:12px;">基本資料</h2>
-  <div class="row g-2 small">
+  
+  <div class="row g-2 small mb-3">
     <div class="col-md-6">
       <strong>CSV File:</strong> <span id="info-csv">-</span>
     </div>
@@ -302,6 +303,55 @@
     </div>
     <div class="col-12">
       <strong>Signal Page:</strong> <span id="info-signalurl">-</span>
+    </div>
+  </div>
+
+  <!-- ===== Monthly Growth ===== -->
+  <div class="mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="mb-0">Monthly Growth</h6>
+      <div class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-outline-primary active" id="btnMonthlyAmount">金額</button>
+        <button type="button" class="btn btn-outline-primary" id="btnMonthlyPercent">百分比</button>
+      </div>
+    </div>
+    
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered text-center mb-0" id="monthlyGrowthTable" style="font-size:0.82rem;">
+        <thead class="table-light">
+          <tr>
+            <th>Year</th>
+            <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+            <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+            <th>Year</th>
+          </tr>
+        </thead>
+        <tbody id="monthlyGrowthBody">
+          <!-- 由 JS 填入 -->
+        </tbody>
+      </table>
+    </div>
+    <div class="text-end small text-muted mt-1" id="avgMonthlyGrowth">Average Monthly Growth: -</div>
+  </div>
+
+  <!-- ===== 日期範圍雙向拖拉條 ===== -->
+  <div class="mt-4 pt-3 border-top">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="mb-0">分析日期範圍</h6>
+      <div class="small">
+        <span id="rangeStartLabel">-</span> → <span id="rangeEndLabel">-</span>
+      </div>
+    </div>
+    
+    <div class="px-2">
+      <div class="d-flex align-items-center gap-2">
+        <input type="range" class="form-range" id="dateRangeStart" min="0" max="100" value="0" step="1">
+        <input type="range" class="form-range" id="dateRangeEnd" min="0" max="100" value="100" step="1">
+      </div>
+      <div class="d-flex justify-content-between small text-muted mt-1">
+        <span id="sliderMinDate">-</span>
+        <span id="sliderMaxDate">-</span>
+      </div>
     </div>
   </div>
 </section>
@@ -331,7 +381,6 @@
                   <div class="small">by $</div>
                 </div>
               </div>
-              <div style="height: 250px; margin-bottom: 24px;"><canvas id="thaEquityChart"></canvas></div>
 
 <!-- ===== Cumulative Profit (線圖 + All/Separate) ===== -->
 <div class="mt-4">
@@ -571,6 +620,12 @@ let selectedSymbols = new Set();
 let selectedDdSymbols = new Set(); 
 let cumMode = 'all'; 
 let selectedCumSymbols = new Set();
+
+// ===== Date Range & Monthly Growth =====
+let allTrades = [];          // 儲存原始全部 trades
+let filteredTrades = [];     // 目前日期範圍過濾後嘅 trades
+let dateRange = { start: null, end: null };
+let monthlyMode = 'amount';  // 'amount' | 'percent'
 
 function getProfitColor(value) {
   if (value === 0 || value === null || value === undefined) return '';
@@ -2340,6 +2395,216 @@ function toggleWorldMonitorFullscreen() {
   } else {
     document.exitFullscreen();
   }
+}
+
+// ==================== MONTHLY GROWTH ====================
+function calculateMonthlyGrowth(trades) {
+  const monthly = {}; // { "2025-01": { profit: 0, count: 0 }, ... }
+
+  trades.forEach(t => {
+    if (!t.openTime) return;
+    const y = t.openTime.getFullYear();
+    const m = String(t.openTime.getMonth() + 1).padStart(2, '0');
+    const key = `${y}-${m}`;
+    if (!monthly[key]) monthly[key] = { profit: 0, count: 0 };
+    monthly[key].profit += t.profit;
+    monthly[key].count++;
+  });
+
+  return monthly;
+}
+
+function renderMonthlyGrowth(trades) {
+  const monthly = calculateMonthlyGrowth(trades);
+  const years = [...new Set(Object.keys(monthly).map(k => k.split('-')[0]))].sort();
+
+  let html = '';
+  let allMonthProfits = [];
+
+  years.forEach(year => {
+    let yearTotal = 0;
+    let cells = '';
+
+    for (let m = 1; m <= 12; m++) {
+      const key = `${year}-${String(m).padStart(2, '0')}`;
+      const data = monthly[key];
+      let display = '-';
+      let cls = '';
+
+      if (data) {
+        yearTotal += data.profit;
+        allMonthProfits.push(data.profit);
+
+        if (monthlyMode === 'amount') {
+          display = data.profit.toFixed(2);
+          cls = data.profit >= 0 ? 'text-primary' : 'text-danger';
+        } else {
+          // 簡單用相對於 Initial Deposit 嘅百分比（之後可再優化）
+          const initial = lastResult?.initial_balance || 10000;
+          const pct = (data.profit / initial) * 100;
+          display = pct.toFixed(2) + ' %';
+          cls = pct >= 0 ? 'text-primary' : 'text-danger';
+        }
+      }
+      cells += `<td class="${cls}">${display}</td>`;
+    }
+
+    const yearCls = yearTotal >= 0 ? 'text-primary fw-bold' : 'text-danger fw-bold';
+    const yearDisplay = monthlyMode === 'amount' 
+      ? yearTotal.toFixed(2) 
+      : ((yearTotal / (lastResult?.initial_balance || 10000)) * 100).toFixed(2) + ' %';
+
+    html += `
+      <tr>
+        <td class="fw-bold">${year}</td>
+        ${cells}
+        <td class="${yearCls}">${yearDisplay}</td>
+      </tr>`;
+  });
+
+  document.getElementById('monthlyGrowthBody').innerHTML = html || '<tr><td colspan="14" class="text-muted">無資料</td></tr>';
+
+  // Average Monthly Growth
+  if (allMonthProfits.length) {
+    const avg = allMonthProfits.reduce((a, b) => a + b, 0) / allMonthProfits.length;
+    const initial = lastResult?.initial_balance || 10000;
+    const avgPct = (avg / initial) * 100;
+    document.getElementById('avgMonthlyGrowth').textContent = 
+      monthlyMode === 'amount' 
+        ? `Average Monthly Growth: ${avg.toFixed(2)}`
+        : `Average Monthly Growth: ${avgPct.toFixed(2)} %`;
+  } else {
+    document.getElementById('avgMonthlyGrowth').textContent = 'Average Monthly Growth: -';
+  }
+}
+
+// Tabs 切換
+document.getElementById('btnMonthlyAmount')?.addEventListener('click', () => {
+  monthlyMode = 'amount';
+  document.getElementById('btnMonthlyAmount').classList.add('active');
+  document.getElementById('btnMonthlyPercent').classList.remove('active');
+  if (filteredTrades.length) renderMonthlyGrowth(filteredTrades);
+});
+
+document.getElementById('btnMonthlyPercent')?.addEventListener('click', () => {
+  monthlyMode = 'percent';
+  document.getElementById('btnMonthlyPercent').classList.add('active');
+  document.getElementById('btnMonthlyAmount').classList.remove('active');
+  if (filteredTrades.length) renderMonthlyGrowth(filteredTrades);
+});
+
+// ==================== DATE RANGE SLIDER ====================
+function initDateRangeSlider(trades) {
+  if (!trades || !trades.length) return;
+
+  // 找出最早同最晚日期
+  const times = trades
+    .filter(t => t.openTime)
+    .map(t => t.openTime.getTime());
+
+  if (!times.length) return;
+
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
+
+  dateRange.start = new Date(minTime);
+  dateRange.end = new Date(maxTime);
+
+  // 設定 slider
+  const startSlider = document.getElementById('dateRangeStart');
+  const endSlider = document.getElementById('dateRangeEnd');
+
+  startSlider.min = 0;
+  startSlider.max = 1000;
+  startSlider.value = 0;
+
+  endSlider.min = 0;
+  endSlider.max = 1000;
+  endSlider.value = 1000;
+
+  // 顯示日期
+  document.getElementById('sliderMinDate').textContent = formatDate(dateRange.start);
+  document.getElementById('sliderMaxDate').textContent = formatDate(dateRange.end);
+  updateRangeLabels();
+
+  // 事件
+  startSlider.oninput = () => {
+    if (+startSlider.value > +endSlider.value) {
+      startSlider.value = endSlider.value;
+    }
+    updateDateRangeFromSlider();
+  };
+
+  endSlider.oninput = () => {
+    if (+endSlider.value < +startSlider.value) {
+      endSlider.value = startSlider.value;
+    }
+    updateDateRangeFromSlider();
+  };
+}
+
+function updateDateRangeFromSlider() {
+  const startSlider = document.getElementById('dateRangeStart');
+  const endSlider = document.getElementById('dateRangeEnd');
+
+  const times = allTrades
+    .filter(t => t.openTime)
+    .map(t => t.openTime.getTime());
+
+  if (!times.length) return;
+
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
+  const range = maxTime - minTime;
+
+  const startPct = startSlider.value / 1000;
+  const endPct = endSlider.value / 1000;
+
+  dateRange.start = new Date(minTime + range * startPct);
+  dateRange.end = new Date(minTime + range * endPct);
+
+  updateRangeLabels();
+  applyDateFilter();
+}
+
+function updateRangeLabels() {
+  document.getElementById('rangeStartLabel').textContent = formatDate(dateRange.start);
+  document.getElementById('rangeEndLabel').textContent = formatDate(dateRange.end);
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  return d.toISOString().slice(0, 10);
+}
+
+function applyDateFilter() {
+  if (!allTrades.length) return;
+
+  filteredTrades = allTrades.filter(t => {
+    if (!t.openTime) return false;
+    return t.openTime >= dateRange.start && t.openTime <= dateRange.end;
+  });
+
+  // 重新渲染所有分析
+  if (filteredTrades.length === 0) {
+    document.getElementById('tha-status').innerHTML = '<span class="text-warning">呢個日期範圍內無交易</span>';
+    return;
+  }
+
+  // 建立一個臨時 result 物件
+  const filteredResult = {
+    ...lastResult,
+    trades: filteredTrades
+  };
+
+  // 更新基本資料顯示
+  document.getElementById('info-startdate').textContent = formatDate(dateRange.start) + ' → ' + formatDate(dateRange.end);
+
+  // 重新渲染
+  renderMonthlyGrowth(filteredTrades);
+  renderOverview(filteredResult);          // 如果你有呢個 function
+  renderOverviewCharts(filteredResult);   // Cumulative + Weekday + Hourly
+  // 其他分析之後會再補
 }
   
 </script>
