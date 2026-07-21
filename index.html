@@ -2662,26 +2662,55 @@ function applyDateFilter() {
     return t.openTime >= dateRange.start && t.openTime <= dateRange.end;
   });
 
-  // 重新渲染所有分析
   if (filteredTrades.length === 0) {
     document.getElementById('tha-status').innerHTML = '<span class="text-warning">呢個日期範圍內無交易</span>';
     return;
   }
 
-  // 建立一個臨時 result 物件
+  // 建立過濾後嘅 result
   const filteredResult = {
     ...lastResult,
-    trades: filteredTrades
+    trades: filteredTrades,
+    totalTrades: filteredTrades.length,
+    totalProfit: filteredTrades.reduce((a, b) => a + b.profit, 0),
+    winTrades: filteredTrades.filter(t => t.profit > 0).length,
+    lossTrades: filteredTrades.filter(t => t.profit <= 0).length
   };
+  filteredResult.winRate = filteredResult.totalTrades > 0 
+    ? (filteredResult.winTrades / filteredResult.totalTrades * 100) 
+    : 0;
 
   // 更新基本資料顯示
-  document.getElementById('info-startdate').textContent = formatDate(dateRange.start) + ' → ' + formatDate(dateRange.end);
+  document.getElementById('info-startdate').textContent = 
+    formatDate(dateRange.start) + ' → ' + formatDate(dateRange.end);
 
-  // 重新渲染
+  // 重新渲染所有主要區塊
   renderMonthlyGrowth(filteredTrades);
-  renderOverview(filteredResult);          // 如果你有呢個 function
-  renderOverviewCharts(filteredResult);   // Cumulative + Weekday + Hourly
-  // 其他分析之後會再補
+
+  // 總覽數字
+  document.getElementById('stat-trades').textContent = filteredResult.totalTrades;
+  document.getElementById('stat-winrate').textContent = filteredResult.winRate.toFixed(1) + '%';
+  document.getElementById('stat-profit').textContent = 
+    (filteredResult.totalProfit >= 0 ? '+' : '') + filteredResult.totalProfit.toFixed(2);
+  document.getElementById('stat-profit').className = 
+    'fs-3 fw-bold ' + (filteredResult.totalProfit >= 0 ? 'pos' : 'neg');
+
+  // 圖表
+  if (typeof renderOverviewCharts === 'function') {
+    renderOverviewCharts(filteredResult);
+  }
+  if (typeof renderHeatmap === 'function') {
+    renderHeatmap(filteredResult);
+  }
+  if (typeof renderDrawdown === 'function') {
+    renderDrawdown(filteredResult);
+  }
+  if (typeof renderMfeMae === 'function') {
+    renderMfeMae(filteredResult);
+  }
+  if (typeof renderSymbolMartingale === 'function') {
+    renderSymbolMartingale(filteredResult);
+  }
 }
 
 // Balance Detail 展開/收起
