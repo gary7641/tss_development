@@ -109,18 +109,24 @@
 .layer-blue { background-color: #dbeafe !important; }
 .layer-bright-blue { background-color: #bfdbfe !important; }
     
-    /* ===== 馬丁表格顏色 ===== */
-.martingale-table tr.layer-red td { background-color: #fecaca !important; }
-.martingale-table tr.layer-yellow td { background-color: #fef9c3 !important; }
-.martingale-table tr.layer-green td { background-color: #bbf7d0 !important; }
-.martingale-table tr.layer-blue td { background-color: #bfdbfe !important; }
-
-.martingale-table tr.layer-bright-blue td {
-  background-color: #60a5fa !important;
-  font-weight: 600;
-  animation: pulse-blue 1.8s ease-in-out infinite;
+/* ===== 馬丁表格顏色（柔和版） ===== */
+.martingale-table tr.layer-red td {
+  background-color: #fee2e2 !important;   /* 淺紅 */
 }
-
+.martingale-table tr.layer-yellow td {
+  background-color: #fef9c3 !important;   /* 淺黃 */
+}
+.martingale-table tr.layer-green td {
+  background-color: #dcfce7 !important;   /* 淺綠 */
+}
+.martingale-table tr.layer-blue td {
+  background-color: #e0f2fe !important;   /* 淺藍 */
+}
+.martingale-table tr.layer-bright-blue td {
+  background-color: #bae6fd !important;   /* 較淺藍，唔會太搶眼 */
+  font-weight: 600;
+}
+    
 @keyframes pulse-blue {
   0%   { background-color: #60a5fa; }
   50%  { background-color: #93c5fd; }
