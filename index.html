@@ -389,9 +389,8 @@
       </div>
     </div>
   </div>
-</div>
-              
-              <label class="form-label small text-muted">EA</label>
+</div>          
+    <label class="form-label small text-muted">EA</label>
 <select id="eaSelect" class="form-select" style="min-width:220px;">
   <optgroup label="1. Forex Forest Standard EA">
     <option value="SMA 3.0">SMA 3.0 (Martingale)</option>
@@ -910,6 +909,14 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const signalMatch = fileName.match(/forex-forest-signals-page-(\d+)/i);
   const signalId = signalMatch ? signalMatch[1] : null;
 
+  if (!signalId) {
+    alert('無法從檔名提取 Signal ID，請確認檔名格式係 forex-forest-signals-page-XXXXX.csv');
+    return;
+  }
+
+  const startDate = lastResult.trades[0]?.openTime || null;
+  const endDate = lastResult.trades[lastResult.trades.length - 1]?.openTime || null;
+
   const saveData = {
     fileName: fileName,
     signalId: signalId,
@@ -924,20 +931,59 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     subDeposits: lastResult.subDeposits || 0,
     subWithdrawals: lastResult.subWithdrawals || 0,
     finalBalance: lastResult.finalBalance || 0,
-    startDate: lastResult.trades[0]?.openTimeStr || null,
-    endDate: lastResult.trades[lastResult.trades.length - 1]?.openTimeStr || null,
+    startDate: startDate,
+    endDate: endDate,
+    startDateStr: startDate ? startDate.toISOString().slice(0, 10) : null,
+    endDateStr: endDate ? endDate.toISOString().slice(0, 10) : null,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    // 之後如果需要完整 trades 可以再加
-    // trades: lastResult.trades
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   try {
-    document.getElementById('tha-status').innerHTML = '<span class="text-primary">儲存中...</span>';
-    
-    await db.collection('signalHistory').add(saveData);
-    
-    document.getElementById('tha-status').innerHTML = '<span class="text-success">✅ 已成功儲存到 Signal History Library</span>';
-    alert('儲存成功！');
+    document.getElementById('tha-status').innerHTML = '<span class="text-primary">檢查重複中...</span>';
+
+    // 檢查有冇相同 Signal ID
+    const existingSnap = await db.collection('signalHistory')
+      .where('signalId', '==', signalId)
+      .get();
+
+    if (!existingSnap.empty) {
+      // 有重複，比較日期範圍
+      let shouldOverwrite = false;
+      let existingDocId = null;
+
+      existingSnap.forEach(doc => {
+        const old = doc.data();
+        const oldStart = old.startDate?.toDate ? old.startDate.toDate() : new Date(old.startDate);
+        const oldEnd = old.endDate?.toDate ? old.endDate.toDate() : new Date(old.endDate);
+
+        // 如果新嘅 End Date 較新，或者日期範圍更闊，就覆蓋
+        if (endDate > oldEnd || (startDate <= oldStart && endDate >= oldEnd)) {
+          shouldOverwrite = true;
+          existingDocId = doc.id;
+        }
+      });
+
+      if (shouldOverwrite && existingDocId) {
+        if (!confirm(`發現相同 Signal ID（${signalId}）已有記錄。\n新資料日期範圍較新，是否覆蓋舊記錄？`)) {
+          document.getElementById('tha-status').innerHTML = '';
+          return;
+        }
+        await db.collection('signalHistory').doc(existingDocId).update(saveData);
+        document.getElementById('tha-status').innerHTML = '<span class="text-success">✅ 已覆蓋更新到 Signal History Library</span>';
+        alert('已覆蓋更新！');
+      } else {
+        alert(`相同 Signal ID（${signalId}）已有較新或相同範圍嘅記錄，無需重複儲存。`);
+        document.getElementById('tha-status').innerHTML = '';
+        return;
+      }
+    } else {
+      // 無重複，直接新增
+      await db.collection('signalHistory').add(saveData);
+      document.getElementById('tha-status').innerHTML = '<span class="text-success">✅ 已成功儲存到 Signal History Library</span>';
+      alert('儲存成功！');
+    }
+
   } catch (err) {
     console.error(err);
     document.getElementById('tha-status').innerHTML = '<span class="text-danger">儲存失敗：' + err.message + '</span>';
