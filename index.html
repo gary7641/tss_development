@@ -253,15 +253,14 @@
         <div class="table-responsive">
           <table class="table table-sm table-hover align-middle">
             <thead class="table-light">
-              <tr>
-                <th>Email</th>
-                <th>Display Name</th>
-                <th>狀態</th>
-                <th>Level</th>
-                <th>最後 Login</th>
-                <th>操作</th>
-              </tr>
-            </thead>
+  <tr>
+    <th>Email</th>
+    <th>Display Name</th>
+    <th>角色</th>
+    <th>最後 Login</th>
+    <th>操作</th>
+  </tr>
+</thead>
             <tbody id="adminUserList">
               <tr><td colspan="6" class="text-muted text-center">載入中...</td></tr>
             </tbody>
@@ -2946,13 +2945,13 @@ async function loadAdminUsers() {
   const tbody = document.getElementById('adminUserList');
   if (!tbody) return;
 
-  tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center">載入中...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-center">載入中...</td></tr>';
 
   try {
     const snapshot = await db.collection('users').orderBy('lastLogin', 'desc').get();
     
     if (snapshot.empty) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center">暫時未有用戶資料</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-center">暫時未有用戶資料</td></tr>';
       return;
     }
 
@@ -2968,19 +2967,18 @@ async function loadAdminUsers() {
           <td>${u.email || '-'}</td>
           <td>${u.displayName || '-'}</td>
           <td><span class="badge bg-${levelInfo.color}">${levelInfo.name}</span></td>
-          <td>Level ${level}</td>
           <td class="small">${lastLogin}</td>
           <td>
             ${level === 0 ? `
               <button class="btn btn-sm btn-success btn-approve" data-uid="${doc.id}">
-                Approve → Level 1
+                Approve → Trader
               </button>
             ` : `
-              <select class="form-select form-select-sm change-level" data-uid="${doc.id}" style="width:140px;">
-                <option value="1" ${level===1?'selected':''}>Level 1 Trader</option>
-                <option value="2" ${level===2?'selected':''}>Level 2 Senior</option>
-                <option value="3" ${level===3?'selected':''}>Level 3 Consultant</option>
-                <option value="4" ${level===4?'selected':''}>Level 4 Admin</option>
+              <select class="form-select form-select-sm change-level" data-uid="${doc.id}" style="width:160px;">
+                <option value="1" ${level===1?'selected':''}>Trader</option>
+                <option value="2" ${level===2?'selected':''}>Senior Trader</option>
+                <option value="3" ${level===3?'selected':''}>Consultant</option>
+                <option value="4" ${level===4?'selected':''}>Admin</option>
               </select>
             `}
           </td>
@@ -2989,11 +2987,11 @@ async function loadAdminUsers() {
 
     tbody.innerHTML = html;
 
-    // Approve 按鈕事件
+    // Approve 按鈕
     document.querySelectorAll('.btn-approve').forEach(btn => {
       btn.addEventListener('click', async () => {
         const uid = btn.dataset.uid;
-        if (!confirm('確定批准呢個用戶成為 Level 1 Trader？')) return;
+        if (!confirm('確定批准呢個用戶成為 Trader？')) return;
         try {
           await db.collection('users').doc(uid).update({
             level: 1,
@@ -3008,13 +3006,13 @@ async function loadAdminUsers() {
       });
     });
 
-    // 改 Level 事件
+    // 改角色
     document.querySelectorAll('.change-level').forEach(sel => {
       sel.addEventListener('change', async () => {
         const uid = sel.dataset.uid;
         const newLevel = parseInt(sel.value);
-        if (!confirm(`確定將呢個用戶改為 Level ${newLevel}？`)) {
-          loadAdminUsers(); // 還原
+        if (!confirm(`確定將呢個用戶改為 ${USER_LEVELS[newLevel].name}？`)) {
+          loadAdminUsers();
           return;
         }
         try {
@@ -3022,7 +3020,7 @@ async function loadAdminUsers() {
             level: newLevel,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           });
-          alert('已更新 Level！');
+          alert('已更新！');
           loadAdminUsers();
         } catch (err) {
           alert('更新失敗：' + err.message);
@@ -3032,7 +3030,7 @@ async function loadAdminUsers() {
 
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">載入失敗：${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center">載入失敗：${err.message}</td></tr>`;
   }
 }
 
