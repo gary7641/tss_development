@@ -895,10 +895,56 @@ document.querySelectorAll('.nav-link').forEach(link => {
     });
 
     document.getElementById('analyzeBtn').addEventListener('click', handleAnalyze);
-    document.getElementById('saveBtn').addEventListener('click', () => {
-      if (!currentUser) return alert('請先 Login');
-      alert('SAVE 功能開發中');
-    });
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  if (!currentUser) {
+    alert('請先 Login');
+    return;
+  }
+  if (!lastResult || !lastResult.trades || lastResult.trades.length === 0) {
+    alert('請先完成分析先可以 SAVE');
+    return;
+  }
+
+  const fileName = document.getElementById('csvFile').files[0]?.name || 'unknown.csv';
+  const ea = document.getElementById('eaSelect').value || 'Unknown';
+  const signalMatch = fileName.match(/forex-forest-signals-page-(\d+)/i);
+  const signalId = signalMatch ? signalMatch[1] : null;
+
+  const saveData = {
+    fileName: fileName,
+    signalId: signalId,
+    ea: ea,
+    ownerUid: currentUser.uid,
+    ownerEmail: currentUser.email,
+    ownerName: currentUser.displayName || currentUser.email,
+    initialDeposit: lastResult.initial_balance || 0,
+    totalProfit: lastResult.totalProfit || 0,
+    totalTrades: lastResult.totalTrades || 0,
+    winRate: lastResult.winRate || 0,
+    subDeposits: lastResult.subDeposits || 0,
+    subWithdrawals: lastResult.subWithdrawals || 0,
+    finalBalance: lastResult.finalBalance || 0,
+    startDate: lastResult.trades[0]?.openTimeStr || null,
+    endDate: lastResult.trades[lastResult.trades.length - 1]?.openTimeStr || null,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    // 之後如果需要完整 trades 可以再加
+    // trades: lastResult.trades
+  };
+
+  try {
+    document.getElementById('tha-status').innerHTML = '<span class="text-primary">儲存中...</span>';
+    
+    await db.collection('signalHistory').add(saveData);
+    
+    document.getElementById('tha-status').innerHTML = '<span class="text-success">✅ 已成功儲存到 Signal History Library</span>';
+    alert('儲存成功！');
+  } catch (err) {
+    console.error(err);
+    document.getElementById('tha-status').innerHTML = '<span class="text-danger">儲存失敗：' + err.message + '</span>';
+    alert('儲存失敗：' + err.message);
+  }
+});
+    
     document.getElementById('exportPdfBtn').addEventListener('click', () => {
       if (!currentUser) return alert('請先 Login');
       window.print();
@@ -2917,10 +2963,10 @@ document.getElementById('btnShowBalanceDetail')?.addEventListener('click', () =>
 // ==================== ADMIN CONSOLE ====================
 const USER_LEVELS = {
   0: { name: 'Pending', color: 'secondary' },
-  1: { name: 'Trader', color: 'primary' },
-  2: { name: 'Senior Trader', color: 'info' },
-  3: { name: 'Consultant', color: 'success' },
-  4: { name: 'Admin', color: 'danger' }
+  1: { name: 'L1 Trader', color: 'primary' },
+  2: { name: 'L2 Senior Trader', color: 'info' },
+  3: { name: 'L3 Consultant', color: 'success' },
+  4: { name: 'L4 Admin', color: 'danger' }
 };
 
 // Tab 切換
