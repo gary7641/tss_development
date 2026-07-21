@@ -36,6 +36,135 @@
     .panel-title { margin: 0 0 14px 0; font-size: 1.1rem; font-weight: 600; }
     .page { display: none; }
     .page.active { display: block; }
+
+<!-- ==================== ADMIN CONSOLE ==================== -->
+<div id="page-admin" class="page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">🛠️ Admin Console</h2>
+    <span class="badge bg-secondary">Version 0.1.0-dev</span>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="adminTabs">
+    <li class="nav-item">
+      <button class="nav-link active" data-admin-tab="users">用戶管理</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-admin-tab="live-signals">Live Signals</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-admin-tab="history-library">Signal History Library</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-admin-tab="version">版本資訊</button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div id="admin-tab-users" class="admin-tab-content">
+    <div class="panel">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">用戶列表</h5>
+        <button class="btn btn-sm btn-outline-primary" id="btnRefreshUsers">🔄 重新整理</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Email</th>
+              <th>Display Name</th>
+              <th>狀態</th>
+              <th>Level</th>
+              <th>最後 Login</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminUserList">
+            <tr><td colspan="6" class="text-muted text-center">載入中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-tab-live-signals" class="admin-tab-content" style="display:none;">
+    <div class="panel">
+      <h5 class="mb-3">Live Signals 列表</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Signal Name</th>
+              <th>Owner</th>
+              <th>EA</th>
+              <th>建立時間</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminLiveSignalList">
+            <tr><td colspan="5" class="text-muted text-center">暫時未有資料（之後接 Firestore）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-tab-history-library" class="admin-tab-content" style="display:none;">
+    <div class="panel">
+      <h5 class="mb-3">Signal History Library</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Signal Name</th>
+              <th>Owner</th>
+              <th>EA</th>
+              <th>Total Profit</th>
+              <th>儲存時間</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminHistoryList">
+            <tr><td colspan="6" class="text-muted text-center">暫時未有資料（之後接 Firestore）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-tab-version" class="admin-tab-content" style="display:none;">
+    <div class="panel">
+      <h5 class="mb-3">版本資訊</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="border rounded p-3">
+            <div class="text-muted small">目前版本</div>
+            <div class="fs-4 fw-bold">0.1.0-dev</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="border rounded p-3">
+            <div class="text-muted small">環境</div>
+            <div class="fs-4 fw-bold">Development</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="border rounded p-3">
+            <div class="text-muted small">最後更新</div>
+            <div class="fs-5">2026-07-21</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="border rounded p-3">
+            <div class="text-muted small">Firebase Project</div>
+            <div class="fs-5">ai-signal-portal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
     .btn-primary-a2 {
       background: radial-gradient(circle at 20% 0, #22d3ee, #0284c7);
       border: none; color: #0b1120; font-weight: 600; border-radius: 999px; padding: 8px 22px;
@@ -189,6 +318,11 @@
   <div class="d-flex">
     <nav class="sidebar">
       <div class="nav-section">P1 - Core</div>
+      <!-- Admin Console（只有 Admin 見到） -->
+<div id="adminMenuSection" style="display:none;">
+  <div class="nav-section">Admin</div>
+  <a href="#" class="nav-link" data-page="admin">🛠️ Admin Console</a>
+</div>
       <a href="#" class="nav-link active" data-page="dashboard">📊 Dashboard</a>
       <a href="#" class="nav-link" data-page="live">📡 Live Signals</a>
       <a href="#" class="nav-link" data-page="mysignals">📋 My Signals</a>
@@ -639,6 +773,7 @@
   };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
+  const db = firebase.firestore();   // ← 加呢行
   const ADMIN_EMAILS = ['gary7641@gmail.com', 'shenxu.gary@gmail.com'];
   let currentUser = null;
 let lastResult = null;
@@ -676,13 +811,18 @@ function getProfitColor(value) {
 
   function initAll() {
     auth.onAuthStateChanged(user => {
-      currentUser = user;
-      const isAdmin = user && ADMIN_EMAILS.includes(user.email.toLowerCase());
-      document.getElementById('loginBtn').style.display = user ? 'none' : 'inline-block';
-      document.getElementById('userInfo').style.display = user ? 'block' : 'none';
-      if (user) document.getElementById('userName').textContent = user.displayName || user.email;
-      document.getElementById('menuAdmin').style.display = isAdmin ? 'block' : 'none';
-    });
+  currentUser = user;
+  const isAdmin = user && ADMIN_EMAILS.includes(user.email.toLowerCase());
+  
+  document.getElementById('loginBtn').style.display = user ? 'none' : 'inline-block';
+  document.getElementById('userInfo').style.display = user ? 'block' : 'none';
+  if (user) {
+    document.getElementById('userName').textContent = user.displayName || user.email;
+    ensureUserDoc(user);   // ← 加呢行
+  }
+  document.getElementById('menuAdmin').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('adminMenuSection').style.display = isAdmin ? 'block' : 'none';
+});
 
     document.getElementById('loginBtn').addEventListener('click', () => {
       auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e => alert(e.message));
@@ -2739,6 +2879,154 @@ document.getElementById('btnShowBalanceDetail')?.addEventListener('click', () =>
     area.style.display = 'none';
   }
 });
+
+// ==================== ADMIN CONSOLE ====================
+const USER_LEVELS = {
+  0: { name: 'Pending', color: 'secondary' },
+  1: { name: 'Trader', color: 'primary' },
+  2: { name: 'Senior Trader', color: 'info' },
+  3: { name: 'Consultant', color: 'success' },
+  4: { name: 'Admin', color: 'danger' }
+};
+
+// Tab 切換
+document.querySelectorAll('#adminTabs .nav-link').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#adminTabs .nav-link').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
+    const tabId = btn.getAttribute('data-admin-tab');
+    document.getElementById('admin-tab-' + tabId).style.display = 'block';
+
+    if (tabId === 'users') loadAdminUsers();
+  });
+});
+
+// 重新整理按鈕
+document.getElementById('btnRefreshUsers')?.addEventListener('click', loadAdminUsers);
+
+// 載入用戶列表
+async function loadAdminUsers() {
+  const tbody = document.getElementById('adminUserList');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center">載入中...</td></tr>';
+
+  try {
+    const snapshot = await db.collection('users').orderBy('lastLogin', 'desc').get();
+    
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center">暫時未有用戶資料</td></tr>';
+      return;
+    }
+
+    let html = '';
+    snapshot.forEach(doc => {
+      const u = doc.data();
+      const level = u.level ?? 0;
+      const levelInfo = USER_LEVELS[level] || USER_LEVELS[0];
+      const lastLogin = u.lastLogin?.toDate ? u.lastLogin.toDate().toLocaleString('zh-HK') : '-';
+
+      html += `
+        <tr>
+          <td>${u.email || '-'}</td>
+          <td>${u.displayName || '-'}</td>
+          <td><span class="badge bg-${levelInfo.color}">${levelInfo.name}</span></td>
+          <td>Level ${level}</td>
+          <td class="small">${lastLogin}</td>
+          <td>
+            ${level === 0 ? `
+              <button class="btn btn-sm btn-success btn-approve" data-uid="${doc.id}">
+                Approve → Level 1
+              </button>
+            ` : `
+              <select class="form-select form-select-sm change-level" data-uid="${doc.id}" style="width:140px;">
+                <option value="1" ${level===1?'selected':''}>Level 1 Trader</option>
+                <option value="2" ${level===2?'selected':''}>Level 2 Senior</option>
+                <option value="3" ${level===3?'selected':''}>Level 3 Consultant</option>
+                <option value="4" ${level===4?'selected':''}>Level 4 Admin</option>
+              </select>
+            `}
+          </td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = html;
+
+    // Approve 按鈕事件
+    document.querySelectorAll('.btn-approve').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const uid = btn.dataset.uid;
+        if (!confirm('確定批准呢個用戶成為 Level 1 Trader？')) return;
+        try {
+          await db.collection('users').doc(uid).update({
+            level: 1,
+            approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            approvedBy: currentUser.email
+          });
+          alert('已批准！');
+          loadAdminUsers();
+        } catch (err) {
+          alert('批准失敗：' + err.message);
+        }
+      });
+    });
+
+    // 改 Level 事件
+    document.querySelectorAll('.change-level').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        const uid = sel.dataset.uid;
+        const newLevel = parseInt(sel.value);
+        if (!confirm(`確定將呢個用戶改為 Level ${newLevel}？`)) {
+          loadAdminUsers(); // 還原
+          return;
+        }
+        try {
+          await db.collection('users').doc(uid).update({
+            level: newLevel,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          alert('已更新 Level！');
+          loadAdminUsers();
+        } catch (err) {
+          alert('更新失敗：' + err.message);
+        }
+      });
+    });
+
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">載入失敗：${err.message}</td></tr>`;
+  }
+}
+
+// 用戶 Login 時自動建立 / 更新 user document
+async function ensureUserDoc(user) {
+  if (!user) return;
+
+  const ref = db.collection('users').doc(user.uid);
+  const doc = await ref.get();
+
+  if (!doc.exists) {
+    // 新用戶 → Pending
+    await ref.set({
+      email: user.email,
+      displayName: user.displayName || '',
+      photoURL: user.photoURL || '',
+      level: 0,                    // Pending
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } else {
+    // 已存在 → 更新 lastLogin
+    await ref.update({
+      lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+      displayName: user.displayName || doc.data().displayName,
+      photoURL: user.photoURL || doc.data().photoURL
+    });
+  }
+}
   
 </script>
 </body>
