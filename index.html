@@ -891,6 +891,8 @@ function parseYourCSV(text) {
         renderOverviewCharts(result);
         renderHeatmap(result);
         renderDrawdown(result);
+        renderOverview(result);
+        renderOverviewCharts(result);
         
         document.getElementById('analysisArea').style.display = 'block';
         status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
