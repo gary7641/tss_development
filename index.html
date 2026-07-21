@@ -948,31 +948,6 @@ if (match) {
           </div>
         `;
 
-        // Equity Curve
-        const ctx = document.getElementById('thaEquityChart').getContext('2d');
-        if (window.thaChart) window.thaChart.destroy();
-        window.thaChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: result.equityLabels,
-            datasets: [{
-              data: result.equityCurve,
-              borderColor: '#16a34a',
-              borderWidth: 2,
-              tension: 0.2,
-              fill: true,
-              backgroundColor: 'rgba(22,163,74,0.08)',
-              pointRadius: 0
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false } }
-          }
-        });
-
         // Distribution
         renderDistribution(result.bySymbol, result);
 
