@@ -1064,20 +1064,6 @@ window.currentBalanceDetails = result.balanceDetails || [];
 // Symbol + 馬丁
 renderSymbolMartingale(result);
 
-// MFE + MAE
-setTimeout(() => {
-  // 切換 tab
-  document.querySelectorAll('#analysisMenu button').forEach(b => b.classList.remove('active'));
-  const mfeBtn = document.querySelector('#analysisMenu button[data-block="mfe-mae"]');
-  if (mfeBtn) mfeBtn.classList.add('active');
-
-  document.querySelectorAll('.analysis-block').forEach(b => b.classList.remove('active'));
-  const mfeBlock = document.getElementById('block-mfe-mae');
-  if (mfeBlock) mfeBlock.classList.add('active');
-
-  // 渲染
-  renderMfeMae(result);
-}, 300);
         
       } catch (err) {
         console.error(err);
