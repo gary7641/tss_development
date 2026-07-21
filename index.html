@@ -232,101 +232,6 @@
             </div>
             <div>
 
-<!-- ==================== ADMIN CONSOLE ==================== -->
-<div id="page-admin" class="page">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">🛠️ Admin Console</h2>
-    <span class="badge bg-secondary">Version 0.1.0-dev</span>
-  </div>
-
-  <!-- Tabs -->
-  <ul class="nav nav-tabs mb-3" id="adminTabs">
-    <li class="nav-item">
-      <button class="nav-link active" data-admin-tab="users">用戶管理</button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" data-admin-tab="live-signals">Live Signals</button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" data-admin-tab="history-library">Signal History Library</button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" data-admin-tab="version">版本資訊</button>
-    </li>
-  </ul>
-
-  <!-- Tab Content -->
-  <div id="admin-tab-users" class="admin-tab-content">
-    <div class="panel">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">用戶列表</h5>
-        <button class="btn btn-sm btn-outline-primary" id="btnRefreshUsers">🔄 重新整理</button>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Email</th>
-              <th>Display Name</th>
-              <th>狀態</th>
-              <th>Level</th>
-              <th>最後 Login</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody id="adminUserList">
-            <tr><td colspan="6" class="text-muted text-center">載入中...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div id="admin-tab-live-signals" class="admin-tab-content" style="display:none;">
-    <div class="panel">
-      <h5 class="mb-3">Live Signals 列表</h5>
-      <div class="table-responsive">
-        <table class="table table-sm table-hover">
-          <thead class="table-light">
-            <tr>
-              <th>Signal Name</th>
-              <th>Owner</th>
-              <th>EA</th>
-              <th>建立時間</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody id="adminLiveSignalList">
-            <tr><td colspan="5" class="text-muted text-center">暫時未有資料（之後接 Firestore）</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div id="admin-tab-history-library" class="admin-tab-content" style="display:none;">
-    <div class="panel">
-      <h5 class="mb-3">Signal History Library</h5>
-      <div class="table-responsive">
-        <table class="table table-sm table-hover">
-          <thead class="table-light">
-            <tr>
-              <th>Signal Name</th>
-              <th>Owner</th>
-              <th>EA</th>
-              <th>Total Profit</th>
-              <th>儲存時間</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody id="adminHistoryList">
-            <tr><td colspan="6" class="text-muted text-center">暫時未有資料（之後接 Firestore）</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
   <div id="admin-tab-version" class="admin-tab-content" style="display:none;">
     <div class="panel">
       <h5 class="mb-3">版本資訊</h5>
@@ -752,7 +657,102 @@
     </div>
   </section>
 </div>
-          
+
+<!-- ==================== ADMIN CONSOLE ==================== -->
+<div id="page-admin" class="page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">🛠️ Admin Console</h2>
+    <span class="badge bg-secondary">Version 0.1.0-dev</span>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="adminTabs">
+    <li class="nav-item">
+      <button class="nav-link active" data-admin-tab="users">用戶管理</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-admin-tab="live-signals">Live Signals</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-admin-tab="history-library">Signal History Library</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-admin-tab="version">版本資訊</button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div id="admin-tab-users" class="admin-tab-content">
+    <div class="panel">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">用戶列表</h5>
+        <button class="btn btn-sm btn-outline-primary" id="btnRefreshUsers">🔄 重新整理</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Email</th>
+              <th>Display Name</th>
+              <th>狀態</th>
+              <th>Level</th>
+              <th>最後 Login</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminUserList">
+            <tr><td colspan="6" class="text-muted text-center">載入中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-tab-live-signals" class="admin-tab-content" style="display:none;">
+    <div class="panel">
+      <h5 class="mb-3">Live Signals 列表</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Signal Name</th>
+              <th>Owner</th>
+              <th>EA</th>
+              <th>建立時間</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminLiveSignalList">
+            <tr><td colspan="5" class="text-muted text-center">暫時未有資料（之後接 Firestore）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-tab-history-library" class="admin-tab-content" style="display:none;">
+    <div class="panel">
+      <h5 class="mb-3">Signal History Library</h5>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Signal Name</th>
+              <th>Owner</th>
+              <th>EA</th>
+              <th>Total Profit</th>
+              <th>儲存時間</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminHistoryList">
+            <tr><td colspan="6" class="text-muted text-center">暫時未有資料（之後接 Firestore）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
       <div id="page-crosspower" class="page"><div class="panel"><h2>⚡ Cross Power Center</h2></div></div>
       <div id="page-fxtools" class="page"><div class="panel"><h2>🔧 FX Tools</h2></div></div>
       <div id="page-forest" class="page"><div class="panel"><h2>🌲 豐盛森林</h2></div></div>
