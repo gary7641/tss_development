@@ -887,12 +887,18 @@ function parseYourCSV(text) {
         }
 
         lastResult = result;
-        renderMfeMae(result);
-        renderOverviewCharts(result);
-        renderHeatmap(result);
-        renderDrawdown(result);
-        renderOverview(result);
-        renderOverviewCharts(result);
+// ===== 新增：Monthly Growth + Date Range =====
+allTrades = result.trades || [];
+filteredTrades = [...allTrades];
+initDateRangeSlider(allTrades);
+renderMonthlyGrowth(filteredTrades);
+
+renderMfeMae(result);
+renderOverviewCharts(result);
+renderHeatmap(result);
+renderDrawdown(result);
+renderOverview(result);
+renderOverviewCharts(result);
         
         document.getElementById('analysisArea').style.display = 'block';
         status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
