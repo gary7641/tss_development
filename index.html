@@ -514,7 +514,45 @@
       <div id="page-group" class="page"><div class="panel"><h2>👥 Signal Group</h2></div></div>
       <div id="page-portfolio" class="page"><div class="panel"><h2>💼 User Portfolio</h2></div></div>
       <div id="page-news" class="page"><div class="panel"><h2>📰 Market News</h2></div></div>
-      <div id="page-world" class="page"><div class="panel"><h2>🌍 World Monitor</h2></div></div>
+          
+      <div id="page-world" class="page">
+  <section class="panel">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="panel-title mb-0">🌍 World Monitor</h2>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" onclick="openWorldMonitorNewTab()">
+          新分頁開啟
+        </button>
+        <button class="btn btn-sm btn-outline-primary d-none d-md-inline-block" onclick="toggleWorldMonitorFullscreen()">
+          全屏
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop：顯示 iframe -->
+    <div class="d-none d-md-block">
+      <iframe 
+        id="worldMonitorFrame"
+        src="https://www.worldmonitor.app/dashboard?zoom=1.00&view=global&timeRange=7d&layers=conflicts,bases,hotspots,nuclear,sanctions,weather,economic,waterways,outages,military,natural"
+        style="width:100%; height:calc(100vh - 180px); border:none; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08); background:#f8fafc;">
+      </iframe>
+    </div>
+
+    <!-- Mobile：顯示提示卡片 -->
+    <div class="d-block d-md-none text-center p-5 bg-light rounded-3">
+      <div style="font-size:3.5rem; line-height:1;">🌍</div>
+      <h4 class="mt-3 mb-2">World Monitor</h4>
+      <p class="text-muted small mb-4">
+        地圖功能喺手機操作體驗較差<br>
+        建議用新分頁開啟以獲得最佳體驗
+      </p>
+      <button class="btn btn-primary px-4" onclick="openWorldMonitorNewTab()">
+        開啟 World Monitor
+      </button>
+    </div>
+  </section>
+</div>
+          
       <div id="page-crosspower" class="page"><div class="panel"><h2>⚡ Cross Power Center</h2></div></div>
       <div id="page-fxtools" class="page"><div class="panel"><h2>🔧 FX Tools</h2></div></div>
       <div id="page-forest" class="page"><div class="panel"><h2>🌲 豐盛森林</h2></div></div>
@@ -2283,6 +2321,29 @@ function drawMultiLineDrawdown(result, type) {
   if (type === 'equity') window.ddEquityChartInstance = chartInstance;
   else window.ddBalanceChartInstance = chartInstance;
 }
+}
+
+// World Monitor 相關功能
+function openWorldMonitorNewTab() {
+  window.open(
+    'https://www.worldmonitor.app/dashboard?zoom=1.00&view=global&timeRange=7d&layers=conflicts,bases,hotspots,nuclear,sanctions,weather,economic,waterways,outages,military,natural',
+    '_blank'
+  );
+}
+
+function toggleWorldMonitorFullscreen() {
+  const iframe = document.getElementById('worldMonitorFrame');
+  if (!iframe) return;
+
+  if (!document.fullscreenElement) {
+    iframe.requestFullscreen().catch(err => {
+      console.log('全屏失敗:', err);
+      // 如果全屏失敗，直接開新分頁
+      openWorldMonitorNewTab();
+    });
+  } else {
+    document.exitFullscreen();
+  }
 }
   
 </script>
