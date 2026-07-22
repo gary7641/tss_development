@@ -3139,23 +3139,24 @@ async function ensureUserDoc(user) {
   const doc = await ref.get();
 
   if (!doc.exists) {
-    // 新用戶 → Pending
     await ref.set({
       email: user.email,
       displayName: user.displayName || '',
       photoURL: user.photoURL || '',
-      level: 0,                    // Pending
+      level: 0,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastLogin: firebase.firestore.FieldValue.serverTimestamp()
     });
   } else {
-    // 已存在 → 更新 lastLogin
     await ref.update({
       lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
       displayName: user.displayName || doc.data().displayName,
       photoURL: user.photoURL || doc.data().photoURL
     });
-  }// ==================== SIGNAL HISTORY LIBRARY ====================
+  }
+}
+
+// ==================== SIGNAL HISTORY LIBRARY ====================
 async function loadSignalHistoryLibrary() {
   const tbody = document.getElementById('libraryTableBody');
   if (!tbody) return;
@@ -3241,7 +3242,6 @@ async function loadSignalHistoryLibrary() {
   }
 }
 
-
 // 重新整理按鈕
 document.getElementById('btnRefreshLibrary')?.addEventListener('click', loadSignalHistoryLibrary);
 
@@ -3249,21 +3249,6 @@ document.getElementById('btnRefreshLibrary')?.addEventListener('click', loadSign
 document.querySelectorAll('.nav-link[data-page="library"]').forEach(link => {
   link.addEventListener('click', () => {
     setTimeout(loadSignalHistoryLibrary, 100);
-  });
-});
-}
-
-// 刪除按鈕
-document.querySelectorAll('.btn-delete-history').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    if (!confirm('確定刪除呢筆記錄？')) return;
-    try {
-      await db.collection('signalHistory').doc(btn.dataset.id).delete();
-      alert('已刪除');
-      loadSignalHistoryLibrary();
-    } catch (err) {
-      alert('刪除失敗：' + err.message);
-    }
   });
 });
 
