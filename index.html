@@ -3197,47 +3197,50 @@ async function loadSignalHistoryLibrary() {
           <td>${d.ea || '-'}</td>
           <td class="small">${dateRange}</td>
           <td>
-  <button class="btn btn-sm btn-outline-primary me-1 btn-review" data-id="${doc.id}">
-    🔍 REVIEW
-  </button>
-  <button class="btn btn-sm btn-outline-secondary me-1 btn-export-pdf" data-id="${doc.id}">
-    📄 EXPORT PDF
-  </button>
-  <button class="btn btn-sm btn-outline-danger btn-delete-history" data-id="${doc.id}">
-    🗑️
-  </button>
-</td>
+            <button class="btn btn-sm btn-outline-primary me-1 btn-review" data-id="${doc.id}">🔍 REVIEW</button>
+            <button class="btn btn-sm btn-outline-secondary me-1 btn-export-pdf" data-id="${doc.id}">📄 EXPORT PDF</button>
+            <button class="btn btn-sm btn-outline-danger btn-delete-history" data-id="${doc.id}">🗑️</button>
+          </td>
         </tr>`;
       recordNo--;
     });
 
     tbody.innerHTML = html;
 
-    // REVIEW 按鈕
-document.querySelectorAll('.btn-review').forEach(...);
+    // REVIEW
+    document.querySelectorAll('.btn-review').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alert('REVIEW 功能開發中');
+      });
+    });
 
-// EXPORT PDF 按鈕
-document.querySelectorAll('.btn-export-pdf').forEach(...);
+    // EXPORT PDF
+    document.querySelectorAll('.btn-export-pdf').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alert('EXPORT REPORT TO PDF 功能開發中');
+      });
+    });
 
-// 刪除按鈕
-document.querySelectorAll('.btn-delete-history').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    if (!confirm('確定刪除呢筆記錄？')) return;
-    try {
-      await db.collection('signalHistory').doc(btn.dataset.id).delete();
-      alert('已刪除');
-      loadSignalHistoryLibrary();
-    } catch (err) {
-      alert('刪除失敗：' + err.message);
-    }
-  });
-});
+    // 刪除
+    document.querySelectorAll('.btn-delete-history').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('確定刪除呢筆記錄？')) return;
+        try {
+          await db.collection('signalHistory').doc(btn.dataset.id).delete();
+          alert('已刪除');
+          loadSignalHistoryLibrary();
+        } catch (err) {
+          alert('刪除失敗：' + err.message);
+        }
+      });
+    });
 
   } catch (err) {
     console.error(err);
     tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">載入失敗：${err.message}</td></tr>`;
   }
 }
+
 
 // 重新整理按鈕
 document.getElementById('btnRefreshLibrary')?.addEventListener('click', loadSignalHistoryLibrary);
