@@ -3213,19 +3213,25 @@ async function loadSignalHistoryLibrary() {
 
     tbody.innerHTML = html;
 
-    // REVIEW 按鈕（暫時）
-    document.querySelectorAll('.btn-review').forEach(btn => {
-      btn.addEventListener('click', () => {
-        alert('REVIEW 功能開發中（之後會載入呢個 Signal 嘅完整分析）');
-      });
-    });
+    // REVIEW 按鈕
+document.querySelectorAll('.btn-review').forEach(...);
 
-    // EXPORT PDF 按鈕（暫時）
-    document.querySelectorAll('.btn-export-pdf').forEach(btn => {
-      btn.addEventListener('click', () => {
-        alert('EXPORT REPORT TO PDF 功能開發中');
-      });
-    });
+// EXPORT PDF 按鈕
+document.querySelectorAll('.btn-export-pdf').forEach(...);
+
+// 刪除按鈕
+document.querySelectorAll('.btn-delete-history').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if (!confirm('確定刪除呢筆記錄？')) return;
+    try {
+      await db.collection('signalHistory').doc(btn.dataset.id).delete();
+      alert('已刪除');
+      loadSignalHistoryLibrary();
+    } catch (err) {
+      alert('刪除失敗：' + err.message);
+    }
+  });
+});
 
   } catch (err) {
     console.error(err);
