@@ -347,6 +347,35 @@
     </div>
   </div>
   <!-- ========== Admin Console 完 ========== -->
+
+<!-- ==================== SIGNAL HISTORY LIBRARY ==================== -->
+<div id="page-library" class="page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">📚 Signal History Library</h2>
+    <button class="btn btn-sm btn-outline-primary" id="btnRefreshLibrary">🔄 重新整理</button>
+  </div>
+
+  <div class="panel">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width:80px;">Record No</th>
+            <th>CSV File Name</th>
+            <th>Signal ID</th>
+            <th>EA</th>
+            <th>Date Range</th>
+            <th style="width:220px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="libraryTableBody">
+          <tr><td colspan="6" class="text-muted text-center">載入中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
       
       <div id="page-tha" class="page">
         <section class="panel">
@@ -752,7 +781,7 @@
       </div>   <!-- ← 加呢行：關閉 page-tha -->
           
       <!-- 其他頁面 -->
-      <div id="page-library" class="page"><section class="panel"><h2 class="panel-title">📚 Signal History Library</h2></section></div>
+
       <div id="page-admin" class="page"><section class="panel"><h2 class="panel-title">🛠️ Admin Console</h2></section></div>
       <div id="page-live" class="page"><div class="panel"><h2>📡 Live Signals</h2></div></div>
       <div id="page-mysignals" class="page"><div class="panel"><h2>📋 My Signals</h2></div></div>
@@ -3150,8 +3179,93 @@ async function ensureUserDoc(user) {
       displayName: user.displayName || doc.data().displayName,
       photoURL: user.photoURL || doc.data().photoURL
     });
+  }// ==================== SIGNAL HISTORY LIBRARY ====================
+async function loadSignalHistoryLibrary() {
+  const tbody = document.getElementById('libraryTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center">載入中...</td></tr>';
+
+  try {
+    const snapshot = await db.collection('signalHistory')
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center">暫時未有儲存記錄</td></tr>';
+      return;
+    }
+
+    let html = '';
+    let recordNo = snapshot.size;
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      const signalUrl = d.signalId 
+        ? `https://algoforest.com/signals/${d.signalId}` 
+        : '#';
+      
+      const dateRange = (d.startDateStr && d.endDateStr) 
+        ? `${d.startDateStr} → ${d.endDateStr}` 
+        : '-';
+
+      html += `
+        <tr>
+          <td class="text-muted">#${String(recordNo).padStart(5, '0')}</td>
+          <td>${d.fileName || '-'}</td>
+          <td>
+            ${d.signalId 
+              ? `<a href="${signalUrl}" target="_blank" class="text-primary">${d.signalId}</a>` 
+              : '-'}
+          </td>
+          <td>${d.ea || '-'}</td>
+          <td class="small">${dateRange}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-1 btn-review" data-id="${doc.id}">
+              🔍 REVIEW
+            </button>
+            <button class="btn btn-sm btn-outline-secondary btn-export-pdf" data-id="${doc.id}">
+              📄 EXPORT PDF
+            </button>
+          </td>
+        </tr>`;
+      recordNo--;
+    });
+
+    tbody.innerHTML = html;
+
+    // REVIEW 按鈕（暫時）
+    document.querySelectorAll('.btn-review').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alert('REVIEW 功能開發中（之後會載入呢個 Signal 嘅完整分析）');
+      });
+    });
+
+    // EXPORT PDF 按鈕（暫時）
+    document.querySelectorAll('.btn-export-pdf').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alert('EXPORT REPORT TO PDF 功能開發中');
+      });
+    });
+
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">載入失敗：${err.message}</td></tr>`;
   }
 }
+
+// 重新整理按鈕
+document.getElementById('btnRefreshLibrary')?.addEventListener('click', loadSignalHistoryLibrary);
+
+// 當切換到 library 頁面時自動載入
+document.querySelectorAll('.nav-link[data-page="library"]').forEach(link => {
+  link.addEventListener('click', () => {
+    setTimeout(loadSignalHistoryLibrary, 100);
+  });
+});
+}
+
+
   
 </script>
 </body>
