@@ -3443,6 +3443,131 @@ document.querySelectorAll('.nav-link[data-page="library"]').forEach(link => {
   });
 });
 
+// ==================== MARKET NEWS ====================
+const FINNHUB_API_KEY = 'd9gt2npr01qvjm7od820d9gt2npr01qvjm7od82g'; // ← 改成你的 Key
+let allNews = [];
+let newsTimer = null;
+
+async function loadMarketNews() {
+  const list = document.getElementById('newsList');
+  const status = document.getElementById('newsStatus');
+  if (!list) return;
+
+  list.innerHTML = '<div class="text-muted text-center py-4">載入中...</div>';
+  if (status) status.textContent = '正在從 Finnhub 載入...';
+
+  try {
+    const res = await fetch(`https://finnhub.io/api/v1/news?category=general&token=${FINNHUB_API_KEY}`);
+    if (!res.ok) throw new Error('API 錯誤：' + res.status);
+    
+    const data = await res.json();
+    allNews = Array.isArray(data) ? data : [];
+    
+    renderNewsList();
+    if (status) {
+      status.textContent = `已載入 ${allNews.length} 條新聞 · 每 15 分鐘自動更新`;
+    }
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = `<div class="text-danger text-center py-4">載入失敗：${err.message}</div>`;
+    if (status) status.textContent = '載入失敗';
+  }
+}
+
+function renderNewsList() {
+  const list = document.getElementById('newsList');
+  if (!list) return;
+
+  const range = document.querySelector('#newsTimeFilter .active')?.dataset.range || 'today';
+  const now = new Date();
+  let fromTime = new Date();
+
+  if (range === 'today') {
+    fromTime.setHours(0, 0, 0, 0);
+  } else if (range === 'week') {
+    fromTime.setDate(now.getDate() - 7);
+  } else {
+    fromTime.setDate(now.getDate() - 30);
+  }
+
+  const filtered = allNews.filter(n => {
+    const t = new Date(n.datetime * 1000);
+    return t >= fromTime;
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="text-muted text-center py-4">呢個時間範圍暫時無新聞</div>';
+    return;
+  }
+
+  let html = '';
+  filtered.slice(0, 50).forEach(n => {
+    const time = new Date(n.datetime * 1000);
+    const timeStr = time.toLocaleString('zh-HK', {
+      month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
+
+    // 簡單重要性判斷
+    const text = ((n.headline || '') + ' ' + (n.summary || '')).toLowerCase();
+    let level = 'Low';
+    let badge = 'secondary';
+    if (text.match(/fed|cpi|nfp|interest rate|fomc|inflation|nonfarm|央行|加息|減息|通脹/)) {
+      level = 'High';
+      badge = 'danger';
+    } else if (text.match(/gdp|pmi|unemployment|retail|ecb|boe|job|就業/)) {
+      level = 'Medium';
+      badge = 'warning';
+    }
+
+    html += `
+      <div class="border-bottom py-3">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div>
+            <span class="badge bg-${badge} me-2">${level}</span>
+            <a href="${n.url}" target="_blank" class="fw-semibold text-decoration-none text-dark">
+              ${n.headline || '無標題'}
+            </a>
+            <div class="small text-muted mt-1">
+              ${n.source || 'Unknown'} · ${timeStr}
+            </div>
+            ${n.summary ? `<div class="small text-secondary mt-1">${n.summary.substring(0, 120)}...</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+// 時間過濾
+document.querySelectorAll('#newsTimeFilter button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#newsTimeFilter button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderNewsList();
+  });
+});
+
+// 重新整理
+document.getElementById('btnRefreshNews')?.addEventListener('click', loadMarketNews);
+
+// 切換到 News 頁面時載入
+document.querySelectorAll('.nav-link[data-page="news"]').forEach(link => {
+  link.addEventListener('click', () => {
+    setTimeout(() => {
+      loadMarketNews();
+      // 每 15 分鐘自動刷新
+      if (newsTimer) clearInterval(newsTimer);
+      newsTimer = setInterval(loadMarketNews, 15 * 60 * 1000);
+    }, 100);
+  });
+});
+
+// 關閉提示
+document.getElementById('btnCloseNewsAlert')?.addEventListener('click', () => {
+  document.getElementById('newsAlertBox').style.display = 'none';
+});
   
 </script>
 </body>
