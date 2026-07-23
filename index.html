@@ -3478,7 +3478,7 @@ function renderNewsList() {
   const list = document.getElementById('newsList');
   if (!list) return;
 
-  const range = document.querySelector('#newsTimeFilter .active')?.dataset.range || 'today';
+  const range = document.querySelector('#newsTimeFilter .active')?.dataset.range || 'week';
   const now = new Date();
   let fromTime = new Date();
 
@@ -3504,38 +3504,55 @@ function renderNewsList() {
   filtered.slice(0, 50).forEach(n => {
     const time = new Date(n.datetime * 1000);
     const timeStr = time.toLocaleString('zh-HK', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false
-});
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
 
-    // 簡單重要性判斷
+    // 1小時內 highlight
+    const isRecent = (now - time) <= 60 * 60 * 1000;
+    const rowStyle = isRecent
+      ? 'background:#fff7ed; border-left:4px solid #f97316;'
+      : 'border-left:4px solid transparent;';
+
+    // 重要性
     const text = ((n.headline || '') + ' ' + (n.summary || '')).toLowerCase();
     let level = 'Low';
     let badge = 'secondary';
-    if (text.match(/fed|cpi|nfp|interest rate|fomc|inflation|nonfarm|央行|加息|減息|通脹/)) {
+    if (text.match(/fed|cpi|nfp|interest rate|fomc|inflation|nonfarm|央行|加息|減息|通脹|oil|iran|hormuz/)) {
       level = 'High';
       badge = 'danger';
-    } else if (text.match(/gdp|pmi|unemployment|retail|ecb|boe|job|就業/)) {
+    } else if (text.match(/gdp|pmi|unemployment|retail|ecb|boe|job|就業|gold/)) {
       level = 'Medium';
       badge = 'warning';
     }
 
+    const imgHtml = n.image
+      ? `<img src="${n.image}" alt="" style="width:88px;height:66px;object-fit:cover;border-radius:8px;" onerror="this.style.display='none'">`
+      : '';
+
     html += `
-      <div class="border-bottom py-3">
-        <div class="d-flex justify-content-between align-items-start gap-2">
-          <div>
-            <span class="badge bg-${badge} me-2">${level}</span>
-            <a href="${n.url}" target="_blank" class="fw-semibold text-decoration-none text-dark">
-              ${n.headline || '無標題'}
-            </a>
-            <div class="small text-muted mt-1">
-              📅 ${timeStr} · ${n.source || 'Unknown'}
+      <div class="py-3 border-bottom" style="${rowStyle}">
+        <div class="d-flex gap-3">
+          <div style="min-width:130px;" class="small text-muted">
+            <div class="fw-semibold ${isRecent ? 'text-danger' : ''}">📅 ${timeStr}</div>
+            ${isRecent ? '<div class="badge bg-warning text-dark mt-1">1小時內</div>' : ''}
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between gap-2">
+              <div>
+                <span class="badge bg-${badge} me-2">${level}</span>
+                <a href="${n.url}" target="_blank" class="fw-semibold text-decoration-none text-dark">
+                  ${n.headline || '無標題'}
+                </a>
+                <div class="small text-muted mt-1">${n.source || 'Unknown'}</div>
+                ${n.summary ? `<div class="small text-secondary mt-1">${n.summary.substring(0, 140)}...</div>` : ''}
+              </div>
+              ${imgHtml}
             </div>
-            ${n.summary ? `<div class="small text-secondary mt-1">${n.summary.substring(0, 120)}...</div>` : ''}
           </div>
         </div>
       </div>`;
