@@ -935,56 +935,68 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     return;
   }
 
-  const fileName = document.getElementById('csvFile').files[0]?.name || 'unknown.csv';
+  const fileInput = document.getElementById('csvFile');
+  const file = fileInput.files[0];
+  if (!file) {
+    alert('搵唔到 CSV 檔案');
+    return;
+  }
+
+  const fileName = file.name;
   const ea = document.getElementById('eaSelect').value || 'Unknown';
   const signalMatch = fileName.match(/forex-forest-signals-page-(\d+)/i);
   const signalId = signalMatch ? signalMatch[1] : null;
 
   if (!signalId) {
-    alert('無法從檔名提取 Signal ID，請確認檔名格式');
+    alert('無法從檔名提取 Signal ID');
     return;
   }
 
   const startDate = lastResult.trades[0]?.openTime || null;
   const endDate = lastResult.trades[lastResult.trades.length - 1]?.openTime || null;
 
-  const saveData = {
-    fileName: fileName,
-    signalId: signalId,
-    ea: ea,
-    ownerUid: currentUser.uid,
-    ownerEmail: currentUser.email,
-    ownerName: currentUser.displayName || currentUser.email,
-    initialDeposit: lastResult.initial_balance || 0,
-    totalProfit: lastResult.totalProfit || 0,
-    totalTrades: lastResult.totalTrades || 0,
-    winRate: lastResult.winRate || 0,
-    subDeposits: lastResult.subDeposits || 0,
-    subWithdrawals: lastResult.subWithdrawals || 0,
-    finalBalance: lastResult.finalBalance || 0,
-    startDate: startDate,
-    endDate: endDate,
-    startDateStr: startDate ? startDate.toISOString().slice(0, 10) : null,
-    endDateStr: endDate ? endDate.toISOString().slice(0, 10) : null,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-
   try {
-    document.getElementById('tha-status').innerHTML = '<span class="text-primary">檢查中...</span>';
+    document.getElementById('tha-status').innerHTML = '<span class="text-primary">上傳 CSV 中...</span>';
 
-    // 搵有冇相同 Signal ID
+    // 上傳 CSV 去 Storage
+    const storageRef = storage.ref(`signal-csv/${signalId}/${Date.now()}_${fileName}`);
+    await storageRef.put(file);
+    const downloadURL = await storageRef.getDownloadURL();
+
+    const saveData = {
+      fileName: fileName,
+      signalId: signalId,
+      ea: ea,
+      ownerUid: currentUser.uid,
+      ownerEmail: currentUser.email,
+      ownerName: currentUser.displayName || currentUser.email,
+      initialDeposit: lastResult.initial_balance || 0,
+      totalProfit: lastResult.totalProfit || 0,
+      totalTrades: lastResult.totalTrades || 0,
+      winRate: lastResult.winRate || 0,
+      subDeposits: lastResult.subDeposits || 0,
+      subWithdrawals: lastResult.subWithdrawals || 0,
+      finalBalance: lastResult.finalBalance || 0,
+      startDate: startDate,
+      endDate: endDate,
+      startDateStr: startDate ? startDate.toISOString().slice(0, 10) : null,
+      endDateStr: endDate ? endDate.toISOString().slice(0, 10) : null,
+      csvStoragePath: storageRef.fullPath,
+      csvDownloadURL: downloadURL,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    // 檢查有冇相同 Signal ID
     const existingSnap = await db.collection('signalHistory')
       .where('signalId', '==', signalId)
       .get();
 
     if (!existingSnap.empty) {
-      // 有重複 → 直接覆蓋最新嗰筆（或第一筆）
       const docId = existingSnap.docs[0].id;
       await db.collection('signalHistory').doc(docId).update(saveData);
       document.getElementById('tha-status').innerHTML = '<span class="text-success">✅ 已更新現有記錄</span>';
-      alert('已更新現有記錄（相同 Signal ID）');
+      alert('已更新現有記錄');
     } else {
-      // 無重複 → 新增
       saveData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('signalHistory').add(saveData);
       document.getElementById('tha-status').innerHTML = '<span class="text-success">✅ 已成功儲存</span>';
@@ -3211,38 +3223,55 @@ async function loadSignalHistoryLibrary() {
     tbody.innerHTML = html;
 
     // REVIEW
-    document.querySelectorAll('.btn-review').forEach(btn => {
-      btn.addEventListener('click', () => {
-        alert('REVIEW 功能開發中');
-      });
-    });
+    // REVIEW
+document.querySelectorAll('.btn-review').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const docId = btn.dataset.id;
+    try {
+      const doc = await db.collection('signalHistory').doc(docId).get();
+      if (!doc.exists) {
+        alert('搵唔到呢筆記錄');
+        return;
+      }
+      const data = doc.data();
+      
+      if (!data.csvDownloadURL) {
+        alert('呢筆記錄未有儲存 CSV 檔案，請重新 SAVE 一次');
+        return;
+      }
 
-    // EXPORT PDF
-    document.querySelectorAll('.btn-export-pdf').forEach(btn => {
-      btn.addEventListener('click', () => {
-        alert('EXPORT REPORT TO PDF 功能開發中');
-      });
-    });
+      // 切換去 THA 頁面
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      document.getElementById('page-tha').classList.add('active');
+      document.querySelector('.nav-link[data-page="tha"]')?.classList.add('active');
 
-    // 刪除
-    document.querySelectorAll('.btn-delete-history').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('確定刪除呢筆記錄？')) return;
-        try {
-          await db.collection('signalHistory').doc(btn.dataset.id).delete();
-          alert('已刪除');
-          loadSignalHistoryLibrary();
-        } catch (err) {
-          alert('刪除失敗：' + err.message);
-        }
-      });
-    });
+      document.getElementById('tha-status').innerHTML = '<span class="text-primary">載入 CSV 中...</span>';
 
-  } catch (err) {
-    console.error(err);
-    tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">載入失敗：${err.message}</td></tr>`;
-  }
-}
+      // 下載 CSV 並自動分析
+      const response = await fetch(data.csvDownloadURL);
+      const blob = await response.blob();
+      const file = new File([blob], data.fileName, { type: 'text/csv' });
+
+      // 模擬放入 file input
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      document.getElementById('csvFile').files = dataTransfer.files;
+
+      // 設定 EA
+      if (data.ea) {
+        document.getElementById('eaSelect').value = data.ea;
+      }
+
+      // 自動開始分析
+      document.getElementById('analyzeBtn').click();
+
+    } catch (err) {
+      console.error(err);
+      alert('REVIEW 失敗：' + err.message);
+    }
+  });
+});
 
 // 重新整理按鈕
 document.getElementById('btnRefreshLibrary')?.addEventListener('click', loadSignalHistoryLibrary);
