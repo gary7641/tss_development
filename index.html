@@ -3172,6 +3172,8 @@ async function ensureUserDoc(user) {
 
 // ==================== SIGNAL HISTORY LIBRARY ====================
 async function loadSignalHistoryLibrary() {
+由呢度開始，成個 function 全部刪走，然後貼呢個乾淨完整版：
+JavaScriptasync function loadSignalHistoryLibrary() {
   const tbody = document.getElementById('libraryTableBody');
   if (!tbody) return;
 
@@ -3223,55 +3225,78 @@ async function loadSignalHistoryLibrary() {
     tbody.innerHTML = html;
 
     // REVIEW
-    // REVIEW
-document.querySelectorAll('.btn-review').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const docId = btn.dataset.id;
-    try {
-      const doc = await db.collection('signalHistory').doc(docId).get();
-      if (!doc.exists) {
-        alert('搵唔到呢筆記錄');
-        return;
-      }
-      const data = doc.data();
-      
-      if (!data.csvDownloadURL) {
-        alert('呢筆記錄未有儲存 CSV 檔案，請重新 SAVE 一次');
-        return;
-      }
+    document.querySelectorAll('.btn-review').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const docId = btn.dataset.id;
+        try {
+          const doc = await db.collection('signalHistory').doc(docId).get();
+          if (!doc.exists) {
+            alert('搵唔到呢筆記錄');
+            return;
+          }
+          const data = doc.data();
+          
+          if (!data.csvDownloadURL) {
+            alert('呢筆記錄未有儲存 CSV 檔案，請重新 SAVE 一次');
+            return;
+          }
 
-      // 切換去 THA 頁面
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-      document.getElementById('page-tha').classList.add('active');
-      document.querySelector('.nav-link[data-page="tha"]')?.classList.add('active');
+          // 切換去 THA 頁面
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+          document.getElementById('page-tha').classList.add('active');
+          document.querySelector('.nav-link[data-page="tha"]')?.classList.add('active');
 
-      document.getElementById('tha-status').innerHTML = '<span class="text-primary">載入 CSV 中...</span>';
+          document.getElementById('tha-status').innerHTML = '<span class="text-primary">載入 CSV 中...</span>';
 
-      // 下載 CSV 並自動分析
-      const response = await fetch(data.csvDownloadURL);
-      const blob = await response.blob();
-      const file = new File([blob], data.fileName, { type: 'text/csv' });
+          // 下載 CSV 並自動分析
+          const response = await fetch(data.csvDownloadURL);
+          const blob = await response.blob();
+          const file = new File([blob], data.fileName, { type: 'text/csv' });
 
-      // 模擬放入 file input
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      document.getElementById('csvFile').files = dataTransfer.files;
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          document.getElementById('csvFile').files = dataTransfer.files;
 
-      // 設定 EA
-      if (data.ea) {
-        document.getElementById('eaSelect').value = data.ea;
-      }
+          if (data.ea) {
+            document.getElementById('eaSelect').value = data.ea;
+          }
 
-      // 自動開始分析
-      document.getElementById('analyzeBtn').click();
+          document.getElementById('analyzeBtn').click();
 
-    } catch (err) {
-      console.error(err);
-      alert('REVIEW 失敗：' + err.message);
-    }
-  });
-});
+        } catch (err) {
+          console.error(err);
+          alert('REVIEW 失敗：' + err.message);
+        }
+      });
+    });
+
+    // EXPORT PDF
+    document.querySelectorAll('.btn-export-pdf').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alert('EXPORT REPORT TO PDF 功能開發中');
+      });
+    });
+
+    // 刪除
+    document.querySelectorAll('.btn-delete-history').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('確定刪除呢筆記錄？')) return;
+        try {
+          await db.collection('signalHistory').doc(btn.dataset.id).delete();
+          alert('已刪除');
+          loadSignalHistoryLibrary();
+        } catch (err) {
+          alert('刪除失敗：' + err.message);
+        }
+      });
+    });
+
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">載入失敗：${err.message}</td></tr>`;
+  }
+}
 
 // 重新整理按鈕
 document.getElementById('btnRefreshLibrary')?.addEventListener('click', loadSignalHistoryLibrary);
