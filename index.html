@@ -3504,9 +3504,13 @@ function renderNewsList() {
   filtered.slice(0, 50).forEach(n => {
     const time = new Date(n.datetime * 1000);
     const timeStr = time.toLocaleString('zh-HK', {
-      month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit'
-    });
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+});
 
     // 簡單重要性判斷
     const text = ((n.headline || '') + ' ' + (n.summary || '')).toLowerCase();
@@ -3529,7 +3533,7 @@ function renderNewsList() {
               ${n.headline || '無標題'}
             </a>
             <div class="small text-muted mt-1">
-              ${n.source || 'Unknown'} · ${timeStr}
+              📅 ${timeStr} · ${n.source || 'Unknown'}
             </div>
             ${n.summary ? `<div class="small text-secondary mt-1">${n.summary.substring(0, 120)}...</div>` : ''}
           </div>
