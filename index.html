@@ -3503,14 +3503,28 @@ function renderNewsList() {
   let html = '';
   filtered.slice(0, 50).forEach(n => {
     const time = new Date(n.datetime * 1000);
-    const timeStr = time.toLocaleString('zh-HK', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
+
+// UTC 時間
+const utcStr = time.toLocaleString('zh-HK', {
+  timeZone: 'UTC',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+});
+
+// 香港時間
+const hktStr = time.toLocaleString('zh-HK', {
+  timeZone: 'Asia/Hong_Kong',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+});
 
     // 1小時內 highlight
     const isRecent = (now - time) <= 60 * 60 * 1000;
@@ -3538,7 +3552,13 @@ function renderNewsList() {
       <div class="py-3 border-bottom" style="${rowStyle}">
         <div class="d-flex gap-3">
           <div style="min-width:130px;" class="small text-muted">
-            <div class="fw-semibold ${isRecent ? 'text-danger' : ''}">📅 ${timeStr}</div>
+            <div style="min-width:150px;" class="small">
+              <div class="${isRecent ? 'text-danger fw-semibold' : 'text-muted'}">
+              <div>🌍 ${utcStr} <span style="font-size:0.7rem;">(GMT+0)</span></div>
+              <div>🇭🇰 ${hktStr} <span style="font-size:0.7rem;">(GMT+8 HKT)</span></div>
+            </div>
+            ${isRecent ? '<div class="badge bg-warning text-dark mt-1">1小時內</div>' : ''}
+          </div>
             ${isRecent ? '<div class="badge bg-warning text-dark mt-1">1小時內</div>' : ''}
           </div>
           <div class="flex-grow-1">
