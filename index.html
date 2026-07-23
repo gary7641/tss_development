@@ -815,6 +815,7 @@
   const storage = firebase.storage();
   const ADMIN_EMAILS = ['gary7641@gmail.com', 'shenxu.gary@gmail.com'];
   let currentUser = null;
+
 let lastResult = null;
 let currentMfeMaeMode = 'MFE';
 let currentHoldingMode = 'hours';
@@ -936,7 +937,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const totalProfit = lastResult.totalProfit || 0;
   const profitPercent = initial > 0 ? (totalProfit / initial) * 100 : 0;
 
-  // 計算 MDD
+  // 計算 MDD + equity curve
   let equity = initial;
   let peak = initial;
   let maxDD = 0;
@@ -981,10 +982,12 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const progressText = document.getElementById('uploadProgressText');
   const progressPercent = document.getElementById('uploadProgressPercent');
 
-  progressArea.style.display = 'block';
-  progressBar.style.width = '0%';
-  progressText.textContent = '上傳 CSV 中...';
-  progressPercent.textContent = '0%';
+  if (progressArea) {
+    progressArea.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressText.textContent = '上傳 CSV 中...';
+    progressPercent.textContent = '0%';
+  }
   document.getElementById('tha-status').innerHTML = '';
 
   try {
@@ -992,20 +995,20 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     const uploadTask = storageRef.put(file);
 
     // 進度監聽
-    uploadTask.on('state_changed', 
+    uploadTask.on('state_changed',
       (snapshot) => {
         const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-        progressBar.style.width = pct + '%';
-        progressPercent.textContent = pct + '%';
+        if (progressBar) progressBar.style.width = pct + '%';
+        if (progressPercent) progressPercent.textContent = pct + '%';
       },
       (error) => {
-        progressArea.style.display = 'none';
+        if (progressArea) progressArea.style.display = 'none';
         document.getElementById('tha-status').innerHTML = `<span class="text-danger">上傳失敗：${error.message}</span>`;
         alert('上傳失敗：' + error.message);
       },
       async () => {
         // 上傳完成
-        progressText.textContent = '儲存資料中...';
+        if (progressText) progressText.textContent = '儲存資料中...';
         const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
 
         const saveData = {
@@ -1047,14 +1050,14 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
           document.getElementById('tha-status').innerHTML = '<span class="text-success">✅ 已成功儲存</span>';
         }
 
-        progressArea.style.display = 'none';
+        if (progressArea) progressArea.style.display = 'none';
         alert('儲存成功！');
       }
     );
 
   } catch (err) {
     console.error(err);
-    progressArea.style.display = 'none';
+    if (progressArea) progressArea.style.display = 'none';
     document.getElementById('tha-status').innerHTML = `<span class="text-danger">儲存失敗：${err.message}</span>`;
     alert('儲存失敗：' + err.message);
   }
