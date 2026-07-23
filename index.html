@@ -382,6 +382,37 @@
   </div>
 </div>
 
+<!-- ==================== MARKET NEWS ==================== -->
+<div id="page-news" class="page">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="mb-0">📰 Market News</h2>
+    <div class="d-flex gap-2 align-items-center">
+      <div class="btn-group btn-group-sm" id="newsTimeFilter">
+        <button class="btn btn-outline-primary active" data-range="today">今日</button>
+        <button class="btn btn-outline-primary" data-range="week">本週</button>
+        <button class="btn btn-outline-primary" data-range="month">本月</button>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary" id="btnRefreshNews">🔄</button>
+    </div>
+  </div>
+
+  <div id="newsStatus" class="small text-muted mb-2">準備載入...</div>
+
+  <div class="panel">
+    <div id="newsList">
+      <div class="text-muted text-center py-4">載入中...</div>
+    </div>
+  </div>
+
+  <!-- 重要事件前5分鐘提示 -->
+  <div id="newsAlertBox" style="display:none; position:fixed; right:20px; bottom:20px; z-index:9999; max-width:360px;">
+    <div class="alert alert-warning shadow" style="border-radius:12px;">
+      <div class="fw-bold mb-1">⚠️ 即將發生</div>
+      <div id="newsAlertContent" class="small"></div>
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-2" id="btnCloseNewsAlert"></button>
+    </div>
+  </div>
+</div>
       
       <div id="page-tha" class="page">
         <section class="panel">
