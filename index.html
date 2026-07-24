@@ -3454,18 +3454,56 @@ async function loadMarketNews() {
   if (!list) return;
 
   list.innerHTML = '<div class="text-muted text-center py-4">載入中...</div>';
-  if (status) status.textContent = '正在從 Finnhub 載入...';
+  if (status) status.textContent = '正在載入 Finnhub + Investing.com...';
 
   try {
-    const res = await fetch(`https://finnhub.io/api/v1/news?category=general&token=${FINNHUB_API_KEY}`);
-    if (!res.ok) throw new Error('API 錯誤：' + res.status);
-    
-    const data = await res.json();
-    allNews = Array.isArray(data) ? data : [];
-    
+    // 1) Finnhub
+    const finnhubRes = await fetch(`https://finnhub.io/api/v1/news?category=general&token=${FINNHUB_API_KEY}`);
+    if (!finnhubRes.ok) throw new Error('Finnhub API 錯誤：' + finnhubRes.status);
+    const finnhubData = await finnhubRes.json();
+
+    const finnhubNews = (Array.isArray(finnhubData) ? finnhubData : []).map(n => ({
+      headline: n.headline,
+      summary: n.summary,
+      source: n.source || 'Finnhub',
+      url: n.url,
+      image: n.image || '',
+      datetime: n.datetime // unix seconds
+    }));
+
+    // 2) Investing.com RSS via rss2json
+    let investingNews = [];
+    try {
+      const rssUrl = encodeURIComponent('https://www.investing.com/rss/news_25.rss'); // Forex news
+      const rssRes = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`);
+      if (rssRes.ok) {
+        const rssData = await rssRes.json();
+        if (rssData && Array.isArray(rssData.items)) {
+          investingNews = rssData.items.map(item => {
+            const t = item.pubDate ? Math.floor(new Date(item.pubDate).getTime() / 1000) : 0;
+            return {
+              headline: item.title || '無標題',
+              summary: (item.description || '').replace(/<[^>]*>/g, '').substring(0, 160),
+              source: 'Investing.com',
+              url: item.link || '#',
+              image: item.thumbnail || (item.enclosure && item.enclosure.link) || '',
+              datetime: t
+            };
+          });
+        }
+      }
+    } catch (rssErr) {
+      console.warn('Investing.com RSS 載入失敗：', rssErr);
+    }
+
+    // 合併 + 按時間排
+    allNews = [...finnhubNews, ...investingNews]
+      .filter(n => n.datetime > 0)
+      .sort((a, b) => b.datetime - a.datetime);
+
     renderNewsList();
     if (status) {
-      status.textContent = `已載入 ${allNews.length} 條新聞 · 每 15 分鐘自動更新`;
+      status.textContent = `已載入 ${allNews.length} 條新聞（Finnhub + Investing.com）· 每 15 分鐘自動更新`;
     }
   } catch (err) {
     console.error(err);
