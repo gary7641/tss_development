@@ -1412,7 +1412,6 @@ renderOverviewCharts(result);
         profitPctEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
         profitPctEl.className = 'fs-3 fw-bold ' + (pct >= 0 ? 'pos' : 'neg');
 }
-}
         document.getElementById('stat-dd-pct').textContent = result.max_dd_pct.toFixed(2) + '%';
         document.getElementById('stat-dd-money').textContent = '$' + result.max_dd_money.toFixed(2);
 
