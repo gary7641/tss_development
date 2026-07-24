@@ -3491,6 +3491,7 @@ function renderNewsList() {
   if (!list) return;
 
   const range = document.querySelector('#newsTimeFilter .active')?.dataset.range || 'week';
+  const source = document.querySelector('#newsSourceFilter .active')?.dataset.source || 'all';
   const now = new Date();
   let fromTime = new Date();
 
@@ -3502,32 +3503,16 @@ function renderNewsList() {
     fromTime.setDate(now.getDate() - 30);
   }
 
-  const source = document.querySelector('#newsSourceFilter .active')?.dataset.source || 'all';
-
-let filtered = allNews.filter(n => {
-  const t = new Date(n.datetime * 1000);
-  return t >= fromTime;
-});
-
-if (source === 'finnhub') {
-  filtered = filtered.filter(n => n.sourceKey === 'finnhub');
-} else if (source === 'investing') {
-  filtered = filtered.filter(n => n.sourceKey === 'investing');
-}
-// source === 'all' 就唔再 filter
-  filtered = filtered.filter(n => {
-    const s = (n.sourceKey || n.source || '').toLowerCase();
-    return s !== 'finnhub' && !s.includes('investing') && !s.includes('finnhub');
+  let filtered = allNews.filter(n => {
+    const t = new Date(n.datetime * 1000);
+    return t >= fromTime;
   });
-}
 
-document.querySelectorAll('#newsSourceFilter button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#newsSourceFilter button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderNewsList();
-  });
-});
+  if (source === 'finnhub') {
+    filtered = filtered.filter(n => n.sourceKey === 'finnhub');
+  } else if (source === 'investing') {
+    filtered = filtered.filter(n => n.sourceKey === 'investing');
+  }
 
   if (!filtered.length) {
     list.innerHTML = '<div class="text-muted text-center py-4">呢個時間範圍暫時無新聞</div>';
@@ -3538,35 +3523,31 @@ document.querySelectorAll('#newsSourceFilter button').forEach(btn => {
   filtered.slice(0, 50).forEach(n => {
     const time = new Date(n.datetime * 1000);
 
-// UTC 時間
-const utcStr = time.toLocaleString('zh-HK', {
-  timeZone: 'UTC',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false
-});
+    const utcStr = time.toLocaleString('zh-HK', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
 
-// 香港時間
-const hktStr = time.toLocaleString('zh-HK', {
-  timeZone: 'Asia/Hong_Kong',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false
-});
+    const hktStr = time.toLocaleString('zh-HK', {
+      timeZone: 'Asia/Hong_Kong',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
 
-    // 1小時內 highlight
     const isRecent = (now - time) <= 60 * 60 * 1000;
     const rowStyle = isRecent
       ? 'background:#fff7ed; border-left:4px solid #f97316;'
       : 'border-left:4px solid transparent;';
 
-    // 重要性
     const text = ((n.headline || '') + ' ' + (n.summary || '')).toLowerCase();
     let level = 'Low';
     let badge = 'secondary';
@@ -3585,14 +3566,11 @@ const hktStr = time.toLocaleString('zh-HK', {
     html += `
       <div class="py-3 border-bottom" style="${rowStyle}">
         <div class="d-flex gap-3">
-          <div style="min-width:130px;" class="small text-muted">
-            <div style="min-width:150px;" class="small">
-              <div class="${isRecent ? 'text-danger fw-semibold' : 'text-muted'}">
+          <div style="min-width:150px;" class="small">
+            <div class="${isRecent ? 'text-danger fw-semibold' : 'text-muted'}">
               <div>🌍 ${utcStr} <span style="font-size:0.7rem;">(GMT+0)</span></div>
               <div>🇭🇰 ${hktStr} <span style="font-size:0.7rem;">(GMT+8 HKT)</span></div>
             </div>
-            ${isRecent ? '<div class="badge bg-warning text-dark mt-1">1小時內</div>' : ''}
-          </div>
             ${isRecent ? '<div class="badge bg-warning text-dark mt-1">1小時內</div>' : ''}
           </div>
           <div class="flex-grow-1">
