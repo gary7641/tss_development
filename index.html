@@ -402,32 +402,6 @@
 
   <div id="newsStatus" class="small text-muted mb-2">準備載入...</div>
 
-  <div class="panel mb-3">
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h5 class="mb-0">📅 Economic Calendar</h5>
-    <button class="btn btn-sm btn-outline-secondary" id="btnRefreshCalendar">🔄</button>
-  </div>
-  <div id="calendarStatus" class="small text-muted mb-2">準備載入...</div>
-  <div class="table-responsive">
-    <table class="table table-sm table-hover align-middle" style="font-size:0.85rem;">
-      <thead class="table-light">
-        <tr>
-          <th>時間 (HKT)</th>
-          <th>國家</th>
-          <th>事件</th>
-          <th>Impact</th>
-          <th>Actual</th>
-          <th>Forecast</th>
-          <th>Previous</th>
-        </tr>
-      </thead>
-      <tbody id="calendarTableBody">
-        <tr><td colspan="7" class="text-muted text-center">載入中...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
   <div class="panel">
     <div id="newsList">
       <div class="text-muted text-center py-4">載入中...</div>
@@ -3512,36 +3486,6 @@ async function loadMarketNews() {
   }
 }
 
-async function loadEconomicCalendar() {
-  const tbody = document.getElementById('calendarTableBody');
-  const status = document.getElementById('calendarStatus');
-  if (!tbody) return;
-
-  tbody.innerHTML = '<tr><td colspan="7" class="text-muted text-center">載入中...</td></tr>';
-  if (status) status.textContent = '正在載入經濟日曆...';
-
-  try {
-    const today = new Date();
-    const to = new Date();
-    to.setDate(today.getDate() + 7);
-
-    const fromStr = today.toISOString().slice(0, 10);
-    const toStr = to.toISOString().slice(0, 10);
-
-    const res = await fetch(
-      `https://finnhub.io/api/v1/calendar/economic?from=${fromStr}&to=${toStr}&token=${FINNHUB_API_KEY}`
-    );
-    if (!res.ok) throw new Error('Calendar API 錯誤：' + res.status);
-
-    const data = await res.json();
-    const events = data.economicCalendar || [];
-
-    if (!events.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="text-muted text-center">未來 7 日暫無事件</td></tr>';
-      if (status) status.textContent = '無資料';
-      return;
-    }
-
     // 按時間排
     events.sort((a, b) => new Date(a.time) - new Date(b.time));
 
@@ -3585,8 +3529,6 @@ async function loadEconomicCalendar() {
     if (status) status.textContent = '載入失敗';
   }
 }
-
-document.getElementById('btnRefreshCalendar')?.addEventListener('click', loadEconomicCalendar);
 
 function renderNewsList() {
   const list = document.getElementById('newsList');
@@ -3714,7 +3656,6 @@ document.querySelectorAll('.nav-link[data-page="news"]').forEach(link => {
   link.addEventListener('click', () => {
     setTimeout(() => {
       loadMarketNews();
-      loadEconomicCalendar();
       // 每 15 分鐘自動刷新
       if (newsTimer) clearInterval(newsTimer);
       newsTimer = setInterval(loadMarketNews, 15 * 60 * 1000);
