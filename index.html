@@ -368,6 +368,7 @@
             <th style="width:120px;">Growth</th>
             <th>Profit %</th>
             <th>MDD</th>
+            <th>CCY</th>
             <th>Trades</th>
             <th>Days / Weeks</th>
             <th>Date Range</th>
@@ -602,6 +603,12 @@
                 <div class="summary-card">
                   <div class="small text-muted">📈 Total Trades</div>
                   <div class="fs-3 fw-bold" id="stat-trades">-</div>
+                  <div class="text-muted small">BUY Trades</div>
+                  <div class="fs-5 fw-bold" id="stat-buy">-</div>
+                  <div class="small text-muted" id="stat-buy-pct">-</div>
+                  <div class="text-muted small">SELL Trades</div>
+                  <div class="fs-5 fw-bold" id="stat-sell">-</div>
+                <div class="small text-muted" id="stat-sell-pct">-</div>
                 </div>
                 <div class="summary-card">
                   <div class="small text-muted">🎯 Win Rate</div>
@@ -609,15 +616,12 @@
                 </div>
                 <div class="summary-card">
                   <div class="small text-muted">💰 Total Profit</div>
-                  <div class="fs-3 fw-bold" id="stat-profit">-</div>
-                  <div class="small" id="stat-profit-pct">-</div>
+                  <div class="fs-3 fw-bold" id="stat-profit-pct">-</div>
                 </div>
                 <div class="summary-card">
                   <div class="small text-muted">📉 Max DD</div>
                   <div class="fs-4 fw-bold neg" id="stat-dd-pct">-</div>
-                  <div class="small">by %</div>
                   <div class="fs-5 fw-bold neg" id="stat-dd-money">-</div>
-                  <div class="small">by $</div>
                 </div>
               </div>
 
@@ -625,15 +629,19 @@
 <div class="mt-4">
   <div class="d-flex justify-content-between align-items-center mb-2">
     <h6 class="mb-0">Cumulative Profit</h6>
+    <div class="d-flex gap-2 align-items-center">
     <div class="btn-group btn-group-sm">
       <button type="button" class="btn btn-primary" id="btnCumAll">All</button>
       <button type="button" class="btn btn-outline-primary" id="btnCumSeparate">Separate</button>
+    </div>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCumDeselect" style="display:none;">Deselect</button>
     </div>
   </div>
   <div style="height: 320px; position: relative;">
     <canvas id="cumProfitChart"></canvas>
   </div>
 </div>
+<div id="cumSymbolButtons" class="d-flex flex-wrap gap-2 mb-2" style="display:none;"></div>
 
 <!-- ===== 四個柱狀圖 ===== -->
 <div class="row g-3 mt-3">
@@ -705,9 +713,11 @@
 
     <!-- Symbol Filter -->
     <div class="mb-3">
-      <label class="form-label small fw-bold">Symbol Filter（可多選）</label>
-      <div id="symbolFilterContainer" class="d-flex flex-wrap gap-2"></div>
-    </div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <label class="form-label small fw-bold mb-0">Symbol Filter（可多選）</label>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnSymbolFilterDeselect">Dis-Select</button>
+      </div>
+    <div id="symbolFilterContainer" class="d-flex flex-wrap gap-2"></div>
 
     <!-- 上面圖 -->
     <div style="height: 320px; position: relative; margin-bottom: 24px;">
@@ -729,11 +739,11 @@
     
     <div class="mb-3">
       <label class="form-label small">View By:</label>
-      <select id="heatmapType" class="form-select w-auto d-inline-block">
-        <option value="hour">By Hour of Day</option>
-        <option value="weekday">By Weekday</option>
-        <option value="symbol">By Symbol</option>
-      </select>
+      <div class="btn-group btn-group-sm" id="heatmapViewBy">
+        <button type="button" class="btn btn-outline-primary active" data-view="weekday">Weekday</button>
+        <button type="button" class="btn btn-outline-primary" data-view="hour">Hour</button>
+        <button type="button" class="btn btn-outline-primary" data-view="symbol">Symbol</button>
+      </div>
     </div>
 
     <div style="height: 380px; position: relative;">
@@ -770,7 +780,10 @@
 
 <!-- Symbol 多選按鈕（Single 模式先顯示） -->
 <div id="ddSymbolSelect" class="mb-3" style="display:none;">
-  <label class="form-label small fw-bold">選擇 Symbol（可多選）</label>
+  <div class="d-flex align-items-center gap-2 mb-1">
+    <label class="form-label small fw-bold mb-0">選擇 Symbol（可多選）</label>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="btnDdDeselect">Dis-Select</button>
+  </div>
   <div id="ddSymbolButtons" class="d-flex flex-wrap gap-2"></div>
 </div>
 
@@ -1063,6 +1076,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
           profitPercent: +profitPercent.toFixed(2),
           maxDD: +maxDD.toFixed(2),
           maxDDPercent: +maxDDPercent.toFixed(2),
+          ccyCount: [...new Set(trades.map(t => t.symbol).filter(Boolean))].length,
           totalTrades: trades.length,
           runningDays,
           runningWeeks,
@@ -1376,12 +1390,29 @@ renderOverviewCharts(result);
         status.innerHTML = `<span class="text-success">✅ 成功解析 ${result.totalTrades} 筆交易</span>`;
 
         // Summary
+        const tradesArr = result.trades || [];
+        const buyTrades = tradesArr.filter(t => t.type === 'buy');
+        const sellTrades = tradesArr.filter(t => t.type === 'sell');
+        const total = tradesArr.length || 1;
+        const initial = result.initial_balance || 10000;
+        const totalProfit = result.totalProfit || 0;
+
         document.getElementById('stat-trades').textContent = result.totalTrades;
+        document.getElementById('stat-buy').textContent = buyTrades.length;
+        document.getElementById('stat-buy-pct').textContent = ((buyTrades.length / total) * 100).toFixed(1) + '%';
+        document.getElementById('stat-sell').textContent = sellTrades.length;
+        document.getElementById('stat-sell-pct').textContent = ((sellTrades.length / total) * 100).toFixed(1) + '%';
         document.getElementById('stat-winrate').textContent = result.winRate.toFixed(1) + '%';
-        document.getElementById('stat-profit').textContent = (result.totalProfit >= 0 ? '+' : '') + result.totalProfit.toFixed(2);
-        document.getElementById('stat-profit').className = 'fs-3 fw-bold ' + (result.totalProfit >= 0 ? 'pos' : 'neg');
-        const profitPct = result.initial_balance > 0 ? (result.totalProfit / result.initial_balance * 100).toFixed(2) : 'N/A';
-        document.getElementById('stat-profit-pct').textContent = profitPct + '% of Balance';
+        document.getElementById('stat-profit').textContent = (totalProfit >= 0 ? '+' : '') + totalProfit.toFixed(2);
+        document.getElementById('stat-profit').className = 'fs-3 fw-bold ' + (totalProfit >= 0 ? 'pos' : 'neg');
+
+        const profitPctEl = document.getElementById('stat-profit-pct');
+        if (profitPctEl) {
+        const pct = initial > 0 ? (totalProfit / initial) * 100 : 0;
+        profitPctEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+        profitPctEl.className = 'fs-3 fw-bold ' + (pct >= 0 ? 'pos' : 'neg');
+}
+}
         document.getElementById('stat-dd-pct').textContent = result.max_dd_pct.toFixed(2) + '%';
         document.getElementById('stat-dd-money').textContent = '$' + result.max_dd_money.toFixed(2);
 
@@ -1494,7 +1525,7 @@ function renderDistribution(bySymbol, result) {
     }
   });
 
-  const sorted = Object.entries(detailed).sort((a, b) => b[1].deals - a[1].deals).slice(0, 10);
+  const sorted = Object.entries(detailed).sort((a, b) => b[1].deals - a[1].deals);
 
   // 最大值
   let maxDeals = 1, maxProfit = 1, maxPips = 1, maxSwap = 1;
@@ -2074,6 +2105,17 @@ allSymbols.forEach((sym) => {
   container.appendChild(btn);
 });
 
+const btnMfeDeselect = document.getElementById('btnSymbolFilterDeselect');
+if (btnMfeDeselect) {
+  btnMfeDeselect.onclick = () => {
+    selectedSymbols.clear();
+    document.querySelectorAll('#symbolFilterContainer button').forEach(b => {
+      b.className = 'btn btn-sm btn-outline-secondary';
+    });
+    drawMfeMaeCharts(trades);
+  };
+}
+
   // 綁定 MFE / MAE / Hours / Days 按鈕
   document.getElementById('btnMfe').onclick = () => {
     currentMfeMaeMode = 'MFE';
@@ -2221,22 +2263,58 @@ function renderOverviewCharts(result) {
   const allSymbols = [...new Set(trades.map(t => t.symbol))].sort();
   selectedCumSymbols = new Set(allSymbols);
 
-  // 綁定 All / Separate 按鈕
-  document.getElementById('btnCumAll').onclick = () => {
-    cumMode = 'all';
-    document.getElementById('btnCumAll').className = 'btn btn-primary btn-sm';
-    document.getElementById('btnCumSeparate').className = 'btn btn-outline-primary btn-sm';
-    drawAllOverviewCharts(trades);
-  };
-  document.getElementById('btnCumSeparate').onclick = () => {
-    cumMode = 'separate';
-    document.getElementById('btnCumSeparate').className = 'btn btn-primary btn-sm';
-    document.getElementById('btnCumAll').className = 'btn btn-outline-primary btn-sm';
-    drawAllOverviewCharts(trades);
-  };
+function renderCumSymbolButtons(allSymbols, trades) {
+  const wrap = document.getElementById('cumSymbolButtons');
+  const btnDeselect = document.getElementById('btnCumDeselect');
+  if (!wrap) return;
 
-  drawAllOverviewCharts(trades);
+  wrap.innerHTML = '';
+  allSymbols.forEach(sym => {
+    const btn = document.createElement('button');
+    btn.className = selectedCumSymbols.has(sym) ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline-secondary';
+    btn.textContent = sym;
+    btn.onclick = () => {
+      if (selectedCumSymbols.has(sym)) {
+        selectedCumSymbols.delete(sym);
+        btn.className = 'btn btn-sm btn-outline-secondary';
+      } else {
+        selectedCumSymbols.add(sym);
+        btn.className = 'btn btn-sm btn-primary';
+      }
+      drawAllOverviewCharts(trades);
+    };
+    wrap.appendChild(btn);
+  });
+
+  if (btnDeselect) {
+    btnDeselect.onclick = () => {
+      selectedCumSymbols.clear();
+      wrap.querySelectorAll('button').forEach(b => {
+        b.className = 'btn btn-sm btn-outline-secondary';
+      });
+      drawAllOverviewCharts(trades);
+    };
+  }
 }
+
+  // 綁定 All / Separate 按鈕
+ document.getElementById('btnCumAll').onclick = () => {
+  cumMode = 'all';
+  document.getElementById('btnCumAll').className = 'btn btn-primary btn-sm';
+  document.getElementById('btnCumSeparate').className = 'btn btn-outline-primary btn-sm';
+  document.getElementById('cumSymbolButtons').style.display = 'none';
+  document.getElementById('btnCumDeselect').style.display = 'none';
+  drawAllOverviewCharts(trades);
+};
+  document.getElementById('btnCumSeparate').onclick = () => {
+  cumMode = 'separate';
+  document.getElementById('btnCumSeparate').className = 'btn btn-primary btn-sm';
+  document.getElementById('btnCumAll').className = 'btn btn-outline-primary btn-sm';
+  document.getElementById('cumSymbolButtons').style.display = 'flex';
+  document.getElementById('btnCumDeselect').style.display = 'inline-block';
+  renderCumSymbolButtons(allSymbols, trades);
+  drawAllOverviewCharts(trades);
+};
 
 function drawAllOverviewCharts(trades) {
   const filtered = trades.filter(t => selectedCumSymbols.has(t.symbol));
@@ -2457,7 +2535,7 @@ function renderHeatmap(result) {
   const trades = result.trades || [];
   if (!trades.length) return;
 
-  const type = document.getElementById('heatmapType')?.value || 'hour';
+  const type = document.querySelector('#heatmapViewBy .active')?.dataset.view || 'weekday';
   let labels = [];
   let data = [];
 
@@ -2479,7 +2557,7 @@ function renderHeatmap(result) {
     trades.forEach(t => {
       bySym[t.symbol] = (bySym[t.symbol] || 0) + t.profit;
     });
-    const sorted = Object.entries(bySym).sort((a, b) => b[1] - a[1]).slice(0, 15);
+    const sorted = Object.entries(bySym).sort((a, b) => b[1] - a[1]);
     labels = sorted.map(s => s[0]);
     data = sorted.map(s => s[1]);
   }
@@ -2579,6 +2657,17 @@ symbols.forEach((sym, idx) => {
   };
   container.appendChild(btn);
 });
+
+const btnDdDeselect = document.getElementById('btnDdDeselect');
+if (btnDdDeselect) {
+  btnDdDeselect.onclick = () => {
+    selectedDdSymbols.clear();
+    document.querySelectorAll('#ddSymbolButtons button').forEach(b => {
+      b.className = 'btn btn-sm btn-outline-secondary';
+    });
+    drawDrawdownCharts(result);
+  };
+}
 
 // 更新 Single 按鈕邏輯
 document.getElementById('btnDdSingle').onclick = () => { 
@@ -3268,7 +3357,7 @@ async function loadSignalHistoryLibrary() {
   const tbody = document.getElementById('libraryTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = '<tr><td colspan="11" class="text-muted text-center">載入中...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="12" class="text-muted text-center">載入中...</td></tr>';
 
   try {
     const snapshot = await db.collection('signalHistory')
@@ -3276,7 +3365,7 @@ async function loadSignalHistoryLibrary() {
       .get();
 
     if (snapshot.empty) {
-      tbody.innerHTML = '<tr><td colspan="11" class="text-muted text-center">暫時未有儲存記錄</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="12" class="text-muted text-center">暫時未有儲存記錄</td></tr>';
       return;
     }
 
@@ -3322,6 +3411,7 @@ async function loadSignalHistoryLibrary() {
           </td>
           <td class="${profitCls} fw-semibold">${profitPct}</td>
           <td class="text-danger small">${mddText}</td>
+          <td>${d.ccyCount != null ? d.ccyCount : '-'}</td>
           <td>${d.totalTrades || '-'}</td>
           <td class="small">${daysWeeks}</td>
           <td class="small">${dateRange}</td>
@@ -3433,7 +3523,7 @@ async function loadSignalHistoryLibrary() {
 
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = `<tr><td colspan="11" class="text-danger text-center">載入失敗：${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="12" class="text-danger text-center">載入失敗：${err.message}</td></tr>`;
   }
 }
 
@@ -3623,7 +3713,17 @@ document.querySelectorAll('.nav-link[data-page="news"]').forEach(link => {
 document.getElementById('btnCloseNewsAlert')?.addEventListener('click', () => {
   document.getElementById('newsAlertBox').style.display = 'none';
 });
-  
+
+document.querySelectorAll('#heatmapViewBy button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#heatmapViewBy button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (typeof renderHeatmap === 'function' && lastResult) {
+      renderHeatmap(lastResult);
+    }
+  });
+});
+
 </script>
 </body>
 </html>
