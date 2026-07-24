@@ -395,8 +395,6 @@
       <div class="btn-group btn-group-sm" id="newsSourceFilter">
         <button class="btn btn-outline-secondary active" data-source="all">All News</button>
         <button class="btn btn-outline-secondary" data-source="finnhub">Finnhub</button>
-        <button class="btn btn-outline-secondary" data-source="investing">Investing</button>
-        <button class="btn btn-outline-secondary" data-source="other">Other</button>
       </div>
       <button class="btn btn-sm btn-outline-secondary" id="btnRefreshNews">🔄</button>
     </div>
@@ -3512,10 +3510,11 @@ let filtered = allNews.filter(n => {
 });
 
 if (source === 'finnhub') {
-  filtered = filtered.filter(n => n.sourceKey === 'finnhub' || (n.source || '').toLowerCase().includes('finnhub'));
+  filtered = filtered.filter(n => n.sourceKey === 'finnhub');
 } else if (source === 'investing') {
-  filtered = filtered.filter(n => n.sourceKey === 'investing' || (n.source || '').toLowerCase().includes('investing'));
-} else if (source === 'other') {
+  filtered = filtered.filter(n => n.sourceKey === 'investing');
+}
+// source === 'all' 就唔再 filter
   filtered = filtered.filter(n => {
     const s = (n.sourceKey || n.source || '').toLowerCase();
     return s !== 'finnhub' && !s.includes('investing') && !s.includes('finnhub');
